@@ -15,42 +15,6 @@ st.set_page_config(
 )
 
 st.markdown("""
-    <style>
-    .stApp {
-        background: linear-gradient(180deg, #eaf7ff 0%, #f7fbfd 45%, #ffffff 100%);
-    }
-
-    .main-title {
-        font-size: 2.7rem;
-        font-weight: 800;
-        color: #0b4f6c;
-        margin-bottom: 0.2rem;
-    }
-
-    .subtitulo {
-        color: #3f6f84;
-        font-size: 1.08rem;
-        margin-bottom: 1.2rem;
-    }
-
-    .bloque {…
-[11:32 a. m., 7/4/2026] Robert: import streamlit as st
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import NearestNeighbors
-
-
-# =========================================
-# CONFIGURACIÓN GENERAL
-# =========================================
-st.set_page_config(
-    page_title="PTAP Caldas - Recomendación PAC",
-    page_icon="💧",
-    layout="wide"
-)
-
-st.markdown("""
 <style>
     .stApp {
         background: linear-gradient(180deg, #dff4ff 0%, #eef9ff 35%, #f8fcff 100%);
