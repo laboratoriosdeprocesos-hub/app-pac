@@ -1,4 +1,27 @@
 import streamlit as st
+
+USUARIO_CORRECTO = "ptap"
+CLAVE_CORRECTA = "c4ldas2026"
+
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+def login():
+    st.title("Acceso restringido")
+    usuario = st.text_input("Usuario")
+    clave = st.text_input("Contraseña", type="password")
+
+    if st.button("Ingresar"):
+        if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
+            st.session_state.autenticado = True
+            st.rerun()
+        else:
+            st.error("Usuario o contraseña incorrectos")
+
+if not st.session_state.autenticado:
+    login()
+    st.stop()
+import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
