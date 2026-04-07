@@ -49,11 +49,11 @@ def mostrar_login():
         }
 
         .login-wrap {
-            min-height: 80vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    display: flex;
+    align-items: flex-start;   /* ← clave */
+    justify-content: center;
+    margin-top: 2rem;          /* ajusta altura */
+}
 
         .login-box {
             width: 100%;
