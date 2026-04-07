@@ -13,7 +13,24 @@ st.set_page_config(
     page_icon="💧",
     layout="wide"
 )
+st.markdown("""
+<style>
+    /* Quita el espacio superior */
+    .block-container {
+        padding-top: 1rem !important;
+    }
 
+    /* Oculta header de Streamlit */
+    header {
+        visibility: hidden;
+    }
+
+    /* Quita margen extra */
+    .main > div {
+        padding-top: 0rem;
+    }
+</style>
+""", unsafe_allow_html=True
 # =========================================
 # LOGIN
 # =========================================
