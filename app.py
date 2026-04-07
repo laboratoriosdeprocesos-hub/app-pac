@@ -179,18 +179,134 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.image("https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg", width=150)
+# =========================================
+# ESTILOS
+# =========================================
 st.markdown("""
-<div class="hero" style="display:flex; align-items:center; gap:20px;">
-    <img src="https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg" width="120">
-    <div>
-        <h1>PTAP Caldas - Recomendacion de PAC</h1>
-        <p>Herramienta de apoyo operativo para definir dosis de PAC en prueba de jarras.</p>
+<style>
+    .stApp {
+        background: linear-gradient(180deg, #dff4ff 0%, #eef9ff 35%, #f8fcff 100%);
+    }
+
+    .hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(8,74,117,0.96), rgba(33,134,181,0.92));
+        color: white;
+        padding: 2rem 2rem 1.8rem 2rem;
+        border-radius: 24px;
+        box-shadow: 0 10px 24px rgba(8,74,117,0.20);
+        margin-bottom: 1.2rem;
+    }
+
+    .hero h1 {
+        color: white !important;
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 800;
+    }
+
+    .hero p {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        font-size: 1.05rem;
+        color: #eaf7ff;
+    }
+
+    .hero-box {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .hero-logo {
+        background: rgba(255,255,255,0.95);
+        padding: 10px;
+        border-radius: 16px;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .hero-logo img {
+        width: 95px;
+    }
+
+    .bloque {
+        background: rgba(255,255,255,0.94);
+        padding: 1.2rem;
+        border-radius: 18px;
+        box-shadow: 0 4px 14px rgba(7,62,94,0.08);
+        border: 1px solid rgba(7,62,94,0.08);
+        margin-bottom: 1rem;
+    }
+
+    .etiqueta {
+        display: inline-block;
+        background: #cfefff;
+        color: #0a4d6a;
+        padding: 0.3rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+    }
+
+    .caja-rango {
+        background: linear-gradient(135deg, #e5f6ff, #f4fbff);
+        border-left: 6px solid #0b4f6c;
+        padding: 1rem;
+        border-radius: 12px;
+        font-size: 1.05rem;
+        margin-top: 0.8rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .stButton > button {
+        background: linear-gradient(135deg, #0b6e4f, #15926d);
+        color: white;
+        border-radius: 12px;
+        border: none;
+        padding: 0.75rem 1rem;
+        font-weight: 700;
+        width: 100%;
+    }
+
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #09543d, #0f7c5c);
+        color: white;
+    }
+
+    div[data-testid="stMetric"] {
+        background: white;
+        border: 1px solid #d6e8f2;
+        padding: 14px;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #f4fbff 0%, #eef8fc 100%);
+    }
+
+    h2, h3 {
+        color: #0b4f6c !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="hero">
+    <div class="hero-box">
+        <div class="hero-logo">
+            <img src="https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg">
+        </div>
+        <div>
+            <h1>PTAP Caldas - Recomendacion de PAC</h1>
+            <p>Herramienta de apoyo operativo para definir dosis de PAC en prueba de jarras con base en datos historicos similares.</p>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-
 # =========================================
 # FUNCION DE CARGA Y LIMPIEZA
 # =========================================
