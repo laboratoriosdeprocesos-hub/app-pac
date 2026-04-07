@@ -27,15 +27,40 @@ if "autenticado" not in st.session_state:
 def mostrar_login():
     st.markdown("""
     <style>
+        .stApp {
+            background: linear-gradient(180deg, #dff4ff 0%, #eef9ff 35%, #f8fcff 100%);
+        }
+
+        .login-wrap {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .login-box {
-            max-width: 420px;
-            margin: 60px auto;
+            width: 100%;
+            max-width: 460px;
             background: rgba(255,255,255,0.96);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+            padding: 2.2rem;
+            border-radius: 24px;
+            box-shadow: 0 12px 28px rgba(11,79,108,0.14);
             border: 1px solid rgba(11,79,108,0.08);
         }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .login-logo img {
+            width: 95px;
+            border-radius: 16px;
+            background: white;
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
         .login-title {
             font-size: 2rem;
             font-weight: 800;
@@ -43,17 +68,46 @@ def mostrar_login():
             text-align: center;
             margin-bottom: 0.3rem;
         }
+
         .login-sub {
             text-align: center;
             color: #4d6d7d;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.4rem;
+            font-size: 1rem;
+        }
+
+        div[data-testid="stTextInput"] > div > div input {
+            border-radius: 12px;
+        }
+
+        .stButton > button {
+            background: linear-gradient(135deg, #0b6e4f, #15926d);
+            color: white;
+            border-radius: 12px;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            width: 100%;
+        }
+
+        .stButton > button:hover {
+            background: linear-gradient(135deg, #09543d, #0f7c5c);
+            color: white;
         }
     </style>
     """, unsafe_allow_html=True)
 
+    st.markdown("<div class='login-wrap'>", unsafe_allow_html=True)
     st.markdown("<div class='login-box'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-title'>💧 Acceso PTAP Caldas</div>", unsafe_allow_html=True)
-    st.markdown("<div class='login-sub'>Ingresa tus credenciales para entrar a la app</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='login-logo'><img src='https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg'></div>",
+        unsafe_allow_html=True
+    )
+    st.markdown("<div class='login-title'>Acceso PTAP Caldas</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='login-sub'>Ingresa tus credenciales para acceder a la herramienta de apoyo operativo</div>",
+        unsafe_allow_html=True
+    )
 
     usuario = st.text_input("Usuario")
     clave = st.text_input("Contrasena", type="password")
@@ -65,6 +119,7 @@ def mostrar_login():
         else:
             st.error("Usuario o contrasena incorrectos")
 
+    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -83,152 +138,46 @@ st.markdown("""
     }
 
     .hero {
-        position: relative;
-        overflow: hidden;
         background: linear-gradient(135deg, rgba(8,74,117,0.96), rgba(33,134,181,0.92));
         color: white;
-        padding: 2rem 2rem 1.8rem 2rem;
+        padding: 1.6rem 1.8rem;
         border-radius: 24px;
         box-shadow: 0 10px 24px rgba(8,74,117,0.20);
         margin-bottom: 1.2rem;
-    }
-
-    .hero::before {
-        content: "💧";
-        position: absolute;
-        right: 30px;
-        top: 10px;
-        font-size: 7rem;
-        opacity: 0.10;
-    }
-
-    .hero h1 {
-        color: white !important;
-        margin: 0;
-        font-size: 2.7rem;
-        font-weight: 800;
-    }
-
-    .hero p {
-        margin-top: 0.5rem;
-        margin-bottom: 0;
-        font-size: 1.05rem;
-        color: #eaf7ff;
-    }
-
-    .bloque {
-        background: rgba(255,255,255,0.94);
-        padding: 1.2rem;
-        border-radius: 18px;
-        box-shadow: 0 4px 14px rgba(7,62,94,0.08);
-        border: 1px solid rgba(7,62,94,0.08);
-        margin-bottom: 1rem;
-    }
-
-    .etiqueta {
-        display: inline-block;
-        background: #cfefff;
-        color: #0a4d6a;
-        padding: 0.3rem 0.8rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        margin-bottom: 0.8rem;
-    }
-
-    .caja-rango {
-        background: linear-gradient(135deg, #e5f6ff, #f4fbff);
-        border-left: 6px solid #0b4f6c;
-        padding: 1rem;
-        border-radius: 12px;
-        font-size: 1.05rem;
-        margin-top: 0.8rem;
-        margin-bottom: 0.8rem;
-    }
-
-    .stButton > button {
-        background: linear-gradient(135deg, #0b6e4f, #15926d);
-        color: white;
-        border-radius: 12px;
-        border: none;
-        padding: 0.75rem 1rem;
-        font-weight: 700;
-        width: 100%;
-    }
-
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #09543d, #0f7c5c);
-        color: white;
-    }
-
-    div[data-testid="stMetric"] {
-        background: white;
-        border: 1px solid #d6e8f2;
-        padding: 14px;
-        border-radius: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f4fbff 0%, #eef8fc 100%);
-    }
-
-    h2, h3 {
-        color: #0b4f6c !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# =========================================
-# ESTILOS
-# =========================================
-st.markdown("""
-<style>
-    .stApp {
-        background: linear-gradient(180deg, #dff4ff 0%, #eef9ff 35%, #f8fcff 100%);
-    }
-
-    .hero {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(135deg, rgba(8,74,117,0.96), rgba(33,134,181,0.92));
-        color: white;
-        padding: 2rem 2rem 1.8rem 2rem;
-        border-radius: 24px;
-        box-shadow: 0 10px 24px rgba(8,74,117,0.20);
-        margin-bottom: 1.2rem;
-    }
-
-    .hero h1 {
-        color: white !important;
-        margin: 0;
-        font-size: 2.5rem;
-        font-weight: 800;
-    }
-
-    .hero p {
-        margin-top: 0.5rem;
-        margin-bottom: 0;
-        font-size: 1.05rem;
-        color: #eaf7ff;
     }
 
     .hero-box {
         display: flex;
         align-items: center;
-        gap: 24px;
+        gap: 22px;
     }
 
     .hero-logo {
-        background: rgba(255,255,255,0.95);
+        background: rgba(255,255,255,0.96);
         padding: 10px;
-        border-radius: 16px;
+        border-radius: 18px;
         min-width: 120px;
         text-align: center;
     }
 
     .hero-logo img {
-        width: 95px;
+        width: 90px;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .hero-texto h1 {
+        color: white !important;
+        margin: 0;
+        font-size: 2.3rem;
+        font-weight: 800;
+    }
+
+    .hero-texto p {
+        margin-top: 0.45rem;
+        margin-bottom: 0;
+        font-size: 1rem;
+        color: #eaf7ff;
     }
 
     .bloque {
@@ -290,6 +239,10 @@ st.markdown("""
 
     h2, h3 {
         color: #0b4f6c !important;
+    }
+
+    .logout-space {
+        margin-top: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -300,13 +253,15 @@ st.markdown("""
         <div class="hero-logo">
             <img src="https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg">
         </div>
-        <div>
+        <div class="hero-texto">
             <h1>PTAP Caldas - Recomendacion de PAC</h1>
             <p>Herramienta de apoyo operativo para definir dosis de PAC en prueba de jarras con base en datos historicos similares.</p>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+
 # =========================================
 # FUNCION DE CARGA Y LIMPIEZA
 # =========================================
@@ -363,7 +318,6 @@ def calcular_rango_pac(
         "Alcalinidad de agua cruda (mg/L)": alcalinidad
     }])
 
-    # Prefiltro
     df_base = df[
         (df["Caudal A tratar (L/s)"].between(caudal - 15, caudal + 15)) &
         (df["Turbiedad de agua cruda (UNT)"].between(turbiedad - 8, turbiedad + 8)) &
@@ -396,7 +350,6 @@ def calcular_rango_pac(
 
     col_pac = "Caudal de dosificación del PAC (mL/min)"
 
-    # Quitar extremos por IQR
     q1 = similares[col_pac].quantile(0.25)
     q3 = similares[col_pac].quantile(0.75)
     iqr = q3 - q1
@@ -423,7 +376,6 @@ def calcular_rango_pac(
     n = int(len(similares_filtrados))
     ancho_rango = pac_max - pac_min
 
-    # Regla para decidir si usar rango real o mediana +-10%
     if n < 5:
         usar_rango = False
         motivo = "Muy pocos casos"
@@ -446,17 +398,11 @@ def calcular_rango_pac(
         dosis_mediana_max = pac_mediana * 1.10
         metodo = "Mediana +-10%"
 
-    # Series de jarras
     jarras = [1, 2, 3, 4, 5, 6]
 
-    # 1) Caudal PAC con mediana / rango final usado
     jarras_mediana = np.round(np.linspace(dosis_mediana_min, dosis_mediana_max, 6), 1)
-
-    # 2) Caudal PAC entre minimo y maximo estrictos
     jarras_minmax = np.round(np.linspace(pac_min, pac_max, 6), 1)
 
-    # Conversion a mg/L
-    # Dosis(mg/L) = (Qpac(mL/min) * densidad(g/mL) * 1000) / (60 * Qagua(L/s))
     dosis_mgL_mediana = np.round((jarras_mediana * densidad_pac * 1000) / (60 * caudal), 2)
     dosis_mgL_minmax = np.round((jarras_minmax * densidad_pac * 1000) / (60 * caudal), 2)
 
@@ -551,11 +497,30 @@ vecinos_deseados = st.sidebar.slider(
     step=1
 )
 
-if st.sidebar.button("Cerrar sesion"):
+calcular = st.sidebar.button("Calcular rango PAC")
+
+st.sidebar.markdown(
+    """
+    <style>
+    div[data-testid="stSidebar"] div.stButton > button[kind="secondary"] {
+        background: #f8d7da !important;
+        color: #842029 !important;
+        border: 1px solid #f5c2c7 !important;
+    }
+    div[data-testid="stSidebar"] div.stButton > button[kind="secondary"]:hover {
+        background: #f1b0b7 !important;
+        color: #6a1a21 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+cerrar_sesion = st.sidebar.button("Cerrar sesion", type="secondary")
+
+if cerrar_sesion:
     st.session_state.autenticado = False
     st.rerun()
-
-calcular = st.sidebar.button("Calcular rango PAC")
 
 
 # =========================================
