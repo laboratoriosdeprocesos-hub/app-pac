@@ -6,14 +6,76 @@ from sklearn.neighbors import NearestNeighbors
 
 
 # =========================================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACION GENERAL
 # =========================================
 st.set_page_config(
-    page_title="PTAP Caldas - Recomendación PAC",
+    page_title="PTAP Caldas - Recomendacion PAC",
     page_icon="💧",
     layout="wide"
 )
 
+# =========================================
+# LOGIN
+# =========================================
+USUARIO_CORRECTO = "ptap"
+CLAVE_CORRECTA = "c4ldas2026"
+
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+
+def mostrar_login():
+    st.markdown("""
+    <style>
+        .login-box {
+            max-width: 420px;
+            margin: 60px auto;
+            background: rgba(255,255,255,0.96);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+            border: 1px solid rgba(11,79,108,0.08);
+        }
+        .login-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0b4f6c;
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+        .login-sub {
+            text-align: center;
+            color: #4d6d7d;
+            margin-bottom: 1.2rem;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+    st.markdown("<div class='login-title'>💧 Acceso PTAP Caldas</div>", unsafe_allow_html=True)
+    st.markdown("<div class='login-sub'>Ingresa tus credenciales para entrar a la app</div>", unsafe_allow_html=True)
+
+    usuario = st.text_input("Usuario")
+    clave = st.text_input("Contrasena", type="password")
+
+    if st.button("Ingresar"):
+        if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
+            st.session_state.autenticado = True
+            st.rerun()
+        else:
+            st.error("Usuario o contrasena incorrectos")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+if not st.session_state.autenticado:
+    mostrar_login()
+    st.stop()
+
+
+# =========================================
+# ESTILOS
+# =========================================
 st.markdown("""
 <style>
     .stApp {
@@ -79,7 +141,7 @@ st.markdown("""
         border-left: 6px solid #0b4f6c;
         padding: 1rem;
         border-radius: 12px;
-        font-size: 1.08rem;
+        font-size: 1.05rem;
         margin-top: 0.8rem;
         margin-bottom: 0.8rem;
     }
@@ -119,25 +181,25 @@ st.markdown("""
 
 st.markdown("""
 <div class="hero">
-    <h1>PTAP Caldas - Recomendación de PAC</h1>
-    <p>Herramienta de apoyo operativo para definir dosis de PAC en prueba de jarras con base en datos históricos similares.</p>
+    <h1>PTAP Caldas - Recomendacion de PAC</h1>
+    <p>Herramienta de apoyo operativo para definir dosis de PAC en prueba de jarras con base en datos historicos similares.</p>
 </div>
 """, unsafe_allow_html=True)
 
 
 # =========================================
-# FUNCIÓN DE CARGA Y LIMPIEZA
+# FUNCION DE CARGA Y LIMPIEZA
 # =========================================
 @st.cache_data
 def cargar_y_limpiar_excel(archivo_excel):
     df = pd.read_excel(archivo_excel)
 
     columnas = [
-        'Caudal A tratar (L/s)',
-        'Turbiedad de agua cruda (UNT)',
-        'pH de agua cruda (Unid)',
-        'Alcalinidad de agua cruda (mg/L)',
-        'Caudal de dosificación del PAC (mL/min)'
+        "Caudal A tratar (L/s)",
+        "Turbiedad de agua cruda (UNT)",
+        "pH de agua cruda (Unid)",
+        "Alcalinidad de agua cruda (mg/L)",
+        "Caudal de dosificación del PAC (mL/min)"
     ]
 
     for col in columnas:
@@ -145,18 +207,18 @@ def cargar_y_limpiar_excel(archivo_excel):
             df[col]
             .astype(str)
             .str.strip()
-            .str.replace(' ', '', regex=False)
-            .str.replace(',,', ',', regex=False)
-            .str.replace(',', '.', regex=False)
+            .str.replace(" ", "", regex=False)
+            .str.replace(",,", ",", regex=False)
+            .str.replace(",", ".", regex=False)
         )
-        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df = df.dropna(subset=columnas).copy()
     return df
 
 
 # =========================================
-# FUNCIÓN PRINCIPAL
+# FUNCION PRINCIPAL
 # =========================================
 def calcular_rango_pac(
     df: pd.DataFrame,
@@ -168,31 +230,31 @@ def calcular_rango_pac(
     vecinos_deseados: int
 ):
     variables = [
-        'Caudal A tratar (L/s)',
-        'Turbiedad de agua cruda (UNT)',
-        'pH de agua cruda (Unid)',
-        'Alcalinidad de agua cruda (mg/L)'
+        "Caudal A tratar (L/s)",
+        "Turbiedad de agua cruda (UNT)",
+        "pH de agua cruda (Unid)",
+        "Alcalinidad de agua cruda (mg/L)"
     ]
 
     nuevo = pd.DataFrame([{
-        'Caudal A tratar (L/s)': caudal,
-        'Turbiedad de agua cruda (UNT)': turbiedad,
-        'pH de agua cruda (Unid)': ph,
-        'Alcalinidad de agua cruda (mg/L)': alcalinidad
+        "Caudal A tratar (L/s)": caudal,
+        "Turbiedad de agua cruda (UNT)": turbiedad,
+        "pH de agua cruda (Unid)": ph,
+        "Alcalinidad de agua cruda (mg/L)": alcalinidad
     }])
 
     # Prefiltro
     df_base = df[
-        (df['Caudal A tratar (L/s)'].between(caudal - 15, caudal + 15)) &
-        (df['Turbiedad de agua cruda (UNT)'].between(turbiedad - 8, turbiedad + 8)) &
-        (df['pH de agua cruda (Unid)'].between(ph - 0.15, ph + 0.15)) &
-        (df['Alcalinidad de agua cruda (mg/L)'].between(alcalinidad - 5, alcalinidad + 5))
+        (df["Caudal A tratar (L/s)"].between(caudal - 15, caudal + 15)) &
+        (df["Turbiedad de agua cruda (UNT)"].between(turbiedad - 8, turbiedad + 8)) &
+        (df["pH de agua cruda (Unid)"].between(ph - 0.15, ph + 0.15)) &
+        (df["Alcalinidad de agua cruda (mg/L)"].between(alcalinidad - 5, alcalinidad + 5))
     ].copy()
 
     if len(df_base) < 5:
         return {
             "ok": False,
-            "mensaje": "Muy pocos datos después del prefiltro. Ajusta el caso o revisa el histórico."
+            "mensaje": "Muy pocos datos despues del prefiltro. Ajusta el caso o revisa el historico."
         }
 
     scaler = StandardScaler()
@@ -212,9 +274,9 @@ def calcular_rango_pac(
     similares["distancia"] = distancias[0]
     similares = similares.sort_values("distancia")
 
-    col_pac = 'Caudal de dosificación del PAC (mL/min)'
+    col_pac = "Caudal de dosificación del PAC (mL/min)"
 
-    # Quitar extremos
+    # Quitar extremos por IQR
     q1 = similares[col_pac].quantile(0.25)
     q3 = similares[col_pac].quantile(0.75)
     iqr = q3 - q1
@@ -230,7 +292,7 @@ def calcular_rango_pac(
     if len(similares_filtrados) < 3:
         return {
             "ok": False,
-            "mensaje": "Después de quitar valores extremos quedaron muy pocos casos útiles."
+            "mensaje": "Despues de quitar valores extremos quedaron muy pocos casos utiles."
         }
 
     pac_min = float(similares_filtrados[col_pac].min())
@@ -241,13 +303,13 @@ def calcular_rango_pac(
     n = int(len(similares_filtrados))
     ancho_rango = pac_max - pac_min
 
-    # Regla para definir si usar rango real o mediana ±10%
+    # Regla para decidir si usar rango real o mediana +-10%
     if n < 5:
         usar_rango = False
         motivo = "Muy pocos casos"
     elif std > 40:
         usar_rango = False
-        motivo = "Demasiada dispersión"
+        motivo = "Demasiada dispersion"
     elif ancho_rango > 0.4 * pac_mediana:
         usar_rango = False
         motivo = "Rango demasiado amplio"
@@ -255,47 +317,39 @@ def calcular_rango_pac(
         usar_rango = True
         motivo = "Rango aceptable"
 
-    # Serie basada en mediana o rango final aceptado
     if usar_rango:
         dosis_mediana_min = pac_min
         dosis_mediana_max = pac_max
-        metodo = "Rango histórico real"
+        metodo = "Rango historico real"
     else:
         dosis_mediana_min = pac_mediana * 0.90
         dosis_mediana_max = pac_mediana * 1.10
-        metodo = "Mediana ±10%"
+        metodo = "Mediana +-10%"
 
-    # Columnas de jarras
+    # Series de jarras
     jarras = [1, 2, 3, 4, 5, 6]
 
-    # 1) Columna con mediana / rango aceptado
-    dosis_con_mediana = np.round(np.linspace(dosis_mediana_min, dosis_mediana_max, 6), 1)
+    # 1) Caudal PAC con mediana / rango final usado
+    jarras_mediana = np.round(np.linspace(dosis_mediana_min, dosis_mediana_max, 6), 1)
 
-    # 2) Columna con media ±10%
-    dosis_media_min = pac_promedio * 0.90
-    dosis_media_max = pac_promedio * 1.10
-    dosis_con_media = np.round(np.linspace(dosis_media_min, dosis_media_max, 6), 1)
+    # 2) Caudal PAC entre minimo y maximo estrictos
+    jarras_minmax = np.round(np.linspace(pac_min, pac_max, 6), 1)
 
-    # 3) Columna min-max estricta
-    dosis_min_max = np.round(np.linspace(pac_min, pac_max, 6), 1)
-
-    # Conversión usando densidad (g/min)
-    gmin_mediana = np.round(dosis_con_mediana * densidad_pac, 2)
-    gmin_media = np.round(dosis_con_media * densidad_pac, 2)
-    gmin_minmax = np.round(dosis_min_max * densidad_pac, 2)
+    # Conversion a mg/L
+    # Dosis(mg/L) = (Qpac(mL/min) * densidad(g/mL) * 1000) / (60 * Qagua(L/s))
+    dosis_mgL_mediana = np.round((jarras_mediana * densidad_pac * 1000) / (60 * caudal), 2)
+    dosis_mgL_minmax = np.round((jarras_minmax * densidad_pac * 1000) / (60 * caudal), 2)
 
     tabla_jarras = pd.DataFrame({
         "Jarra": jarras,
-        "Dosis PAC con mediana (mL/min)": dosis_con_mediana,
-        "Equiv. con mediana (g/min)": gmin_mediana,
-        "Dosis PAC con media (mL/min)": dosis_con_media,
-        "Equiv. con media (g/min)": gmin_media,
-        "Dosis PAC entre mínimo y máximo (mL/min)": dosis_min_max,
-        "Equiv. entre mínimo y máximo (g/min)": gmin_minmax
+        "Caudal PAC con mediana (mL/min)": jarras_mediana,
+        "Dosis PAC con mediana (mg/L)": dosis_mgL_mediana,
+        "Caudal PAC entre minimo y maximo (mL/min)": jarras_minmax,
+        "Dosis PAC entre minimo y maximo (mg/L)": dosis_mgL_minmax
     })
 
     tabla_resumen = pd.DataFrame({
-        "Indicador": ["Mínimo", "Mediana", "Media", "Máximo"],
+        "Indicador": ["Minimo", "Mediana", "Media", "Maximo"],
         "PAC (mL/min)": [
             round(pac_min, 1),
             round(pac_mediana, 1),
@@ -304,7 +358,7 @@ def calcular_rango_pac(
         ]
     })
 
-    columnas_mostrar = variables + [col_pac, 'distancia']
+    columnas_mostrar = variables + [col_pac, "distancia"]
     similares_filtrados = similares_filtrados[columnas_mostrar].copy()
 
     return {
@@ -327,10 +381,10 @@ def calcular_rango_pac(
 # CARGA DEL ARCHIVO
 # =========================================
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-st.markdown("<div class='etiqueta'>Archivo histórico</div>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Archivo historico</div>", unsafe_allow_html=True)
 
 opcion_archivo = st.radio(
-    "¿Cómo quieres cargar el archivo?",
+    "Como quieres cargar el archivo?",
     ["Usar archivo local 2026 PTAP CALDAS.xlsx", "Subir archivo manualmente"]
 )
 
@@ -352,7 +406,7 @@ else:
             st.error(f"No pude leer el archivo: {e}")
 
 if df is not None:
-    st.write(f"*Filas útiles:* {len(df)}")
+    st.write(f"*Filas utiles:* {len(df)}")
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -370,12 +424,16 @@ alcalinidad = st.sidebar.number_input("Alcalinidad de agua cruda (mg/L)", value=
 densidad_pac = st.sidebar.number_input("Densidad del PAC (g/mL)", value=1.33, step=0.01, format="%.2f")
 
 vecinos_deseados = st.sidebar.slider(
-    "Cantidad de datos históricos a evaluar",
+    "Cantidad de datos historicos a evaluar",
     min_value=5,
     max_value=30,
     value=8,
     step=1
 )
+
+if st.sidebar.button("Cerrar sesion"):
+    st.session_state.autenticado = False
+    st.rerun()
 
 calcular = st.sidebar.button("Calcular rango PAC")
 
@@ -398,16 +456,16 @@ if df is not None and calcular:
         st.error(resultado["mensaje"])
     else:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-        st.markdown("<div class='etiqueta'>Resultado del análisis</div>", unsafe_allow_html=True)
+        st.markdown("<div class='etiqueta'>Resultado del analisis</div>", unsafe_allow_html=True)
 
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Casos usados", resultado["n"])
         c2.metric("PAC mediana", round(resultado["pac_mediana"], 1))
         c3.metric("PAC media", round(resultado["pac_promedio"], 1))
-        c4.metric("Desviación", round(resultado["std"], 1))
+        c4.metric("Desviacion", round(resultado["std"], 1))
 
         st.markdown(
-            f"<div class='caja-rango'><b>Método usado:</b> {resultado['metodo']}<br>"
+            f"<div class='caja-rango'><b>Metodo usado:</b> {resultado['metodo']}<br>"
             f"<b>Motivo:</b> {resultado['motivo']}</div>",
             unsafe_allow_html=True
         )
@@ -426,10 +484,11 @@ if df is not None and calcular:
             st.write("*Resumen PAC*")
             st.dataframe(resultado["tabla_resumen"], use_container_width=True)
             st.write(f"*Densidad PAC usada:* {densidad_pac:.2f} g/mL")
+            st.write(f"*Caudal a tratar usado:* {caudal:.2f} L/s")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-        st.markdown("<div class='etiqueta'>Casos históricos similares usados</div>", unsafe_allow_html=True)
+        st.markdown("<div class='etiqueta'>Casos historicos similares usados</div>", unsafe_allow_html=True)
         st.dataframe(resultado["similares_filtrados"], use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
