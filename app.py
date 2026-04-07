@@ -179,7 +179,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.image("logo.jpeg", width=150)
+st.image("https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg", width=150)
 st.markdown("""
 <div class="hero" style="display:flex; align-items:center; gap:20px;">
     <img src="https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg" width="120">
