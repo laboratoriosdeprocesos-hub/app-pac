@@ -179,10 +179,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+st.image("logo.jpeg", width=150)
 st.markdown("""
-<div class="hero">
-    <h1>PTAP Caldas - Recomendacion de PAC</h1>
-    <p>Herramienta de apoyo operativo para definir dosis de PAC en prueba de jarras con base en datos historicos similares.</p>
+<div class="hero" style="display:flex; align-items:center; gap:20px;">
+    <img src="https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg" width="120">
+    <div>
+        <h1>PTAP Caldas - Recomendacion de PAC</h1>
+        <p>Herramienta de apoyo operativo para definir dosis de PAC en prueba de jarras.</p>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
