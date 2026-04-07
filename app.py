@@ -293,8 +293,8 @@ def calcular_rango_pac(
 
     tabla_jarras = pd.DataFrame({
         "Jarra": [1, 2, 3, 4, 5, 6],
-        "Dosis PAC con mediana (mL/min)": jarras_mediana,
-        "Dosis PAC entre mínimo y máximo (mL/min)": jarras_minmax
+        "Caudal PAC con mediana (mL/min)": jarras_mediana,
+        "Caudal PAC entre mínimo y máximo (mL/min)": jarras_minmax
     })
 
     tabla_resumen = pd.DataFrame({
