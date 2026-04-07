@@ -16,69 +16,110 @@ st.set_page_config(
 
 st.markdown("""
     <style>
-    .main {
-        background-color: #f4f9fb;
+    .stApp {
+        background: linear-gradient(180deg, #eaf7ff 0%, #f7fbfd 45%, #ffffff 100%);
     }
 
-    h1, h2, h3 {
+    .main-title {
+        font-size: 2.7rem;
+        font-weight: 800;
         color: #0b4f6c;
+        margin-bottom: 0.2rem;
     }
 
     .subtitulo {
-        color: #4f6d7a;
-        font-size: 1.05rem;
-        margin-top: -10px;
-        margin-bottom: 20px;
+        color: #3f6f84;
+        font-size: 1.08rem;
+        margin-bottom: 1.2rem;
     }
 
     .bloque {
-        background-color: white;
+        background: rgba(255,255,255,0.92);
         padding: 1.2rem;
-        border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border-radius: 18px;
+        box-shadow: 0 4px 14px rgba(11,79,108,0.10);
+        border: 1px solid rgba(11,79,108,0.08);
         margin-bottom: 1rem;
     }
 
-    .stButton > button {
-        background-color: #0b6e4f;
+    .hero {
+        background: linear-gradient(135deg, rgba(11,79,108,0.95), rgba(68,170,185,0.88));
         color: white;
-        border-radius: 10px;
-        border: none;
-        padding: 0.7rem 1rem;
-        font-weight: bold;
-        width: 100%;
+        padding: 1.4rem 1.6rem;
+        border-radius: 22px;
+        box-shadow: 0 8px 22px rgba(11,79,108,0.20);
+        margin-bottom: 1.2rem;
     }
 
-    .stButton > button:hover {
-        background-color: #09543d;
-        color: white;
+    .hero h1 {
+        color: white !important;
+        margin: 0;
+        font-size: 2.5rem;
+    }
+
+    .hero p {
+        margin-top: 0.4rem;
+        margin-bottom: 0;
+        font-size: 1.05rem;
+        color: #eef9ff;
     }
 
     div[data-testid="stMetric"] {
         background-color: #ffffff;
-        border: 1px solid #dbe7ec;
-        padding: 12px;
+        border: 1px solid #d8eaf1;
+        padding: 14px;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .stButton > button {
+        background: linear-gradient(135deg, #0b6e4f, #12966d);
+        color: white;
         border-radius: 12px;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+        border: none;
+        padding: 0.75rem 1rem;
+        font-weight: 700;
+        width: 100%;
+    }
+
+    .stButton > button:hover {
+        color: white;
+        background: linear-gradient(135deg, #09543d, #0f805e);
     }
 
     .caja-rango {
-        background-color: #e8f4f8;
+        background: linear-gradient(135deg, #e0f4ff, #f4fbff);
         border-left: 6px solid #0b4f6c;
         padding: 1rem;
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 1.1rem;
         margin-top: 0.8rem;
         margin-bottom: 0.8rem;
     }
+
+    .etiqueta {
+        display: inline-block;
+        background-color: #d8eff7;
+        color: #0b4f6c;
+        padding: 0.25rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+    }
+
+    .sidebar .sidebar-content {
+        background: #f8fcfe;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1>💧 PTAP Caldas - Recomendación de PAC para prueba de jarras</h1>", unsafe_allow_html=True)
-st.markdown(
-    "<div class='subtitulo'>Sistema de apoyo operativo basado en históricos similares para definir rango de dosis en prueba de jarras</div>",
-    unsafe_allow_html=True
-)
+st.markdown("""
+<div class="hero">
+    <h1>💧 PTAP Caldas - Recomendación de PAC</h1>
+    <p>Herramienta de apoyo operativo para definir rango de dosis en prueba de jarras a partir de datos históricos similares.</p>
+</div>
+""", unsafe_allow_html=True)
 
 
 # =========================================
@@ -136,7 +177,6 @@ def calcular_rango_pac(
         'Alcalinidad de agua cruda (mg/L)': alcalinidad
     }])
 
-    # Prefiltro
     df_base = df[
         (df['Caudal A tratar (L/s)'].between(caudal - 15, caudal + 15)) &
         (df['Turbiedad de agua cruda (UNT)'].between(turbiedad - 8, turbiedad + 8)) &
@@ -150,17 +190,14 @@ def calcular_rango_pac(
             "mensaje": "Muy pocos datos después del prefiltro. Ajusta el caso o revisa el histórico."
         }
 
-    # Escalado
     scaler = StandardScaler()
     X_hist = scaler.fit_transform(df_base[variables])
     X_new = scaler.transform(nuevo[variables])
 
-    # Pesos
-    pesos = np.array([3, 4, 3, 2], dtype=float)  # caudal, turbiedad, pH, alcalinidad
+    pesos = np.array([3, 4, 3, 2], dtype=float)
     X_hist = X_hist * pesos
     X_new = X_new * pesos
 
-    # Vecinos
     n_neighbors = min(vecinos_deseados, len(df_base))
     knn = NearestNeighbors(n_neighbors=n_neighbors)
     knn.fit(X_hist)
@@ -172,7 +209,6 @@ def calcular_rango_pac(
 
     col_pac = 'Caudal de dosificación del PAC (mL/min)'
 
-    # Quitar extremos por IQR
     q1 = similares[col_pac].quantile(0.25)
     q3 = similares[col_pac].quantile(0.75)
     iqr = q3 - q1
@@ -199,7 +235,6 @@ def calcular_rango_pac(
     n = int(len(similares_filtrados))
     ancho_rango = pac_max - pac_min
 
-    # Regla de decisión: rango real o mediana ±10%
     if n < 5:
         usar_rango = False
         motivo = "Muy pocos casos"
@@ -222,14 +257,12 @@ def calcular_rango_pac(
         dosis_max = pac_mediana * 1.10
         metodo = "Mediana ±10%"
 
-    # Tabla de 6 jarras
     jarras = np.round(np.linspace(dosis_min, dosis_max, 6), 1)
     tabla_jarras = pd.DataFrame({
         "Jarra": [1, 2, 3, 4, 5, 6],
         "Dosis PAC (mL/min)": jarras
     })
 
-    # Tabla resumen lateral de PAC
     tabla_resumen = pd.DataFrame({
         "Indicador": ["Mínimo", "Mediana", "Máximo"],
         "PAC (mL/min)": [round(pac_min, 1), round(pac_mediana, 1), round(pac_max, 1)]
@@ -263,7 +296,7 @@ def calcular_rango_pac(
 # CARGA DEL ARCHIVO
 # =========================================
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-st.subheader("1) Archivo histórico")
+st.markdown("<div class='etiqueta'>Archivo histórico</div>", unsafe_allow_html=True)
 
 opcion_archivo = st.radio(
     "¿Cómo quieres cargar el archivo?",
@@ -296,6 +329,7 @@ st.markdown("</div>", unsafe_allow_html=True)
 # SIDEBAR
 # =========================================
 st.sidebar.header("⚙️ Datos del caso actual")
+st.sidebar.markdown("Ingresa las condiciones actuales del agua cruda para estimar el rango de dosis de PAC.")
 
 caudal = st.sidebar.number_input("Caudal A tratar (L/s)", value=170.0, step=1.0)
 turbiedad = st.sidebar.number_input("Turbiedad de agua cruda (UNT)", value=50.0, step=1.0)
@@ -324,7 +358,7 @@ if df is not None and calcular:
 
     else:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-        st.subheader("2) Resultado del análisis")
+        st.markdown("<div class='etiqueta'>Resultado del análisis</div>", unsafe_allow_html=True)
 
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Casos similares usados", resultado["n"])
@@ -347,7 +381,7 @@ if df is not None and calcular:
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-        st.subheader("3) Dosis sugeridas para 6 jarras")
+        st.markdown("<div class='etiqueta'>Dosis sugeridas para 6 jarras</div>", unsafe_allow_html=True)
 
         col_j1, col_j2 = st.columns([2, 1])
 
@@ -361,6 +395,6 @@ if df is not None and calcular:
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-        st.subheader("4) Casos históricos similares usados")
+        st.markdown("<div class='etiqueta'>Casos históricos similares usados</div>", unsafe_allow_html=True)
         st.dataframe(resultado["similares_filtrados"], use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
