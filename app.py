@@ -882,16 +882,14 @@ if df is not None and calcular:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Dosis sugeridas para 6 jarras</div>", unsafe_allow_html=True)
 
-        col1, col2 = st.columns([3, 1])
+        st.write("Resumen PAC")
+        st.dataframe(resultado["tabla_resumen"], use_container_width=True)
 
-        with col1:
-            st.dataframe(resultado["tabla_jarras"], use_container_width=True)
+        st.write(f"Densidad PAC usada: {densidad_pac:.2f} g/mL")
+        st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
 
-        with col2:
-            st.write("Resumen PAC")
-            st.dataframe(resultado["tabla_resumen"], use_container_width=True)
-            st.write(f"Densidad PAC usada: {densidad_pac:.2f} g/mL")
-            st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
+        st.write("Dosis sugeridas para 6 jarras")
+        st.dataframe(resultado["tabla_jarras"], use_container_width=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
