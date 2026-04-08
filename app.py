@@ -302,7 +302,7 @@ CONFIGS = {
         "nombre_app": "PTAP Diviso - Modulo 500",
         "variables_entrada": {
             "caudal": "Caudal A tratar módulo 500 (L/s)",
-            "turbiedad": "Turbiedad de agua cruda (UNT).1",
+            "turbiedad": "Turbiedad de agua cruda (UNT)",
             "ph": "pH de agua cruda",
             "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
             "alcalinidad_encalada": "Alcalinidad de agua encalda (mg/L)",
@@ -317,7 +317,7 @@ CONFIGS = {
         "nombre_app": "PTAP Diviso - Modulo 150",
         "variables_entrada": {
             "caudal": "Caudal A tratar módulo 150 (L/s)",
-            "turbiedad": "Turbiedad de agua cruda (UNT).1",
+            "turbiedad": "Turbiedad de agua cruda (UNT)",
             "ph": "pH de agua cruda",
             "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
             "alcalinidad_encalada": "Alcalinidad de agua encalda (mg/L)",
