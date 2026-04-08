@@ -291,7 +291,6 @@ CONFIGS = {
             "turbiedad": "Turbiedad de agua cruda (UNT)",
             "ph": "pH de agua cruda (Unid)",
             "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
-            "densidad": "Densidad del PAC (g/mL)"
         },
         "col_pac": "Caudal de dosificación del PAC (mL/min)",
         "usa_alcalinidad_encalada": False
@@ -301,14 +300,13 @@ CONFIGS = {
         "archivo": "2026 PTAP DIVISO.xlsx",
         "nombre_app": "PTAP Diviso - Modulo 500",
         "variables_entrada": {
-            "caudal": "Caudal A tratar módulo 500 (L/s)",
+            "caudal": "Caudal A tratar módulo de 500 (L/s)",
             "turbiedad": "Turbiedad de agua cruda (UNT)",
-            "ph": "pH de agua cruda",
+            "ph": "pH de agua cruda (Unid)",
             "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
-            "alcalinidad_encalada": "Alcalinidad de agua encalda (mg/L)",
-            "densidad": "Densidad del PAC (g/mL)"
+            "alcalinidad_encalada": "Alcalinidad de agua encalada (mg/L)",
         },
-        "col_pac": "Caudal de dosificación del PAC módulo 500 (mL/min)",
+        "col_pac": "Caudal de dosificación del PAC módulo de 500 (mL/min)",
         "usa_alcalinidad_encalada": True
     },
 
@@ -316,14 +314,13 @@ CONFIGS = {
         "archivo": "2026 PTAP DIVISO.xlsx",
         "nombre_app": "PTAP Diviso - Modulo 150",
         "variables_entrada": {
-            "caudal": "Caudal A tratar módulo 150 (L/s)",
+            "caudal": "Caudal A tratar módulo de 150 (L/s)",
             "turbiedad": "Turbiedad de agua cruda (UNT)",
-            "ph": "pH de agua cruda",
+            "ph": "pH de agua cruda (Unid)",
             "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
-            "alcalinidad_encalada": "Alcalinidad de agua encalda (mg/L)",
-            "densidad": "Densidad del PAC (g/mL)"
+            "alcalinidad_encalada": "Alcalinidad de agua encalada (mg/L)",
         },
-        "col_pac": "Caudal de dosificación del PAC módulo 150 (mL/min)",
+        "col_pac": "Caudal de dosificación del PAC módulo de 150 (mL/min)",
         "usa_alcalinidad_encalada": True
     }
 }
@@ -343,31 +340,100 @@ def limpiar_columna_numerica(serie):
     )
 
 
+def obtener_nombre_columna(df, candidatos):
+    for col in candidatos:
+        if col in df.columns:
+            return col
+    raise ValueError(f"No encontré ninguna de estas columnas: {candidatos}")
+
+
 @st.cache_data
 def cargar_y_limpiar_excel(archivo_excel, config_key):
     config = CONFIGS[config_key]
     df = pd.read_excel(archivo_excel)
 
-    rename_map = {}
+    if config_key == "Caldas":
+        col_caudal = obtener_nombre_columna(df, [
+            "Caudal A tratar (L/s)"
+        ])
+        col_turbiedad = obtener_nombre_columna(df, [
+            "Turbiedad de agua cruda (UNT)"
+        ])
+        col_ph = obtener_nombre_columna(df, [
+            "pH de agua cruda (Unid)",
+            "pH de agua cruda"
+        ])
+        col_alcalinidad_cruda = obtener_nombre_columna(df, [
+            "Alcalinidad de agua cruda (mg/L)"
+        ])
+        col_pac = obtener_nombre_columna(df, [
+            "Caudal de dosificación del PAC (mL/min)"
+        ])
 
-    # columnas base estandarizadas
-    rename_map[config["variables_entrada"]["caudal"]] = "caudal"
-    rename_map[config["variables_entrada"]["turbiedad"]] = "turbiedad"
-    rename_map[config["variables_entrada"]["ph"]] = "ph"
-    rename_map[config["variables_entrada"]["alcalinidad_cruda"]] = "alcalinidad_cruda"
-    rename_map[config["variables_entrada"]["densidad"]] = "densidad_pac"
-    rename_map[config["col_pac"]] = "pac_ml_min"
+        rename_map = {
+            col_caudal: "caudal",
+            col_turbiedad: "turbiedad",
+            col_ph: "ph",
+            col_alcalinidad_cruda: "alcalinidad_cruda",
+            col_pac: "pac_ml_min",
+        }
 
-    if config["usa_alcalinidad_encalada"]:
-        rename_map[config["variables_entrada"]["alcalinidad_encalada"]] = "alcalinidad_encalada"
+    else:
+        if config_key == "Diviso - Modulo 500":
+            col_caudal = obtener_nombre_columna(df, [
+                "Caudal A tratar módulo de 500 (L/s)",
+                "Caudal A tratar modulo de 500 (L/s)",
+                "Caudal A tratar módulo 500 (L/s)",
+                "Caudal A tratar modulo 500 (L/s)"
+            ])
+            col_pac = obtener_nombre_columna(df, [
+                "Caudal de dosificación del PAC módulo de 500 (mL/min)",
+                "Caudal de dosificacion del PAC modulo de 500 (mL/min)",
+                "Caudal de dosificación del PAC módulo 500 (mL/min)",
+                "Caudal de dosificacion del PAC modulo 500 (mL/min)"
+            ])
+        else:
+            col_caudal = obtener_nombre_columna(df, [
+                "Caudal A tratar módulo de 150 (L/s)",
+                "Caudal A tratar modulo de 150 (L/s)",
+                "Caudal A tratar módulo 150 (L/s)",
+                "Caudal A tratar modulo 150 (L/s)"
+            ])
+            col_pac = obtener_nombre_columna(df, [
+                "Caudal de dosificación del PAC módulo de 150 (mL/min)",
+                "Caudal de dosificacion del PAC modulo de 150 (mL/min)",
+                "Caudal de dosificación del PAC módulo 150 (mL/min)",
+                "Caudal de dosificacion del PAC modulo 150 (mL/min)"
+            ])
 
-    faltantes = [col for col in rename_map if col not in df.columns]
-    if faltantes:
-        raise ValueError(f"Faltan estas columnas en el archivo: {faltantes}")
+        col_turbiedad = obtener_nombre_columna(df, [
+            "Turbiedad de agua cruda (UNT)",
+            "Turbiedad de agua cruda (UNT).1"
+        ])
+        col_ph = obtener_nombre_columna(df, [
+            "pH de agua cruda (Unid)",
+            "pH de agua cruda"
+        ])
+        col_alcalinidad_cruda = obtener_nombre_columna(df, [
+            "Alcalinidad de agua cruda (mg/L)"
+        ])
+        col_alcalinidad_encalada = obtener_nombre_columna(df, [
+            "Alcalinidad de agua encalada (mg/L)",
+            "Alcalinidad de agua encalda (mg/L)"
+        ])
+
+        rename_map = {
+            col_caudal: "caudal",
+            col_turbiedad: "turbiedad",
+            col_ph: "ph",
+            col_alcalinidad_cruda: "alcalinidad_cruda",
+            col_alcalinidad_encalada: "alcalinidad_encalada",
+            col_pac: "pac_ml_min",
+        }
 
     df = df.rename(columns=rename_map)
 
-    columnas_numericas = ["caudal", "turbiedad", "ph", "alcalinidad_cruda", "densidad_pac", "pac_ml_min"]
+    columnas_numericas = ["caudal", "turbiedad", "ph", "alcalinidad_cruda", "pac_ml_min"]
 
     if config["usa_alcalinidad_encalada"]:
         columnas_numericas.append("alcalinidad_encalada")
@@ -378,6 +444,22 @@ def cargar_y_limpiar_excel(archivo_excel, config_key):
     df = df.dropna(subset=columnas_numericas).copy()
 
     return df
+
+
+def obtener_tolerancias(config_key):
+    if config_key == "Caldas":
+        return [
+            {"caudal": 15, "turb": 8, "ph": 0.15, "alc": 5},
+            {"caudal": 25, "turb": 15, "ph": 0.25, "alc": 8},
+            {"caudal": 40, "turb": 25, "ph": 0.35, "alc": 12},
+        ]
+    else:
+        return [
+            {"caudal": 20, "turb": 10, "ph": 0.20, "alc": 6, "alc_enc": 6},
+            {"caudal": 35, "turb": 20, "ph": 0.30, "alc": 10, "alc_enc": 10},
+            {"caudal": 60, "turb": 35, "ph": 0.45, "alc": 15, "alc_enc": 15},
+            {"caudal": 90, "turb": 50, "ph": 0.60, "alc": 20, "alc_enc": 20},
+        ]
 
 
 def calcular_rango_pac(
@@ -408,22 +490,34 @@ def calcular_rango_pac(
 
     nuevo = pd.DataFrame([nuevo_dict])
 
-    filtro = (
-        df["caudal"].between(caudal - 15, caudal + 15) &
-        df["turbiedad"].between(turbiedad - 8, turbiedad + 8) &
-        df["ph"].between(ph - 0.15, ph + 0.15) &
-        df["alcalinidad_cruda"].between(alcalinidad_cruda - 5, alcalinidad_cruda + 5)
-    )
+    df_base = pd.DataFrame()
+    tolerancia_usada = None
+    intentos = obtener_tolerancias(config_key)
 
-    if config["usa_alcalinidad_encalada"]:
-        filtro = filtro & df["alcalinidad_encalada"].between(alcalinidad_encalada - 5, alcalinidad_encalada + 5)
+    for tol in intentos:
+        filtro = (
+            df["caudal"].between(caudal - tol["caudal"], caudal + tol["caudal"]) &
+            df["turbiedad"].between(turbiedad - tol["turb"], turbiedad + tol["turb"]) &
+            df["ph"].between(ph - tol["ph"], ph + tol["ph"]) &
+            df["alcalinidad_cruda"].between(alcalinidad_cruda - tol["alc"], alcalinidad_cruda + tol["alc"])
+        )
 
-    df_base = df[filtro].copy()
+        if config["usa_alcalinidad_encalada"]:
+            filtro = filtro & df["alcalinidad_encalada"].between(
+                alcalinidad_encalada - tol["alc_enc"],
+                alcalinidad_encalada + tol["alc_enc"]
+            )
+
+        df_base = df[filtro].copy()
+
+        if len(df_base) >= 5:
+            tolerancia_usada = tol
+            break
 
     if len(df_base) < 5:
         return {
             "ok": False,
-            "mensaje": "Muy pocos datos despues del prefiltro. Ajusta el caso o revisa el historico."
+            "mensaje": "Muy pocos datos despues del prefiltro, incluso ampliando tolerancias."
         }
 
     scaler = StandardScaler()
@@ -460,10 +554,7 @@ def calcular_rango_pac(
     ].copy()
 
     if len(similares_filtrados) < 3:
-        return {
-            "ok": False,
-            "mensaje": "Despues de quitar valores extremos quedaron muy pocos casos utiles."
-        }
+        similares_filtrados = similares.copy()
 
     pac_min = float(similares_filtrados["pac_ml_min"].min())
     pac_max = float(similares_filtrados["pac_ml_min"].max())
@@ -479,7 +570,7 @@ def calcular_rango_pac(
     elif std > 40:
         usar_rango = False
         motivo = "Demasiada dispersion"
-    elif ancho_rango > 0.4 * pac_mediana:
+    elif pac_mediana > 0 and ancho_rango > 0.4 * pac_mediana:
         usar_rango = False
         motivo = "Rango demasiado amplio"
     else:
@@ -554,8 +645,39 @@ def calcular_rango_pac(
         "metodo": metodo,
         "motivo": motivo,
         "tabla_jarras": tabla_jarras,
-        "tabla_resumen": tabla_resumen
+        "tabla_resumen": tabla_resumen,
+        "tolerancia_usada": tolerancia_usada
     }
+
+
+def valores_por_defecto(config_key):
+    if config_key == "Caldas":
+        return {
+            "caudal": 170.0,
+            "turbiedad": 50.0,
+            "ph": 7.35,
+            "alcalinidad_cruda": 17.0,
+            "alcalinidad_encalada": None,
+            "densidad_pac": 1.33
+        }
+    elif config_key == "Diviso - Modulo 500":
+        return {
+            "caudal": 500.0,
+            "turbiedad": 10.0,
+            "ph": 7.20,
+            "alcalinidad_cruda": 18.0,
+            "alcalinidad_encalada": 25.0,
+            "densidad_pac": 1.33
+        }
+    else:
+        return {
+            "caudal": 150.0,
+            "turbiedad": 10.0,
+            "ph": 7.20,
+            "alcalinidad_cruda": 18.0,
+            "alcalinidad_encalada": 25.0,
+            "densidad_pac": 1.33
+        }
 
 
 # =========================================
@@ -601,23 +723,30 @@ st.markdown("</div>", unsafe_allow_html=True)
 # =========================================
 # BARRA LATERAL
 # =========================================
+defaults = valores_por_defecto(config_key)
+
 st.sidebar.header("⚙️ Datos del caso actual")
 st.sidebar.markdown("Ingresa las condiciones actuales del agua cruda.")
 
-caudal = st.sidebar.number_input("Caudal A tratar (L/s)", value=170.0, step=1.0)
-turbiedad = st.sidebar.number_input("Turbiedad de agua cruda (UNT)", value=50.0, step=1.0)
-ph = st.sidebar.number_input("pH de agua cruda", value=7.35, step=0.01, format="%.2f")
-alcalinidad_cruda = st.sidebar.number_input("Alcalinidad de agua cruda (mg/L)", value=17.0, step=1.0)
+caudal = st.sidebar.number_input("Caudal A tratar (L/s)", value=float(defaults["caudal"]), step=1.0)
+turbiedad = st.sidebar.number_input("Turbiedad de agua cruda (UNT)", value=float(defaults["turbiedad"]), step=0.1)
+ph = st.sidebar.number_input("pH de agua cruda", value=float(defaults["ph"]), step=0.01, format="%.2f")
+alcalinidad_cruda = st.sidebar.number_input("Alcalinidad de agua cruda (mg/L)", value=float(defaults["alcalinidad_cruda"]), step=1.0)
 
 alcalinidad_encalada = None
 if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
     alcalinidad_encalada = st.sidebar.number_input(
         "Alcalinidad de agua encalada (mg/L)",
-        value=13.0,
+        value=float(defaults["alcalinidad_encalada"]),
         step=1.0
     )
 
-densidad_pac = st.sidebar.number_input("Densidad del PAC (g/mL)", value=1.33, step=0.01, format="%.2f")
+densidad_pac = st.sidebar.number_input(
+    "Densidad del PAC (g/mL)",
+    value=float(defaults["densidad_pac"]),
+    step=0.01,
+    format="%.2f"
+)
 
 vecinos_deseados = st.sidebar.slider(
     "Cantidad de datos historicos a evaluar",
@@ -686,6 +815,19 @@ if df is not None and calcular:
             f"<b>Motivo:</b> {resultado['motivo']}</div>",
             unsafe_allow_html=True
         )
+
+        if resultado.get("tolerancia_usada") is not None:
+            tol = resultado["tolerancia_usada"]
+            texto_tol = (
+                f"Caudal ±{tol['caudal']}, "
+                f"Turbiedad ±{tol['turb']}, "
+                f"pH ±{tol['ph']}, "
+                f"Alcalinidad cruda ±{tol['alc']}"
+            )
+            if "alc_enc" in tol:
+                texto_tol += f", Alcalinidad encalada ±{tol['alc_enc']}"
+
+            st.info(f"Tolerancias usadas en el prefiltro: {texto_tol}")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
