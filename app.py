@@ -232,8 +232,7 @@ st.markdown("""
         word-break: break-word;
     }
 
-
-    /* Tablas y dataframe */
+    /* Tablas */
     .element-container, .stDataFrame {
         width: 100% !important;
     }
@@ -244,7 +243,21 @@ st.markdown("""
         font-size: 16px !important;
     }
 
-    /* Responsive para celular */
+    /* Expander bonito */
+    .streamlit-expanderHeader {
+        font-weight: 700;
+        color: #0b4f6c;
+    }
+
+    div[data-testid="stExpander"] {
+        border: 1px solid #d6e8f2;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.65);
+        padding: 5px;
+        margin-top: 8px;
+    }
+
+    /* Responsive celular */
     @media (max-width: 768px) {
         .block-container {
             padding-top: 0.2rem !important;
@@ -278,7 +291,6 @@ st.markdown("""
         h3 {
             font-size: 0.98rem !important;
         }
-
 
         div[data-testid="stMetric"] {
             padding: 10px;
@@ -736,65 +748,81 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================================
-# BARRA LATERAL
+# DATOS DEL CASO ACTUAL
 # =========================================
 defaults = valores_por_defecto(config_key)
 
-st.sidebar.header("⚙️ Datos del caso actual")
-st.sidebar.markdown("Ingresa las condiciones actuales del agua cruda.")
+st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Datos del caso actual</div>", unsafe_allow_html=True)
 
-caudal = st.sidebar.number_input("Caudal A tratar (L/s)", value=float(defaults["caudal"]), step=1.0)
-turbiedad = st.sidebar.number_input("Turbiedad de agua cruda (UNT)", value=float(defaults["turbiedad"]), step=0.1)
-ph = st.sidebar.number_input("pH de agua cruda", value=float(defaults["ph"]), step=0.01, format="%.2f")
-alcalinidad_cruda = st.sidebar.number_input("Alcalinidad de agua cruda (mg/L)", value=float(defaults["alcalinidad_cruda"]), step=1.0)
+with st.expander("Abrir / cerrar formulario", expanded=True):
+    st.markdown("Ingresa las condiciones actuales del agua cruda.")
 
-alcalinidad_encalada = None
-if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
-    alcalinidad_encalada = st.sidebar.number_input(
-        "Alcalinidad de agua encalada (mg/L)",
-        value=float(defaults["alcalinidad_encalada"]),
-        step=1.0
+    col1, col2 = st.columns(2)
+
+    with col1:
+        caudal = st.number_input(
+            "Caudal A tratar (L/s)",
+            value=float(defaults["caudal"]),
+            step=1.0
+        )
+
+        turbiedad = st.number_input(
+            "Turbiedad de agua cruda (UNT)",
+            value=float(defaults["turbiedad"]),
+            step=0.1
+        )
+
+        ph = st.number_input(
+            "pH de agua cruda",
+            value=float(defaults["ph"]),
+            step=0.01,
+            format="%.2f"
+        )
+
+    with col2:
+        alcalinidad_cruda = st.number_input(
+            "Alcalinidad de agua cruda (mg/L)",
+            value=float(defaults["alcalinidad_cruda"]),
+            step=1.0
+        )
+
+        alcalinidad_encalada = None
+        if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
+            alcalinidad_encalada = st.number_input(
+                "Alcalinidad de agua encalada (mg/L)",
+                value=float(defaults["alcalinidad_encalada"]),
+                step=1.0
+            )
+
+        densidad_pac = st.number_input(
+            "Densidad del PAC (g/mL)",
+            value=float(defaults["densidad_pac"]),
+            step=0.01,
+            format="%.2f"
+        )
+
+    vecinos_deseados = st.slider(
+        "Cantidad de datos historicos a evaluar",
+        min_value=5,
+        max_value=30,
+        value=8,
+        step=1
     )
 
-densidad_pac = st.sidebar.number_input(
-    "Densidad del PAC (g/mL)",
-    value=float(defaults["densidad_pac"]),
-    step=0.01,
-    format="%.2f"
-)
+    b1, b2 = st.columns(2)
 
-vecinos_deseados = st.sidebar.slider(
-    "Cantidad de datos historicos a evaluar",
-    min_value=5,
-    max_value=30,
-    value=8,
-    step=1
-)
+    with b1:
+        calcular = st.button("Calcular rango PAC", use_container_width=True)
 
-calcular = st.sidebar.button("Calcular rango PAC")
+    with b2:
+        cerrar_sesion = st.button("Cerrar sesion", type="secondary", use_container_width=True)
 
-st.sidebar.markdown(
-    """
-    <style>
-    div[data-testid="stSidebar"] div.stButton > button[kind="secondary"] {
-        background: #f8d7da !important;
-        color: #842029 !important;
-        border: 1px solid #f5c2c7 !important;
-    }
-    div[data-testid="stSidebar"] div.stButton > button[kind="secondary"]:hover {
-        background: #f1b0b7 !important;
-        color: #6a1a21 !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+    if cerrar_sesion:
+        st.session_state.autenticado = False
+        st.rerun()
 
-cerrar_sesion = st.sidebar.button("Cerrar sesion", type="secondary")
-
-if cerrar_sesion:
-    st.session_state.autenticado = False
-    st.rerun()
+st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================================
