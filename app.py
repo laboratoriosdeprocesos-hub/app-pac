@@ -262,21 +262,22 @@ st.markdown("""
 
 
 # =========================================
-# ENCABEZADO
+# =========================================
+# ENCABEZADO CON IMAGEN
 # =========================================
 st.markdown("""
-<div class="hero">
-    <div class="hero-box">
-        <div class="hero-logo">
-            <img src="https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg">
-        </div>
-        <div class="hero-texto">
-            <h1>PTAP - Recomendacion de PAC</h1>
-            <p>Herramienta de apoyo operativo para definir dosis de PAC con base en datos historicos similares.</p>
-        </div>
-    </div>
-</div>
+<div style="
+    background: white;
+    padding: 10px;
+    border-radius: 15px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    margin-bottom: 15px;
+">
 """, unsafe_allow_html=True)
+
+st.image("ENCABEZADOS.png", use_container_width=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================================
