@@ -304,27 +304,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<div style='margin-top: -10px'></div>", unsafe_allow_html=True)
 # =========================================
-# ENCABEZADO LIMPIO (SIN ESPACIOS)
+# ENCABEZADO CON IMAGEN
 # =========================================
-st.markdown("""
-<style>
-.banner-container {
-    margin-top: -20px;
-    margin-bottom: -20px;
-}
-
-.banner-container img {
-    border-radius: 12px;
-    display: block;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown('<div class="banner-container">', unsafe_allow_html=True)
 st.image("ENCABEZADOS.png", use_container_width=True)
-st.markdown('</div>', unsafe_allow_html=True)
 
 
 # =========================================
