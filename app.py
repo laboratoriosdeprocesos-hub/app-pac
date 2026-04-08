@@ -150,69 +150,41 @@ if not st.session_state.autenticado:
 # =========================================
 st.markdown("""
 <style>
+    .block-container {
+        padding-top: 0.4rem !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+        max-width: 100% !important;
+    }
+
+    header {
+        visibility: hidden;
+    }
+
+    .main > div {
+        padding-top: 0rem;
+    }
+
     .stApp {
-        background: linear-gradient(180deg, #dff4ff 0%, #eef9ff 35%, #f8fcff 100%);
-    }
-
-    .hero {
-        background: linear-gradient(135deg, rgba(8,74,117,0.96), rgba(33,134,181,0.92));
-        color: white;
-        padding: 1.6rem 1.8rem;
-        border-radius: 24px;
-        box-shadow: 0 10px 24px rgba(8,74,117,0.20);
-        margin-bottom: 1.2rem;
-    }
-
-    .hero-box {
-        display: flex;
-        align-items: center;
-        gap: 22px;
-    }
-
-    .hero-logo {
-        background: rgba(255,255,255,0.96);
-        padding: 10px;
-        border-radius: 18px;
-        min-width: 120px;
-        text-align: center;
-    }
-
-    .hero-logo img {
-        width: 90px;
-        display: block;
-        margin: 0 auto;
-    }
-
-    .hero-texto h1 {
-        color: white !important;
-        margin: 0;
-        font-size: 2.3rem;
-        font-weight: 800;
-    }
-
-    .hero-texto p {
-        margin-top: 0.45rem;
-        margin-bottom: 0;
-        font-size: 1rem;
-        color: #eaf7ff;
+        background: linear-gradient(180deg, #f8fcff 0%, #eef9ff 35%, #f8fcff 100%);
     }
 
     .bloque {
-        background: rgba(255,255,255,0.94);
-        padding: 1.2rem;
-        border-radius: 18px;
+        background: rgba(255,255,255,0.96);
+        padding: 1rem;
+        border-radius: 16px;
         box-shadow: 0 4px 14px rgba(7,62,94,0.08);
         border: 1px solid rgba(7,62,94,0.08);
-        margin-bottom: 1rem;
+        margin-bottom: 0.9rem;
     }
 
     .etiqueta {
         display: inline-block;
         background: #cfefff;
         color: #0a4d6a;
-        padding: 0.3rem 0.8rem;
+        padding: 0.28rem 0.75rem;
         border-radius: 999px;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 700;
         margin-bottom: 0.8rem;
     }
@@ -220,9 +192,9 @@ st.markdown("""
     .caja-rango {
         background: linear-gradient(135deg, #e5f6ff, #f4fbff);
         border-left: 6px solid #0b4f6c;
-        padding: 1rem;
+        padding: 0.9rem;
         border-radius: 12px;
-        font-size: 1.05rem;
+        font-size: 1rem;
         margin-top: 0.8rem;
         margin-bottom: 0.8rem;
     }
@@ -232,9 +204,10 @@ st.markdown("""
         color: white;
         border-radius: 12px;
         border: none;
-        padding: 0.75rem 1rem;
+        padding: 0.78rem 1rem;
         font-weight: 700;
         width: 100%;
+        min-height: 48px;
     }
 
     .stButton > button:hover {
@@ -245,7 +218,7 @@ st.markdown("""
     div[data-testid="stMetric"] {
         background: white;
         border: 1px solid #d6e8f2;
-        padding: 14px;
+        padding: 12px;
         border-radius: 14px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
@@ -254,8 +227,79 @@ st.markdown("""
         background: linear-gradient(180deg, #f4fbff 0%, #eef8fc 100%);
     }
 
-    h2, h3 {
+    h1, h2, h3 {
         color: #0b4f6c !important;
+        word-break: break-word;
+    }
+
+    /* Banner */
+    .banner-container {
+        margin-top: -10px;
+        margin-bottom: -8px;
+    }
+
+    .banner-container img {
+        border-radius: 12px;
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    /* Tablas y dataframe */
+    .element-container, .stDataFrame {
+        width: 100% !important;
+    }
+
+    /* Inputs más cómodos en móvil */
+    div[data-baseweb="input"] input,
+    div[data-baseweb="select"] input {
+        font-size: 16px !important;
+    }
+
+    /* Responsive para celular */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-top: 0.2rem !important;
+            padding-left: 0.55rem !important;
+            padding-right: 0.55rem !important;
+        }
+
+        .bloque {
+            padding: 0.85rem;
+            border-radius: 14px;
+        }
+
+        .etiqueta {
+            font-size: 0.78rem;
+            padding: 0.24rem 0.65rem;
+        }
+
+        .caja-rango {
+            font-size: 0.95rem;
+            padding: 0.8rem;
+        }
+
+        h1 {
+            font-size: 1.2rem !important;
+        }
+
+        h2 {
+            font-size: 1.05rem !important;
+        }
+
+        h3 {
+            font-size: 0.98rem !important;
+        }
+
+        .banner-container {
+            margin-top: -6px;
+            margin-bottom: -4px;
+        }
+
+        div[data-testid="stMetric"] {
+            padding: 10px;
+            border-radius: 12px;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
