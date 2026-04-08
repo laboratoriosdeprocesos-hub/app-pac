@@ -232,18 +232,6 @@ st.markdown("""
         word-break: break-word;
     }
 
-    /* Banner */
-    .banner-container {
-        margin-top: -10px;
-        margin-bottom: -8px;
-    }
-
-    .banner-container img {
-        border-radius: 12px;
-        display: block;
-        width: 100%;
-        height: auto;
-    }
 
     /* Tablas y dataframe */
     .element-container, .stDataFrame {
@@ -291,10 +279,6 @@ st.markdown("""
             font-size: 0.98rem !important;
         }
 
-        .banner-container {
-            margin-top: -6px;
-            margin-bottom: -4px;
-        }
 
         div[data-testid="stMetric"] {
             padding: 10px;
