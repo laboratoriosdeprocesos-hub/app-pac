@@ -943,7 +943,7 @@ if df is not None and calcular:
         st.markdown("</div>", unsafe_allow_html=True)
 
         # =========================
-          # DOSIS SUGERIDAS
+        # DOSIS SUGERIDAS
         # =========================
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Dosis sugeridas</div>", unsafe_allow_html=True)
@@ -952,11 +952,7 @@ if df is not None and calcular:
         st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
 
         st.write("Dosis sugeridas para 6 jarras")
-        st.dataframe(
-            resultado["tabla_jarras"],
-            use_container_width=True,
-            height=260
-        )
+        st.dataframe(resultado["tabla_jarras"], use_container_width=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -966,61 +962,8 @@ if df is not None and calcular:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Casos históricos similares</div>", unsafe_allow_html=True)
 
-        st.markdown("""
-        <style>
-        thead tr th {
-            text-align: center !important;
-            font-weight: 700 !important;
-        }
-        tbody tr td {
-            text-align: center !important;
-        }
-        [data-testid="stDataFrame"] {
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        st.dataframe(resultado["similares_filtrados"], use_container_width=True)
 
-        df_tabla = resultado["similares_filtrados"].copy()
-        df_tabla = df_tabla.round (1)
-
-        if "Alcalinidad de agua encalada (mg/L)" in df_tabla.columns:
-            df_tabla = df_tabla.rename(columns={
-                "Caudal a tratar (L/s)": "Caudal (L/s)",
-                "Turbiedad de agua cruda (UNT)": "Turbiedad (UNT)",
-                "pH de agua cruda": "pH",
-                "Alcalinidad de agua cruda (mg/L)": "Alc. cruda",
-                "Alcalinidad de agua encalada (mg/L)": "Alc. encalada",
-                "Caudal PAC (mL/min)": "PAC (mL/min)",
-                "Distancia": "Distancia"
-            })
-        else:
-            df_tabla = df_tabla.rename(columns={
-                "Caudal a tratar (L/s)": "Caudal (L/s)",
-                "Turbiedad de agua cruda (UNT)": "Turbiedad (UNT)",
-                "pH de agua cruda": "pH",
-                "Alcalinidad de agua cruda (mg/L)": "Alc. cruda",
-                "Caudal PAC (mL/min)": "PAC (mL/min)",
-                "Distancia": "Distancia"
-            })
-
-        def resaltar_mejor(fila):
-            if fila.name == df_tabla["Distancia"].idxmin():
-                return ["background-color: #d1fae5"] * len(fila)
-            return [""] * len(fila)
-
-        st.dataframe(
-            df_tabla.style
-                .apply(resaltar_mejor, axis=1)
-                .format("{:1f}"),
-            use_container_width=True,
-            height=320
-        )
-
-        # =========================
-        # GRAFICA
-        # =========================
         df_grafica = resultado["similares_filtrados"].copy()
 
         # Ordenar por Caudal PAC para que la línea siga los puntos correctamente
@@ -1048,14 +991,9 @@ if df is not None and calcular:
         )
 
         fig.update_layout(
-            title={
-                "text": "Relación Caudal PAC vs Turbiedad",
-                "x": 0.5,
-                "xanchor": "center"
-            },
             plot_bgcolor="white",
             paper_bgcolor="white",
-            font=dict(color="#0b4f6c", size=14),
+            font=dict(color="#0b4f6c"),
             xaxis=dict(
                 title="Caudal PAC (mL/min)",
                 gridcolor="#dbeafe"
