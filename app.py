@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 USUARIO_CORRECTO = "ptap"
-CLAVE_CORRECTA = "c4ldas2026"
+CLAVE_CORRECTA = "plantas2026"
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
@@ -771,20 +771,20 @@ def valores_por_defecto(config_key):
         }
     elif config_key == "Diviso - Modulo 500":
         return {
-            "caudal": 500.0,
+            "caudal": 340.0,
             "turbiedad": 10.0,
             "ph": 7.20,
-            "alcalinidad_cruda": 18.0,
-            "alcalinidad_encalada": 25.0,
+            "alcalinidad_cruda": 11.0,
+            "alcalinidad_encalada": 16.0,
             "densidad_pac": 1.33
         }
     else:
         return {
-            "caudal": 150.0,
+            "caudal": 160.0,
             "turbiedad": 10.0,
             "ph": 7.20,
-            "alcalinidad_cruda": 18.0,
-            "alcalinidad_encalada": 25.0,
+            "alcalinidad_cruda": 11.0,
+            "alcalinidad_encalada": 16.0,
             "densidad_pac": 1.33
         }
 
