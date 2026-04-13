@@ -598,10 +598,10 @@ def obtener_tolerancias(config_key):
         ]
     else:
         return [
-            {"caudal": 20, "turb": 10, "ph": 0.20, "alc": 6, "alc_enc": 6},
-            {"caudal": 35, "turb": 20, "ph": 0.30, "alc": 10, "alc_enc": 10},
-            {"caudal": 60, "turb": 35, "ph": 0.45, "alc": 15, "alc_enc": 15},
-            {"caudal": 90, "turb": 50, "ph": 0.60, "alc": 20, "alc_enc": 20},
+            {"caudal": 20, "turb": 5, "ph": 0.20, "alc": 6, "alc_enc": 6},
+            {"caudal": 35, "turb": 10, "ph": 0.30, "alc": 10, "alc_enc": 10},
+            {"caudal": 60, "turb": 20, "ph": 0.45, "alc": 15, "alc_enc": 15},
+            {"caudal": 90, "turb": 30, "ph": 0.60, "alc": 20, "alc_enc": 20},
         ]
 
 
