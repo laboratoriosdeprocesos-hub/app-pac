@@ -229,7 +229,6 @@ def mostrar_login():
         st.markdown("""
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
-
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP</h1>
                 <p>
