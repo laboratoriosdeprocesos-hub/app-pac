@@ -907,7 +907,6 @@ with st.expander("Abrir / cerrar formulario", expanded=True):
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-
 # =========================================
 # RESULTADOS
 # =========================================
@@ -938,36 +937,45 @@ if df is not None and calcular:
         c3.metric("PAC mínimo", round(resultado["pac_min"], 1))
         c4.metric("PAC máximo", round(resultado["pac_max"], 1))
 
-        st.markdown(
-            f"<div class='caja-rango'><b>Método usado:</b> {resultado['metodo']}<br>"
-            f"<b>Motivo:</b> {resultado['motivo']}</div>",
-            unsafe_allow_html=True
-        )
+        if resultado.get("tolerancia_usada") is not None:
+            tol = resultado["tolerancia_usada"]
+            texto_tol = (
+                f"Caudal ±{tol['caudal']}, "
+                f"Turbiedad ±{tol['turb']}, "
+                f"pH ±{tol['ph']}, "
+                f"Alcalinidad cruda ±{tol['alc']}"
+            )
+            if "alc_enc" in tol:
+                texto_tol += f", Alcalinidad encalada ±{tol['alc_enc']}"
+
+            st.info(f"Tolerancias usadas en el prefiltro: {texto_tol}")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
         # =========================
-        # TABLAS
+        # DOSIS SUGERIDAS
         # =========================
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Dosis sugeridas</div>", unsafe_allow_html=True)
 
+        st.write("Resumen PAC")
+        st.dataframe(resultado["tabla_resumen"], use_container_width=True)
+
+        st.write(f"Densidad PAC usada: {densidad_pac:.2f} g/mL")
+        st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
+
+        st.write("Dosis sugeridas para 6 jarras")
         st.dataframe(resultado["tabla_jarras"], use_container_width=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
         # =========================
-        # HISTÓRICOS
+        # CASOS HISTORICOS
         # =========================
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Casos históricos similares</div>", unsafe_allow_html=True)
 
         st.dataframe(resultado["similares_filtrados"], use_container_width=True)
-
-        # =========================
-        # GRAFICA
-        # =========================
-        import plotly.express as px
 
         df_grafica = resultado["similares_filtrados"].copy()
 
@@ -990,8 +998,14 @@ if df is not None and calcular:
             plot_bgcolor="white",
             paper_bgcolor="white",
             font=dict(color="#0b4f6c"),
-            xaxis=dict(gridcolor="#dbeafe"),
-            yaxis=dict(gridcolor="#dbeafe")
+            xaxis=dict(
+                title="Caudal a tratar (L/s)",
+                gridcolor="#dbeafe"
+            ),
+            yaxis=dict(
+                title="Turbiedad de agua cruda (UNT)",
+                gridcolor="#dbeafe"
+            )
         )
 
         st.plotly_chart(fig, use_container_width=True)
