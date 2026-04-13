@@ -237,7 +237,7 @@ def mostrar_login():
     with col_izq:
         st.markdown("""
         <div class="login-left-box">
-            <div class="brand-top">SERVAF</div>
+            <div class="brand-mid">SERVAF</div>
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP Diviso y Caldas</h1>
                 <p>
