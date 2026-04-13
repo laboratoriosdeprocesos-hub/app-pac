@@ -25,7 +25,7 @@ st.markdown("""
     }
 
     .main > div {
-        padding-top: 0rem;
+        padding-top: -40rem;
     }
 </style>
 """, unsafe_allow_html=True)
