@@ -120,7 +120,7 @@ def mostrar_login():
 
         .welcome-box p {
             color: #eefcff !important;
-            font-size: 1.03rem;
+            font-size: 0rem;
             line-height: 1.6;
             margin: 0;
         }
@@ -147,7 +147,7 @@ def mostrar_login():
 
         .login-title {
             color: #3797e6 !important;
-            font-size: 2.5rem;
+            font-size:1rem;
             font-weight: 800;
             margin-bottom: 0.4rem;
         }
@@ -209,7 +209,7 @@ def mostrar_login():
             }
 
             .welcome-box {
-                margin-top: 2rem;
+                margin-top: 1rem;
             }
 
             .welcome-box h1 {
@@ -234,7 +234,6 @@ def mostrar_login():
         st.markdown("""
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
-
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP</h1>
                 <p>
