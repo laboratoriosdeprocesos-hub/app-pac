@@ -61,8 +61,8 @@ def mostrar_login():
         .login-left-box {
             background: linear-gradient(180deg, #42d4e6 0%, #49b7ee 55%, #4d95f2 100%);
             border-radius: 18px;
-            padding: 2.2rem 2rem;
-            min-height: 620px;
+            padding: -5rem 2rem;
+            min-height: 1200px;
             color: white;
             position: relative;
             overflow: hidden;
