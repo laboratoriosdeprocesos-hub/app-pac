@@ -983,6 +983,7 @@ if df is not None and calcular:
         """, unsafe_allow_html=True)
 
         df_tabla = resultado["similares_filtrados"].copy()
+        df_tabla = df_tabla.round (1)
 
         if "Alcalinidad de agua encalada (mg/L)" in df_tabla.columns:
             df_tabla = df_tabla.rename(columns={
