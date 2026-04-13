@@ -147,8 +147,8 @@ def mostrar_login():
 
         .login-title {
             color: #3797e6 !important;
-            font-size:0.1rem;
-            font-weight: 400;
+            font-size:2rem;
+            font-weight: 1000;
             margin-bottom: 0.4rem;
         }
 
@@ -241,7 +241,6 @@ def mostrar_login():
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
-
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
             </div>
