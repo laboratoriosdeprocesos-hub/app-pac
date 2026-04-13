@@ -267,60 +267,56 @@ def mostrar_login():
 
     st.markdown("<div class='login-wrapper'>", unsafe_allow_html=True)
 
-    col_izq, col_der = st.columns([1.08, 1], gap="small")
+col_izq, col_der = st.columns([1.08, 1], gap="small")
 
-    with col_izq:
-        st.markdown("""
-<div class="login-left">
-    <div class="brand-top">SERVAF</div>
+with col_izq:
+    st.markdown("""
+    <div class="login-left">
+        <div class="brand-top">SERVAF</div>
 
-    <div class="welcome-box">
-        <h1>Bienvenido a<br>PTAP</h1>
-        <p>
-            Sistema de apoyo operativo para recomendación de dosis de PAC,
-            basado en condiciones actuales y datos históricos similares.
-        </p>
-    </div>
-
-    <div class="bottom-note">
-        Operación más ágil, técnica y confiable.
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-
-    with col_der:
-        st.markdown("<div class='login-right'>", unsafe_allow_html=True)
-        st.markdown(
-            "<div class='login-logo'><img src='https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg'></div>",
-            unsafe_allow_html=True
-        )
-        st.markdown("<div class='login-title'>Iniciar sesión</div>", unsafe_allow_html=True)
-        st.markdown(
-            "<div class='login-sub'>Ingresa tus credenciales para acceder a la plataforma de recomendación de PAC.</div>",
-            unsafe_allow_html=True
-        )
-
-        usuario = st.text_input("Usuario", placeholder="Ingresa tu usuario", key="login_usuario")
-        clave = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña", key="login_clave")
-
-        if st.button("INGRESAR", key="btn_login"):
-            if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
-                st.session_state.autenticado = True
-                st.rerun()
-            else:
-                st.error("Usuario o contraseña incorrectos")
-
-        st.markdown("""
-        <div class="helper-row">
-            <span>Acceso institucional</span>
-            <span><strong>PTAP</strong></span>
+        <div class="welcome-box">
+            <h1>Bienvenido a<br>PTAP</h1>
+            <p>
+                Sistema de apoyo operativo para recomendación de dosis de PAC,
+                basado en condiciones actuales y datos históricos similares.
+            </p>
         </div>
-        """, unsafe_allow_html=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        <div class="bottom-note">
+            Operación más ágil, técnica y confiable.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_der:
+    st.markdown("<div class='login-right'>", unsafe_allow_html=True)
+
+    st.markdown("<div class='login-title'>Iniciar sesión</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='login-sub'>Ingresa tus credenciales para acceder a la plataforma de recomendación de PAC.</div>",
+        unsafe_allow_html=True
+    )
+
+    usuario = st.text_input("Usuario", placeholder="Ingresa tu usuario", key="login_usuario")
+    clave = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña", key="login_clave")
+
+    if st.button("INGRESAR", key="btn_login"):
+        if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
+            st.session_state.autenticado = True
+            st.rerun()
+        else:
+            st.error("Usuario o contraseña incorrectos")
+
+    st.markdown("""
+    <div class="helper-row">
+        <span>Acceso institucional</span>
+        <span><strong>PTAP</strong></span>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 
 if not st.session_state.autenticado:
