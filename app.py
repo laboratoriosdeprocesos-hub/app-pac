@@ -245,7 +245,7 @@ def mostrar_login():
                 </p>
             </div>
             <div class="bottom-note">
-                Operación más ágil, técnica y confiable.
+                DIRECCIÓN DE PRODUCCIÓN Y TRATAMIENTO.
             </div>
         </div>
         """, unsafe_allow_html=True)
