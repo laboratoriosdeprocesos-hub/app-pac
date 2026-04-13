@@ -10,7 +10,7 @@ from sklearn.neighbors import NearestNeighbors
 # CONFIGURACION GENERAL
 # =========================================
 st.set_page_config(
-    page_title="PTAP - Herramienta Web",
+    page_title="PTAP - DIVISO & CALDAS",
     page_icon="💧",
     layout="wide"
 )
