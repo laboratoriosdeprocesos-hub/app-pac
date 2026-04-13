@@ -129,8 +129,7 @@ def mostrar_login():
             padding: 2.5rem 2.3rem 2rem 2.3rem;
             min-height: 620px;
             box-shadow: 0 18px 40px rgba(0,0,0,0.16);
-        }
-        /* Hace visibles los textos del login */
+                /* Hace visibles los textos del login */
 .login-title {
     color: #2d8df0 !important;
 }
@@ -141,7 +140,8 @@ def mostrar_login():
 
 div[data-testid="stTextInput"] label {
     color: #5f6b76 !important;
-}
+        }
+    
 
         .login-title {
             color: #3797e6 !important;
