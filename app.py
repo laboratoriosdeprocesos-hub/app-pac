@@ -715,13 +715,7 @@ def calcular_rango_pac(
         "Caudal PAC recomendado (mL/min)": jarras_recomendadas,
         "Dosis PAC recomendada (mg/L)": dosis_mgL
     })
-
-    tabla_resumen = pd.DataFrame({
-        "Indicador": ["Mínimo", "Media", "Máximo"],
-        "PAC (mL/min)": [
-            round(pac_min, 1),
-            round(pac_promedio, 1),
-            round(pac_max, 1)
+    
         ]
     })
 
@@ -755,7 +749,6 @@ def calcular_rango_pac(
         "std": std,
         "n": n,
         "tabla_jarras": tabla_jarras,
-        "tabla_resumen": tabla_resumen,
         "tolerancia_usada": tolerancia_usada
     }
 
@@ -957,9 +950,6 @@ if df is not None and calcular:
         # =========================
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Dosis sugeridas</div>", unsafe_allow_html=True)
-
-        st.write("Resumen PAC")
-        st.dataframe(resultado["tabla_resumen"], use_container_width=True)
 
         st.write(f"Densidad PAC usada: {densidad_pac:.2f} g/mL")
         st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
