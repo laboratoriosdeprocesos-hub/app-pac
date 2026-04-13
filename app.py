@@ -979,14 +979,14 @@ if df is not None and calcular:
 
         df_grafica = resultado["similares_filtrados"].copy()
 
-        # Ordenar por turbiedad para que la línea siga los puntos de izquierda a derecha
-        df_grafica = df_grafica.sort_values(by="Turbiedad de agua cruda (UNT)")
+        # Ordenar por Caudal PAC para que la línea siga los puntos correctamente
+        df_grafica = df_grafica.sort_values(by="Caudal PAC (mL/min)")
 
         fig = px.line(
             df_grafica,
-            x="Turbiedad de agua cruda (UNT)",
-            y="Caudal PAC (mL/min)",
-            title="Relación Turbiedad vs Caudal de dosificación PAC",
+            x="Caudal PAC (mL/min)",
+            y="Turbiedad de agua cruda (UNT)",
+            title="Relación Caudal PAC vs Turbiedad",
             markers=True
         )
 
@@ -1008,11 +1008,11 @@ if df is not None and calcular:
             paper_bgcolor="white",
             font=dict(color="#0b4f6c"),
             xaxis=dict(
-                title="Turbiedad de agua cruda (UNT)",
+                title="Caudal PAC (mL/min)",
                 gridcolor="#dbeafe"
             ),
             yaxis=dict(
-                title="Caudal PAC (mL/min)",
+                title="Turbiedad de agua cruda (UNT)",
                 gridcolor="#dbeafe"
             )
         )
