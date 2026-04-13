@@ -25,122 +25,218 @@ if "autenticado" not in st.session_state:
 # LOGIN
 # =========================================
 def mostrar_login():
-    import time
-
     st.markdown("""
     <style>
         .stApp {
             background: linear-gradient(135deg, #1f5fff 0%, #7b4dff 100%);
         }
 
-        header {visibility: hidden;}
+        header {
+            visibility: hidden;
+        }
 
         .block-container {
             padding-top: 0rem !important;
-            max-width: 1150px !important;
+            padding-bottom: 0rem !important;
+            max-width: 1180px !important;
         }
 
-        /* ANIMACION */
-        @keyframes aparecer {
-            from {
-                opacity: 0;
-                transform: translateY(25px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0px);
-            }
+        .main > div {
+            padding-top: 0rem !important;
         }
 
-        /* PANEL IZQUIERDO */
+        .login-space {
+            height: 18px;
+        }
+
         .login-left-box {
             background: linear-gradient(180deg, #42d4e6 0%, #49b7ee 55%, #4d95f2 100%);
             border-radius: 18px;
-            padding: 2.5rem;
-            min-height: 600px;
+            padding: 2.2rem 2rem;
+            min-height: 620px;
             color: white;
+            position: relative;
+            overflow: hidden;
             box-shadow: 0 18px 40px rgba(0,0,0,0.16);
-            animation: aparecer 0.6s ease-out;
         }
 
-        /* PANEL DERECHO (BLANCO) */
-        div[data-testid="column"]:nth-of-type(2) > div {
-            background: white !important;
-            border-radius: 18px;
-            padding: 2.5rem;
-            min-height: 600px;
-            box-shadow: 0 18px 40px rgba(0,0,0,0.16);
-            animation: aparecer 0.7s ease-out;
+        .login-left-box::before {
+            content: "";
+            position: absolute;
+            bottom: -40px;
+            left: -30px;
+            width: 120%;
+            height: 180px;
+            background: rgba(255,255,255,0.10);
+            border-radius: 50%;
         }
 
-        /* TITULOS */
-        .login-title {
-            font-size: 2.4rem;
+        .login-left-box::after {
+            content: "";
+            position: absolute;
+            bottom: 35px;
+            left: 50px;
+            width: 90%;
+            height: 120px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .brand-top {
+            font-size: 1.25rem;
             font-weight: 800;
-            color: #2d8df0;
-            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.2px;
         }
 
-        .login-sub {
-            color: #5f6b76;
-            margin-bottom: 1.5rem;
+        .welcome-box {
+            position: relative;
+            z-index: 2;
+            margin-top: 6rem;
         }
 
-        /* INPUTS */
-        div[data-testid="stTextInput"] input {
-            border-radius: 12px !important;
-            border: 1px solid #cfd8e3 !important;
-            min-height: 48px !important;
-            font-size: 16px !important;
+        .welcome-box h1 {
+            color: white !important;
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 1rem;
         }
 
-        /* BOTON */
-        .stButton > button {
-            background: linear-gradient(135deg, #3a9bf0, #4f95ef);
-            color: white;
-            border-radius: 12px;
-            border: none;
-            height: 50px;
-            font-weight: 800;
-            font-size: 1rem;
-            width: 100%;
-            margin-top: 10px;
-            box-shadow: 0 8px 18px rgba(58,155,240,0.3);
-            transition: 0.2s;
-        }
-
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 22px rgba(58,155,240,0.4);
+        .welcome-box p {
+            color: #eefcff !important;
+            font-size: 1.04rem;
+            line-height: 1.6;
+            margin: 0;
+            max-width: 500px;
         }
 
         .bottom-note {
-            margin-top: 200px;
+            position: absolute;
+            left: 2rem;
+            bottom: 1.8rem;
+            color: #eefcff !important;
+            font-weight: 600;
+            z-index: 2;
+            font-size: 0.98rem;
+        }
+
+        div[data-testid="column"]:nth-of-type(2) > div {
+            background: white !important;
+            border-radius: 18px;
+            padding: 2.5rem 2.3rem 2rem 2.3rem;
+            min-height: 620px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.16);
+        }
+
+        .login-title {
+            color: #3797e6 !important;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+        }
+
+        .login-sub {
+            color: #7b8794 !important;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1.7rem;
+        }
+
+        div[data-testid="stTextInput"] > label {
+            color: #5f6b76 !important;
+            font-weight: 700 !important;
+        }
+
+        div[data-testid="stTextInput"] > div > div input {
+            border: 1px solid #cfd8e3 !important;
+            border-radius: 12px !important;
+            min-height: 50px !important;
+            background: #ffffff !important;
+            color: #183b56 !important;
+            font-size: 16px !important;
+        }
+
+        .stButton > button {
+            background: linear-gradient(135deg, #3a9bf0, #4f95ef) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            border: none !important;
+            min-height: 52px !important;
+            font-weight: 800 !important;
+            font-size: 1rem !important;
+            width: 100% !important;
+            margin-top: 0.35rem;
+            box-shadow: 0 8px 18px rgba(58,155,240,0.25);
+        }
+
+        .stButton > button:hover {
+            background: linear-gradient(135deg, #2787dc, #3f84dd) !important;
+            color: white !important;
+        }
+
+        .helper-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
             font-size: 0.95rem;
+            color: #8a94a6 !important;
+        }
+
+        .helper-row strong {
+            color: #3797e6 !important;
         }
 
         @media (max-width: 900px) {
+            .block-container {
+                padding-left: 0.6rem !important;
+                padding-right: 0.6rem !important;
+            }
+
             .login-left-box {
                 min-height: auto;
+            }
+
+            div[data-testid="column"]:nth-of-type(2) > div {
+                min-height: auto;
+                padding: 1.6rem 1.2rem 1.4rem 1.2rem;
+            }
+
+            .welcome-box {
+                margin-top: 2rem;
+            }
+
+            .welcome-box h1 {
+                font-size: 2rem;
+            }
+
+            .bottom-note {
+                position: relative;
+                left: 0;
+                bottom: 0;
+                margin-top: 2rem;
             }
         }
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1,1])
+    st.markdown("<div class='login-space'></div>", unsafe_allow_html=True)
 
-    # PANEL IZQUIERDO
-    with col1:
+    col_izq, col_der = st.columns([1.05, 1], gap="medium")
+
+    with col_izq:
         st.markdown("""
         <div class="login-left-box">
-            <h4>SERVAF</h4>
+            <div class="brand-top">SERVAF</div>
 
-            <h1>Bienvenido a<br>PTAP</h1>
-
-            <p>
-                Sistema de apoyo operativo para recomendación de dosis de PAC,
-                basado en condiciones actuales y datos históricos similares.
-            </p>
+            <div class="welcome-box">
+                <h1>Bienvenido a<br>PTAP</h1>
+                <p>
+                    Sistema de apoyo operativo para recomendación de dosis de PAC,
+                    basado en condiciones actuales y datos históricos similares.
+                </p>
+            </div>
 
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
@@ -148,22 +244,45 @@ def mostrar_login():
         </div>
         """, unsafe_allow_html=True)
 
-    # PANEL DERECHO
-    with col2:
+    with col_der:
         st.markdown("<div class='login-title'>Iniciar sesión</div>", unsafe_allow_html=True)
-        st.markdown("<div class='login-sub'>Ingresa tus credenciales para acceder.</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='login-sub'>Ingresa tus credenciales para acceder a la plataforma de recomendación de PAC.</div>",
+            unsafe_allow_html=True
+        )
 
-        usuario = st.text_input("Usuario", placeholder="Ingresa tu usuario")
-        clave = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña")
+        usuario = st.text_input(
+            "Usuario",
+            placeholder="Ingresa tu usuario",
+            key="login_usuario"
+        )
 
-        if st.button("INGRESAR"):
+        clave = st.text_input(
+            "Contraseña",
+            type="password",
+            placeholder="Ingresa tu contraseña",
+            key="login_clave"
+        )
+
+        if st.button("INGRESAR", key="btn_login"):
             if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
                 st.session_state.autenticado = True
                 st.rerun()
             else:
                 st.error("Usuario o contraseña incorrectos")
 
-        st.markdown("<p style='color:#7a8794;'>Acceso institucional - PTAP</p>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="helper-row">
+            <span>Acceso institucional</span>
+            <span><strong>PTAP</strong></span>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+if not st.session_state.autenticado:
+    mostrar_login()
+    st.stop()
+
 
 # =========================================
 # ESTILOS DE LA APP
