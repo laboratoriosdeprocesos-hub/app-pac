@@ -45,98 +45,280 @@ def mostrar_login():
     st.markdown("""
     <style>
         .stApp {
-            background: linear-gradient(180deg, #dff4ff 0%, #eef9ff 35%, #f8fcff 100%);
+            background: linear-gradient(135deg, #5f6df5 0%, #8e53e9 100%);
         }
 
-        .login-wrap {
+        header {
+            visibility: hidden;
+        }
+
+        .block-container {
+            padding-top: 1.2rem !important;
+            padding-bottom: 1rem !important;
+            max-width: 1280px !important;
+        }
+
+        .login-wrapper {
             display: flex;
-            align-items: flex-start;
             justify-content: center;
-            margin-top: 2rem;
+            align-items: center;
+            min-height: 88vh;
         }
 
-        .login-box {
+        .login-shell {
             width: 100%;
-            max-width: 460px;
-            background: rgba(255,255,255,0.96);
-            padding: 2.2rem;
-            border-radius: 24px;
-            box-shadow: 0 12px 28px rgba(11,79,108,0.14);
-            border: 1px solid rgba(11,79,108,0.08);
+            max-width: 1120px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.18);
+            background: white;
+        }
+
+        .login-left {
+            background: linear-gradient(180deg, #40d2e3 0%, #45b6ea 50%, #4a97ef 100%);
+            color: white;
+            padding: 2.2rem 2rem;
+            min-height: 620px;
+            position: relative;
+        }
+
+        .login-left::after {
+            content: "";
+            position: absolute;
+            left: -10%;
+            bottom: -30px;
+            width: 140%;
+            height: 220px;
+            background: rgba(255,255,255,0.10);
+            border-radius: 50% 50% 0 0;
+            transform: rotate(-8deg);
+        }
+
+        .login-left::before {
+            content: "";
+            position: absolute;
+            left: 15%;
+            bottom: 65px;
+            width: 95%;
+            height: 170px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50% 50% 0 0;
+            transform: rotate(-10deg);
+        }
+
+        .brand-top {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .welcome-box {
+            margin-top: 7rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-box h1 {
+            color: white !important;
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-box p {
+            color: #eefcff !important;
+            font-size: 1.06rem;
+            line-height: 1.6;
+            max-width: 520px;
+        }
+
+        .bottom-note {
+            position: absolute;
+            left: 2rem;
+            bottom: 1.6rem;
+            z-index: 2;
+            color: #eefcff !important;
+            font-size: 0.98rem;
+            font-weight: 600;
+        }
+
+        .login-right {
+            background: #ffffff;
+            padding: 2.6rem 2.5rem;
+            min-height: 620px;
         }
 
         .login-logo {
-            text-align: center;
+            text-align: left;
             margin-bottom: 1rem;
         }
 
         .login-logo img {
-            width: 95px;
-            border-radius: 16px;
+            width: 82px;
+            border-radius: 14px;
             background: white;
-            padding: 8px;
+            padding: 6px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
 
         .login-title {
-            font-size: 2rem;
+            color: #3797e6 !important;
+            font-size: 2.4rem;
             font-weight: 800;
-            color: #0b4f6c;
-            text-align: center;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.35rem;
         }
 
         .login-sub {
-            text-align: center;
-            color: #4d6d7d;
-            margin-bottom: 1.4rem;
+            color: #7b8794 !important;
             font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.45;
+        }
+
+        .login-label {
+            font-weight: 700;
+            color: #5c6670 !important;
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        div[data-testid="stTextInput"] > label {
+            color: #6b7280 !important;
+            font-weight: 700 !important;
         }
 
         div[data-testid="stTextInput"] > div > div input {
-            border-radius: 12px;
+            border: 1px solid #cfd8e3 !important;
+            border-radius: 12px !important;
+            min-height: 50px !important;
+            background: #ffffff !important;
+            color: #183b56 !important;
+            font-size: 16px !important;
         }
 
         .stButton > button {
-            background: linear-gradient(135deg, #0b6e4f, #15926d);
-            color: white;
-            border-radius: 12px;
-            border: none;
-            padding: 0.75rem 1rem;
-            font-weight: 700;
-            width: 100%;
+            background: linear-gradient(135deg, #3a9bf0, #4f95ef) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            border: none !important;
+            min-height: 52px !important;
+            font-weight: 800 !important;
+            font-size: 1rem !important;
+            width: 100% !important;
+            margin-top: 0.35rem;
+            box-shadow: 0 8px 18px rgba(58,155,240,0.25);
         }
 
         .stButton > button:hover {
-            background: linear-gradient(135deg, #09543d, #0f7c5c);
-            color: white;
+            background: linear-gradient(135deg, #2787dc, #3f84dd) !important;
+            color: white !important;
+        }
+
+        .helper-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            color: #8a94a6 !important;
+        }
+
+        .helper-row span strong {
+            color: #3797e6 !important;
+        }
+
+        @media (max-width: 900px) {
+            .login-wrapper {
+                min-height: auto;
+            }
+
+            .login-shell {
+                max-width: 100%;
+                border-radius: 16px;
+            }
+
+            .login-left {
+                min-height: auto;
+                padding: 1.5rem 1.3rem 4.4rem 1.3rem;
+            }
+
+            .welcome-box {
+                margin-top: 2.5rem;
+            }
+
+            .welcome-box h1 {
+                font-size: 2.15rem;
+            }
+
+            .login-right {
+                min-height: auto;
+                padding: 1.5rem 1.2rem;
+            }
+
+            .bottom-note {
+                left: 1.3rem;
+                bottom: 1rem;
+            }
         }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='login-wrap'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='login-logo'><img src='https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg'></div>",
-        unsafe_allow_html=True
-    )
-    st.markdown("<div class='login-title'>Acceso PTAP</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='login-sub'>Ingresa tus credenciales para acceder a la herramienta de apoyo operativo</div>",
-        unsafe_allow_html=True
-    )
+    st.markdown("<div class='login-wrapper'>", unsafe_allow_html=True)
 
-    usuario = st.text_input("Usuario")
-    clave = st.text_input("Contrasena", type="password")
+    col_izq, col_der = st.columns([1.08, 1], gap="small")
 
-    if st.button("Ingresar"):
-        if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
-            st.session_state.autenticado = True
-            st.rerun()
-        else:
-            st.error("Usuario o contrasena incorrectos")
+    with col_izq:
+        st.markdown("""
+        <div class="login-left">
+            <div class="brand-top">SERVAF</div>
 
-    st.markdown("</div>", unsafe_allow_html=True)
+            <div class="welcome-box">
+                <h1>Bienvenido a<br>PTAP</h1>
+                <p>
+                    Sistema de apoyo operativo para recomendación de dosis de PAC,
+                    basado en condiciones actuales y datos históricos similares.
+                </p>
+            </div>
+
+            <div class="bottom-note">
+                Operación más ágil, técnica y confiable.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_der:
+        st.markdown("<div class='login-right'>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='login-logo'><img src='https://raw.githubusercontent.com/laboratoriosdeprocesos-hub/app-pac/main/logo.jpeg'></div>",
+            unsafe_allow_html=True
+        )
+        st.markdown("<div class='login-title'>Iniciar sesión</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='login-sub'>Ingresa tus credenciales para acceder a la plataforma de recomendación de PAC.</div>",
+            unsafe_allow_html=True
+        )
+
+        usuario = st.text_input("Usuario", placeholder="Ingresa tu usuario", key="login_usuario")
+        clave = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña", key="login_clave")
+
+        if st.button("INGRESAR", key="btn_login"):
+            if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
+                st.session_state.autenticado = True
+                st.rerun()
+            else:
+                st.error("Usuario o contraseña incorrectos")
+
+        st.markdown("""
+        <div class="helper-row">
+            <span>Acceso institucional</span>
+            <span><strong>PTAP</strong></span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
     st.markdown("</div>", unsafe_allow_html=True)
 
 
