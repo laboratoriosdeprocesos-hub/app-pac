@@ -980,13 +980,13 @@ if df is not None and calcular:
         fig.update_traces(
             line=dict(
                 color="#1f77ff",
-                width=4,
+                width=1.2,
                 shape="spline"
             ),
             marker=dict(
-                size=9,
+                size=6,
                 color="#1f77ff",
-                line=dict(color="white", width=1.5)
+                line=dict(color="white", width=1)
             )
         )
 
