@@ -124,7 +124,7 @@ def mostrar_login():
 
         /* panel derecho real */
         div[data-testid="column"]:nth-of-type(2) > div {
-            background: white;
+            background: white !important;
             border-radius: 18px;
             padding: 2.5rem 2.3rem 2rem 2.3rem;
             min-height: 620px;
