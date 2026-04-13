@@ -239,7 +239,7 @@ def mostrar_login():
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
             <div class="welcome-box">
-                <h1>Bienvenido a<br>PTAP</h1>
+                <h1>Bienvenido a<br>PTAP Diviso y Caldas</h1>
                 <p>
                     Sistema de apoyo operativo para recomendación de dosis de PAC,
                     basado en condiciones actuales y datos históricos similares.
@@ -281,7 +281,7 @@ def mostrar_login():
         st.markdown("""
         <div class="helper-row">
             <span>Acceso institucional</span>
-            <span><strong>PTAP</strong></span>
+            <span><strong>PTAP DIVISO Y CALDAS</strong></span>
         </div>
         """, unsafe_allow_html=True)
 
