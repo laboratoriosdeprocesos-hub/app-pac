@@ -9,30 +9,13 @@ from sklearn.neighbors import NearestNeighbors
 # CONFIGURACION GENERAL
 # =========================================
 st.set_page_config(
-    page_title="PTAP - Recomendacion PAC",
+    page_title="PTAP - Recomendación PAC",
     page_icon="💧",
     layout="wide"
 )
 
-st.markdown("""
-<style>
-    .block-container {
-        padding-top: 1rem !important;
-    }
-
-    header {
-        visibility: hidden;
-    }
-
-    .main > div {
-        padding-top: -40rem;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-
 # =========================================
-# LOGIN
+# VARIABLES DE LOGIN
 # =========================================
 USUARIO_CORRECTO = "ptap"
 CLAVE_CORRECTA = "c4ldas2026"
@@ -41,6 +24,9 @@ if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
 
+# =========================================
+# LOGIN
+# =========================================
 def mostrar_login():
     st.markdown("""
     <style>
@@ -58,10 +44,18 @@ def mostrar_login():
             max-width: 1200px !important;
         }
 
-        .login-main {
+        .main > div {
+            padding-top: 0rem !important;
+        }
+
+        .login-viewport {
             min-height: 100vh;
             display: flex;
             align-items: center;
+        }
+
+        .login-shell {
+            width: 100%;
         }
 
         .login-left-box {
@@ -72,14 +66,14 @@ def mostrar_login():
             color: white;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.14);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.16);
         }
 
         .login-left-box::before {
             content: "";
             position: absolute;
             bottom: -40px;
-            left: -20px;
+            left: -30px;
             width: 120%;
             height: 180px;
             background: rgba(255,255,255,0.10);
@@ -89,8 +83,8 @@ def mostrar_login():
         .login-left-box::after {
             content: "";
             position: absolute;
-            bottom: 30px;
-            left: 40px;
+            bottom: 35px;
+            left: 50px;
             width: 90%;
             height: 120px;
             background: rgba(255,255,255,0.08);
@@ -98,10 +92,11 @@ def mostrar_login():
         }
 
         .brand-top {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 800;
             position: relative;
             z-index: 2;
+            letter-spacing: 0.2px;
         }
 
         .welcome-box {
@@ -120,9 +115,10 @@ def mostrar_login():
 
         .welcome-box p {
             color: #eefcff !important;
-            font-size: 0rem;
+            font-size: 1.04rem;
             line-height: 1.6;
             margin: 0;
+            max-width: 500px;
         }
 
         .bottom-note {
@@ -132,6 +128,7 @@ def mostrar_login():
             color: #eefcff !important;
             font-weight: 600;
             z-index: 2;
+            font-size: 0.98rem;
         }
 
         .login-right-box {
@@ -139,7 +136,7 @@ def mostrar_login():
             border-radius: 18px;
             padding: 2.5rem 2.3rem;
             min-height: 620px;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.14);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.16);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -147,8 +144,8 @@ def mostrar_login():
 
         .login-title {
             color: #3797e6 !important;
-            font-size:2rem;
-            font-weight: 1000;
+            font-size: 2.5rem;
+            font-weight: 800;
             margin-bottom: 0.4rem;
         }
 
@@ -156,7 +153,7 @@ def mostrar_login():
             color: #7b8794 !important;
             font-size: 1rem;
             line-height: 1.5;
-            margin-bottom: 1.8rem;
+            margin-bottom: 1.7rem;
         }
 
         div[data-testid="stTextInput"] > label {
@@ -204,12 +201,17 @@ def mostrar_login():
         }
 
         @media (max-width: 900px) {
+            .block-container {
+                padding-left: 0.6rem !important;
+                padding-right: 0.6rem !important;
+            }
+
             .login-left-box, .login-right-box {
                 min-height: auto;
             }
 
             .welcome-box {
-                margin-top: 1rem;
+                margin-top: 2rem;
             }
 
             .welcome-box h1 {
@@ -226,7 +228,8 @@ def mostrar_login():
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='login-main'>", unsafe_allow_html=True)
+    st.markdown("<div class='login-viewport'>", unsafe_allow_html=True)
+    st.markdown("<div class='login-shell'>", unsafe_allow_html=True)
 
     col_izq, col_der = st.columns([1.05, 1], gap="medium")
 
@@ -234,6 +237,7 @@ def mostrar_login():
         st.markdown("""
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
+
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP</h1>
                 <p>
@@ -241,6 +245,7 @@ def mostrar_login():
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
+
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
             </div>
@@ -285,6 +290,7 @@ def mostrar_login():
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 if not st.session_state.autenticado:
@@ -293,7 +299,7 @@ if not st.session_state.autenticado:
 
 
 # =========================================
-# ESTILOS
+# ESTILOS DE LA APP
 # =========================================
 st.markdown("""
 <style>
@@ -309,7 +315,7 @@ st.markdown("""
     }
 
     .main > div {
-        padding-top: 0rem;
+        padding-top: 0rem !important;
     }
 
     .stApp {
@@ -370,27 +376,20 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f4fbff 0%, #eef8fc 100%);
-    }
-
     h1, h2, h3 {
         color: #0b4f6c !important;
         word-break: break-word;
     }
 
-    /* Tablas */
     .element-container, .stDataFrame {
         width: 100% !important;
     }
 
-    /* Inputs más cómodos en móvil */
     div[data-baseweb="input"] input,
     div[data-baseweb="select"] input {
         font-size: 16px !important;
     }
 
-    /* Expander bonito */
     .streamlit-expanderHeader {
         font-weight: 700;
         color: #0b4f6c;
@@ -404,7 +403,6 @@ st.markdown("""
         margin-top: 8px;
     }
 
-    /* Responsive celular */
     @media (max-width: 768px) {
         .block-container {
             padding-top: 0.2rem !important;
@@ -446,6 +444,7 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
 
 # =========================================
 # ENCABEZADO CON IMAGEN
@@ -691,7 +690,7 @@ def calcular_rango_pac(
     if len(df_base) < 5:
         return {
             "ok": False,
-            "mensaje": "Muy pocos datos despues del prefiltro, incluso ampliando tolerancias."
+            "mensaje": "Muy pocos datos después del prefiltro, incluso ampliando tolerancias."
         }
 
     scaler = StandardScaler()
@@ -743,7 +742,7 @@ def calcular_rango_pac(
         motivo = "Muy pocos casos"
     elif std > 40:
         usar_rango = False
-        motivo = "Demasiada dispersion"
+        motivo = "Demasiada dispersión"
     elif pac_mediana > 0 and ancho_rango > 0.4 * pac_mediana:
         usar_rango = False
         motivo = "Rango demasiado amplio"
@@ -754,11 +753,11 @@ def calcular_rango_pac(
     if usar_rango:
         dosis_mediana_min = pac_min
         dosis_mediana_max = pac_max
-        metodo = "Rango historico real"
+        metodo = "Rango histórico real"
     else:
         dosis_mediana_min = pac_mediana * 0.90
         dosis_mediana_max = pac_mediana * 1.10
-        metodo = "Mediana +-10%"
+        metodo = "Mediana ±10%"
 
     jarras = [1, 2, 3, 4, 5, 6]
 
@@ -772,12 +771,12 @@ def calcular_rango_pac(
         "Jarra": jarras,
         "Caudal PAC con mediana (mL/min)": jarras_mediana,
         "Dosis PAC con mediana (mg/L)": dosis_mgL_mediana,
-        "Caudal PAC entre minimo y maximo (mL/min)": jarras_minmax,
-        "Dosis PAC entre minimo y maximo (mg/L)": dosis_mgL_minmax
+        "Caudal PAC entre mínimo y máximo (mL/min)": jarras_minmax,
+        "Dosis PAC entre mínimo y máximo (mg/L)": dosis_mgL_minmax
     })
 
     tabla_resumen = pd.DataFrame({
-        "Indicador": ["Minimo", "Mediana", "Media", "Maximo"],
+        "Indicador": ["Mínimo", "Mediana", "Media", "Máximo"],
         "PAC (mL/min)": [
             round(pac_min, 1),
             round(pac_mediana, 1),
@@ -858,7 +857,7 @@ def valores_por_defecto(config_key):
 # SELECCION DE PLANTA Y CARGA DE ARCHIVO
 # =========================================
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-st.markdown("<div class='etiqueta'>Seleccion de planta</div>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Selección de planta</div>", unsafe_allow_html=True)
 
 planta_base = st.selectbox(
     "Selecciona la planta",
@@ -869,11 +868,11 @@ config_key = "Caldas"
 
 if planta_base == "Diviso":
     modulo_diviso = st.selectbox(
-        "Selecciona el modulo de Diviso",
-        ["Modulo 500", "Modulo 150"]
+        "Selecciona el módulo de Diviso",
+        ["Módulo 500", "Módulo 150"]
     )
 
-    if modulo_diviso == "Modulo 500":
+    if modulo_diviso == "Módulo 500":
         config_key = "Diviso - Modulo 500"
     else:
         config_key = "Diviso - Modulo 150"
@@ -889,7 +888,7 @@ except Exception as e:
 
 if df is not None:
     st.write(f"Modo seleccionado: {CONFIGS[config_key]['nombre_app']}")
-    st.write(f"Filas utiles: {len(df)}")
+    st.write(f"Filas útiles: {len(df)}")
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -950,7 +949,7 @@ with st.expander("Abrir / cerrar formulario", expanded=True):
         )
 
     vecinos_deseados = st.slider(
-        "Cantidad de datos historicos a evaluar",
+        "Cantidad de datos históricos a evaluar",
         min_value=5,
         max_value=30,
         value=8,
@@ -963,7 +962,7 @@ with st.expander("Abrir / cerrar formulario", expanded=True):
         calcular = st.button("Calcular rango PAC", use_container_width=True)
 
     with b2:
-        cerrar_sesion = st.button("Cerrar sesion", type="secondary", use_container_width=True)
+        cerrar_sesion = st.button("Cerrar sesión", type="secondary", use_container_width=True)
 
     if cerrar_sesion:
         st.session_state.autenticado = False
