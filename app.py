@@ -147,8 +147,8 @@ def mostrar_login():
 
         .login-title {
             color: #3797e6 !important;
-            font-size:1rem;
-            font-weight: 800;
+            font-size:0.1rem;
+            font-weight: 400;
             margin-bottom: 0.4rem;
         }
 
