@@ -239,7 +239,7 @@ def mostrar_login():
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
             <div class="welcome-box">
-                <h1>Bienvenido a<br>PTAP Diviso y Caldas</h1>
+                <h1>Bienvenido <br></h1>
                 <p>
                     Sistema de apoyo operativo para recomendación de dosis de PAC,
                     basado en condiciones actuales y datos históricos similares.
