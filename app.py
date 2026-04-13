@@ -53,7 +53,7 @@ def mostrar_login():
         }
 
         .block-container {
-            padding-top: 1.2rem !important;
+            padding-top: 0rem !important;
             padding-bottom: 1rem !important;
             max-width: 1280px !important;
         }
@@ -270,23 +270,23 @@ def mostrar_login():
     col_izq, col_der = st.columns([1.08, 1], gap="small")
 
     with col_izq:
-        st.markdown("""
-        <div class="login-left">
-            <div class="brand-top">SERVAF</div>
+st.markdown("""
+<div class="login-left">
+    <div class="brand-top">SERVAF</div>
 
-            <div class="welcome-box">
-                <h1>Bienvenido a<br>PTAP</h1>
-                <p>
-                    Sistema de apoyo operativo para recomendación de dosis de PAC,
-                    basado en condiciones actuales y datos históricos similares.
-                </p>
-            </div>
+    <div class="welcome-box">
+        <h1>Bienvenido a<br>PTAP</h1>
+        <p>
+            Sistema de apoyo operativo para recomendación de dosis de PAC,
+            basado en condiciones actuales y datos históricos similares.
+        </p>
+    </div>
 
-            <div class="bottom-note">
-                Operación más ágil, técnica y confiable.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    <div class="bottom-note">
+        Operación más ágil, técnica y confiable.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
     with col_der:
         st.markdown("<div class='login-right'>", unsafe_allow_html=True)
