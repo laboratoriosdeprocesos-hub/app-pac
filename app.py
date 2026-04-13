@@ -1011,7 +1011,9 @@ if df is not None and calcular:
             return [""] * len(fila)
 
         st.dataframe(
-            df_tabla.style.apply(resaltar_mejor, axis=1).format("{:1f}"),
+            df_tabla.style
+                .apply(resaltar_mejor, axis=1)
+                .format("{:1f}"),
             use_container_width=True,
             height=320
         )
