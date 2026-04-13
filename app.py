@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 
@@ -966,5 +967,46 @@ if df is not None and calcular:
 
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Casos históricos similares usados</div>", unsafe_allow_html=True)
-        st.dataframe(resultado["similares_filtrados"], use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Gráfica de turbiedad vs caudal</div>", unsafe_allow_html=True)
+
+df_grafica = resultado["similares_filtrados"].copy()
+
+fig = px.scatter(
+    df_grafica,
+    x="Caudal a tratar (L/s)",
+    y="Turbiedad de agua cruda (UNT)",
+    title="Relación entre Caudal y Turbiedad",
+    labels={
+        "Caudal a tratar (L/s)": "Caudal a tratar (L/s)",
+        "Turbiedad de agua cruda (UNT)": "Turbiedad de agua cruda (UNT)"
+    }
+)
+
+fig.update_traces(
+    marker=dict(
+        size=10,
+        color="#1f77ff",
+        line=dict(color="white", width=1.5)
+    )
+)
+
+fig.update_layout(
+    plot_bgcolor="white",
+    paper_bgcolor="white",
+    font=dict(color="#0b4f6c"),
+    title_font=dict(size=20),
+    xaxis=dict(
+        showgrid=True,
+        gridcolor="#dbeafe",
+        zeroline=False
+    ),
+    yaxis=dict(
+        showgrid=True,
+        gridcolor="#dbeafe",
+        zeroline=False
+    )
+)
+
+st.plotly_chart(fig, use_container_width=True)
+st.markdown("</div>", unsafe_allow_html=True)
