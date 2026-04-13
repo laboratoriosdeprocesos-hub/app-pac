@@ -36,7 +36,7 @@ def mostrar_login():
         }
 
         .block-container {
-            padding-top: 0rem !important;
+            padding-top: 0.4rem !important;
             padding-bottom: 0rem !important;
             max-width: 1180px !important;
         }
@@ -46,12 +46,18 @@ def mostrar_login():
         }
 
         .login-space {
-            height: 18px;
+            height: 10px;
         }
 
+        /* CONTENEDOR GENERAL */
+        div[data-testid="stHorizontalBlock"] {
+            align-items: stretch !important;
+        }
+
+        /* PANEL IZQUIERDO */
         .login-left-box {
             background: linear-gradient(180deg, #42d4e6 0%, #49b7ee 55%, #4d95f2 100%);
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 2.2rem 2rem;
             min-height: 620px;
             color: white;
@@ -122,37 +128,39 @@ def mostrar_login():
             font-size: 0.98rem;
         }
 
-        div[data-testid="column"]:nth-of-type(2) > div {
-            background: white !important;
-            border-radius: 18px;
-            padding: 2.5rem 2.3rem 2rem 2.3rem;
-            min-height: 620px;
-            box-shadow: 0 18px 40px rgba(0,0,0,0.16);
+        /* PANEL DERECHO BLANCO FUERTE */
+        div[data-testid="stHorizontalBlock"] > div:nth-child(2) > div {
+            background: #ffffff !important;
+            border-radius: 20px !important;
+            padding: 2.5rem 2.3rem 2rem 2.3rem !important;
+            min-height: 620px !important;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.16) !important;
+            border: 1px solid rgba(0,0,0,0.05) !important;
         }
 
         .login-title {
-            color: #3797e6 !important;
+            color: #1f4fc9 !important;
             font-size: 2.5rem;
             font-weight: 800;
             margin-bottom: 0.4rem;
         }
 
         .login-sub {
-            color: #7b8794 !important;
+            color: #5f6b76 !important;
             font-size: 1rem;
             line-height: 1.5;
             margin-bottom: 1.7rem;
         }
 
         div[data-testid="stTextInput"] > label {
-            color: #5f6b76 !important;
+            color: #334155 !important;
             font-weight: 700 !important;
         }
 
         div[data-testid="stTextInput"] > div > div input {
             border: 1px solid #cfd8e3 !important;
             border-radius: 12px !important;
-            min-height: 50px !important;
+            min-height: 52px !important;
             background: #ffffff !important;
             color: #183b56 !important;
             font-size: 16px !important;
@@ -181,7 +189,7 @@ def mostrar_login():
             justify-content: space-between;
             margin-top: 1rem;
             font-size: 0.95rem;
-            color: #8a94a6 !important;
+            color: #6b7280 !important;
         }
 
         .helper-row strong {
@@ -198,9 +206,9 @@ def mostrar_login():
                 min-height: auto;
             }
 
-            div[data-testid="column"]:nth-of-type(2) > div {
-                min-height: auto;
-                padding: 1.6rem 1.2rem 1.4rem 1.2rem;
+            div[data-testid="stHorizontalBlock"] > div:nth-child(2) > div {
+                min-height: auto !important;
+                padding: 1.5rem 1.2rem 1.4rem 1.2rem !important;
             }
 
             .welcome-box {
@@ -223,12 +231,13 @@ def mostrar_login():
 
     st.markdown("<div class='login-space'></div>", unsafe_allow_html=True)
 
-    col_izq, col_der = st.columns([1.05, 1], gap="medium")
+    col_izq, col_der = st.columns([1.02, 1], gap="medium")
 
     with col_izq:
         st.markdown("""
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
+
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP</h1>
                 <p>
@@ -236,6 +245,7 @@ def mostrar_login():
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
+
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
             </div>
@@ -275,7 +285,6 @@ def mostrar_login():
             <span><strong>PTAP</strong></span>
         </div>
         """, unsafe_allow_html=True)
-
 
 if not st.session_state.autenticado:
     mostrar_login()
