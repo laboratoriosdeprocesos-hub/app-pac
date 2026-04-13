@@ -979,34 +979,43 @@ if df is not None and calcular:
 
         df_grafica = resultado["similares_filtrados"].copy()
 
-        fig = px.scatter(
-            df_grafica,
-            x="Caudal a tratar (L/s)",
-            y="Turbiedad de agua cruda (UNT)",
-            title="Relación Caudal vs Turbiedad"
-        )
+# Ordenar por turbiedad para que la línea siga los puntos de izquierda a derecha
+df_grafica = df_grafica.sort_values(by="Turbiedad de agua cruda (UNT)")
 
-        fig.update_traces(
-            marker=dict(
-                size=10,
-                color="#1f77ff",
-                line=dict(color="white", width=1.5)
-            )
-        )
+fig = px.line(
+    df_grafica,
+    x="Turbiedad de agua cruda (UNT)",
+    y="Caudal PAC (mL/min)",
+    title="Relación Turbiedad vs Caudal de dosificación PAC",
+    markers=True
+)
 
-        fig.update_layout(
-            plot_bgcolor="white",
-            paper_bgcolor="white",
-            font=dict(color="#0b4f6c"),
-            xaxis=dict(
-                title="Caudal a tratar (L/s)",
-                gridcolor="#dbeafe"
-            ),
-            yaxis=dict(
-                title="Turbiedad de agua cruda (UNT)",
-                gridcolor="#dbeafe"
-            )
-        )
+fig.update_traces(
+    line=dict(
+        color="#1f77ff",
+        width=4,
+        shape="spline"
+    ),
+    marker=dict(
+        size=9,
+        color="#1f77ff",
+        line=dict(color="white", width=1.5)
+    )
+)
+
+fig.update_layout(
+    plot_bgcolor="white",
+    paper_bgcolor="white",
+    font=dict(color="#0b4f6c"),
+    xaxis=dict(
+        title="Turbiedad de agua cruda (UNT)",
+        gridcolor="#dbeafe"
+    ),
+    yaxis=dict(
+        title="Caudal PAC (mL/min)",
+        gridcolor="#dbeafe"
+    )
+)
 
         st.plotly_chart(fig, use_container_width=True)
 
