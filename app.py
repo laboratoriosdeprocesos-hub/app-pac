@@ -93,7 +93,7 @@ def mostrar_login():
 
         .brand-top {
             font-size: 1.25rem;
-            font-weight: 800;
+            font-weight: 1000;
             position: relative;
             z-index: 2;
             letter-spacing: 0.2px;
