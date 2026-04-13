@@ -715,9 +715,6 @@ def calcular_rango_pac(
         "Caudal PAC recomendado (mL/min)": jarras_recomendadas,
         "Dosis PAC recomendada (mg/L)": dosis_mgL
     })
-    
-        ]
-    })
 
     columnas_mostrar = ["caudal", "turbiedad", "ph", "alcalinidad_cruda"]
 
