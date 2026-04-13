@@ -270,7 +270,7 @@ def mostrar_login():
     col_izq, col_der = st.columns([1.08, 1], gap="small")
 
     with col_izq:
-st.markdown("""
+        st.markdown("""
 <div class="login-left">
     <div class="brand-top">SERVAF</div>
 
@@ -287,6 +287,7 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
 
     with col_der:
         st.markdown("<div class='login-right'>", unsafe_allow_html=True)
