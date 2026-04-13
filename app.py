@@ -134,8 +134,8 @@ def mostrar_login():
         .login-right-box {
             background: white;
             border-radius: 18px;
-            padding: 2.5rem 2.3rem;
-            min-height: 620px;
+            padding: 5rem 5rem;
+            min-height: 1000px;
             box-shadow: 0 18px 40px rgba(0,0,0,0.16);
             display: flex;
             flex-direction: column;
@@ -144,8 +144,8 @@ def mostrar_login():
 
         .login-title {
             color: #3797e6 !important;
-            font-size: 2.5rem;
-            font-weight: 800;
+            font-size: 5rem;
+            font-weight: 1000;
             margin-bottom: 0.4rem;
         }
 
