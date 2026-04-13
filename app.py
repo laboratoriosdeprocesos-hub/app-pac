@@ -236,7 +236,6 @@ def mostrar_login():
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
-
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
             </div>
