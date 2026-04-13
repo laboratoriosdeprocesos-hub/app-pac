@@ -984,8 +984,8 @@ if df is not None and calcular:
 
         fig = px.line(
             df_grafica,
-            x="Caudal PAC (mL/min)",
-            y="Turbiedad de agua cruda (UNT)",
+            x="Turbiedad de agua cruda (UNT)",
+            y="Caudal PAC (mL/min)",
             title="Relación Turbiedad vs Caudal de dosificación PAC",
             markers=True
         )
@@ -997,7 +997,7 @@ if df is not None and calcular:
                 shape="spline"
             ),
             marker=dict(
-                size=7,
+                size=9,
                 color="#1f77ff",
                 line=dict(color="white", width=1.5)
             )
