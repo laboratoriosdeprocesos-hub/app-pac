@@ -14,9 +14,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# =========================================
-# VARIABLES DE LOGIN
-# =========================================
 USUARIO_CORRECTO = "ptap"
 CLAVE_CORRECTA = "c4ldas2026"
 
@@ -41,28 +38,18 @@ def mostrar_login():
         .block-container {
             padding-top: 0rem !important;
             padding-bottom: 0rem !important;
-            max-width: 1200px !important;
+            max-width: 1180px !important;
         }
 
         .main > div {
             padding-top: 0rem !important;
         }
 
-        .login-viewport {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-
-        .login-shell {
-            width: 100%;
-        }
-
         .login-left-box {
             background: linear-gradient(180deg, #42d4e6 0%, #49b7ee 55%, #4d95f2 100%);
             border-radius: 18px;
-            padding: -5rem 2rem;
-            min-height: 1200px;
+            padding: 2.2rem 2rem;
+            min-height: 620px;
             color: white;
             position: relative;
             overflow: hidden;
@@ -93,7 +80,7 @@ def mostrar_login():
 
         .brand-top {
             font-size: 1.25rem;
-            font-weight: 1000;
+            font-weight: 800;
             position: relative;
             z-index: 2;
             letter-spacing: 0.2px;
@@ -134,8 +121,8 @@ def mostrar_login():
         .login-right-box {
             background: white;
             border-radius: 18px;
-            padding: 5rem 5rem;
-            min-height: 1000px;
+            padding: 2.5rem 2.3rem;
+            min-height: 620px;
             box-shadow: 0 18px 40px rgba(0,0,0,0.16);
             display: flex;
             flex-direction: column;
@@ -144,8 +131,8 @@ def mostrar_login():
 
         .login-title {
             color: #3797e6 !important;
-            font-size: 5rem;
-            font-weight: 1000;
+            font-size: 2.5rem;
+            font-weight: 800;
             margin-bottom: 0.4rem;
         }
 
@@ -228,15 +215,14 @@ def mostrar_login():
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='login-viewport'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-shell'>", unsafe_allow_html=True)
-
+    st.write("")
     col_izq, col_der = st.columns([1.05, 1], gap="medium")
 
     with col_izq:
         st.markdown("""
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
+
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP</h1>
                 <p>
@@ -244,6 +230,7 @@ def mostrar_login():
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
+
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
             </div>
@@ -287,9 +274,6 @@ def mostrar_login():
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
 
 if not st.session_state.autenticado:
     mostrar_login()
@@ -302,7 +286,7 @@ if not st.session_state.autenticado:
 st.markdown("""
 <style>
     .block-container {
-        padding-top: 0.4rem !important;
+        padding-top: 0.35rem !important;
         padding-left: 0.8rem !important;
         padding-right: 0.8rem !important;
         max-width: 100% !important;
@@ -439,6 +423,11 @@ st.markdown("""
             padding: 10px;
             border-radius: 12px;
         }
+
+        div[data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+            gap: 0.7rem !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -457,41 +446,16 @@ CONFIGS = {
     "Caldas": {
         "archivo": "2026 PTAP CALDAS.xlsx",
         "nombre_app": "PTAP Caldas",
-        "variables_entrada": {
-            "caudal": "Caudal A tratar (L/s)",
-            "turbiedad": "Turbiedad de agua cruda (UNT)",
-            "ph": "pH de agua cruda (Unid)",
-            "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
-        },
-        "col_pac": "Caudal de dosificación del PAC (mL/min)",
         "usa_alcalinidad_encalada": False
     },
-
     "Diviso - Modulo 500": {
         "archivo": "2026 PTAP DIVISO.xlsx",
-        "nombre_app": "PTAP Diviso - Modulo 500",
-        "variables_entrada": {
-            "caudal": "Caudal A tratar módulo de 500 (L/s)",
-            "turbiedad": "Turbiedad de agua cruda (UNT)",
-            "ph": "pH de agua cruda (Unid)",
-            "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
-            "alcalinidad_encalada": "Alcalinidad de agua encalada (mg/L)",
-        },
-        "col_pac": "Caudal de dosificación del PAC módulo de 500 (mL/min)",
+        "nombre_app": "PTAP Diviso - Módulo 500",
         "usa_alcalinidad_encalada": True
     },
-
     "Diviso - Modulo 150": {
         "archivo": "2026 PTAP DIVISO.xlsx",
-        "nombre_app": "PTAP Diviso - Modulo 150",
-        "variables_entrada": {
-            "caudal": "Caudal A tratar módulo de 150 (L/s)",
-            "turbiedad": "Turbiedad de agua cruda (UNT)",
-            "ph": "pH de agua cruda (Unid)",
-            "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
-            "alcalinidad_encalada": "Alcalinidad de agua encalada (mg/L)",
-        },
-        "col_pac": "Caudal de dosificación del PAC módulo de 150 (mL/min)",
+        "nombre_app": "PTAP Diviso - Módulo 150",
         "usa_alcalinidad_encalada": True
     }
 }
@@ -613,7 +577,6 @@ def cargar_y_limpiar_excel(archivo_excel, config_key):
         df[col] = limpiar_columna_numerica(df[col])
 
     df = df.dropna(subset=columnas_numericas).copy()
-
     return df
 
 
@@ -729,55 +692,24 @@ def calcular_rango_pac(
 
     pac_min = float(similares_filtrados["pac_ml_min"].min())
     pac_max = float(similares_filtrados["pac_ml_min"].max())
-    pac_mediana = float(similares_filtrados["pac_ml_min"].median())
     pac_promedio = float(similares_filtrados["pac_ml_min"].mean())
     std = float(similares_filtrados["pac_ml_min"].std()) if len(similares_filtrados) > 1 else 0.0
     n = int(len(similares_filtrados))
-    ancho_rango = pac_max - pac_min
-
-    if n < 5:
-        usar_rango = False
-        motivo = "Muy pocos casos"
-    elif std > 40:
-        usar_rango = False
-        motivo = "Demasiada dispersión"
-    elif pac_mediana > 0 and ancho_rango > 0.4 * pac_mediana:
-        usar_rango = False
-        motivo = "Rango demasiado amplio"
-    else:
-        usar_rango = True
-        motivo = "Rango aceptable"
-
-    if usar_rango:
-        dosis_mediana_min = pac_min
-        dosis_mediana_max = pac_max
-        metodo = "Rango histórico real"
-    else:
-        dosis_mediana_min = pac_mediana * 0.90
-        dosis_mediana_max = pac_mediana * 1.10
-        metodo = "Mediana ±10%"
 
     jarras = [1, 2, 3, 4, 5, 6]
-
-    jarras_mediana = np.round(np.linspace(dosis_mediana_min, dosis_mediana_max, 6), 1)
-    jarras_minmax = np.round(np.linspace(pac_min, pac_max, 6), 1)
-
-    dosis_mgL_mediana = np.round((jarras_mediana * densidad_pac * 1000) / (60 * caudal), 2)
-    dosis_mgL_minmax = np.round((jarras_minmax * densidad_pac * 1000) / (60 * caudal), 2)
+    jarras_recomendadas = np.round(np.linspace(pac_min, pac_max, 6), 1)
+    dosis_mgL = np.round((jarras_recomendadas * densidad_pac * 1000) / (60 * caudal), 2)
 
     tabla_jarras = pd.DataFrame({
         "Jarra": jarras,
-        "Caudal PAC con mediana (mL/min)": jarras_mediana,
-        "Dosis PAC con mediana (mg/L)": dosis_mgL_mediana,
-        "Caudal PAC entre mínimo y máximo (mL/min)": jarras_minmax,
-        "Dosis PAC entre mínimo y máximo (mg/L)": dosis_mgL_minmax
+        "Caudal PAC recomendado (mL/min)": jarras_recomendadas,
+        "Dosis PAC recomendada (mg/L)": dosis_mgL
     })
 
     tabla_resumen = pd.DataFrame({
-        "Indicador": ["Mínimo", "Mediana", "Media", "Máximo"],
+        "Indicador": ["Mínimo", "Media", "Máximo"],
         "PAC (mL/min)": [
             round(pac_min, 1),
-            round(pac_mediana, 1),
             round(pac_promedio, 1),
             round(pac_max, 1)
         ]
@@ -809,12 +741,9 @@ def calcular_rango_pac(
         "similares_filtrados": similares_filtrados,
         "pac_min": pac_min,
         "pac_max": pac_max,
-        "pac_mediana": pac_mediana,
         "pac_promedio": pac_promedio,
         "std": std,
         "n": n,
-        "metodo": metodo,
-        "motivo": motivo,
         "tabla_jarras": tabla_jarras,
         "tabla_resumen": tabla_resumen,
         "tolerancia_usada": tolerancia_usada
@@ -989,19 +918,13 @@ if df is not None and calcular:
         st.error(resultado["mensaje"])
     else:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-        st.markdown("<div class='etiqueta'>Resultado del analisis</div>", unsafe_allow_html=True)
+        st.markdown("<div class='etiqueta'>Resultado del análisis</div>", unsafe_allow_html=True)
 
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Casos usados", resultado["n"])
-        c2.metric("PAC mediana", round(resultado["pac_mediana"], 1))
-        c3.metric("PAC media", round(resultado["pac_promedio"], 1))
-        c4.metric("Desviacion", round(resultado["std"], 1))
-
-        st.markdown(
-            f"<div class='caja-rango'><b>Metodo usado:</b> {resultado['metodo']}<br>"
-            f"<b>Motivo:</b> {resultado['motivo']}</div>",
-            unsafe_allow_html=True
-        )
+        c2.metric("PAC mínimo", round(resultado["pac_min"], 1))
+        c3.metric("PAC medio", round(resultado["pac_promedio"], 1))
+        c4.metric("PAC máximo", round(resultado["pac_max"], 1))
 
         if resultado.get("tolerancia_usada") is not None:
             tol = resultado["tolerancia_usada"]
@@ -1033,6 +956,6 @@ if df is not None and calcular:
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-        st.markdown("<div class='etiqueta'>Casos historicos similares usados</div>", unsafe_allow_html=True)
+        st.markdown("<div class='etiqueta'>Casos históricos similares usados</div>", unsafe_allow_html=True)
         st.dataframe(resultado["similares_filtrados"], use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
