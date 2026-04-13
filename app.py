@@ -222,7 +222,6 @@ def mostrar_login():
         st.markdown("""
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
-
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP</h1>
                 <p>
@@ -230,7 +229,6 @@ def mostrar_login():
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
-
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
             </div>
