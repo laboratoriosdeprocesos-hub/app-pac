@@ -45,6 +45,10 @@ def mostrar_login():
             padding-top: 0rem !important;
         }
 
+        .login-space {
+            height: 18px;
+        }
+
         .login-left-box {
             background: linear-gradient(180deg, #42d4e6 0%, #49b7ee 55%, #4d95f2 100%);
             border-radius: 18px;
@@ -118,15 +122,13 @@ def mostrar_login():
             font-size: 0.98rem;
         }
 
-        .login-right-box {
+        /* panel derecho real */
+        div[data-testid="column"]:nth-of-type(2) > div {
             background: white;
             border-radius: 18px;
-            padding: 2.5rem 2.3rem;
+            padding: 2.5rem 2.3rem 2rem 2.3rem;
             min-height: 620px;
             box-shadow: 0 18px 40px rgba(0,0,0,0.16);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
 
         .login-title {
@@ -193,8 +195,13 @@ def mostrar_login():
                 padding-right: 0.6rem !important;
             }
 
-            .login-left-box, .login-right-box {
+            .login-left-box {
                 min-height: auto;
+            }
+
+            div[data-testid="column"]:nth-of-type(2) > div {
+                min-height: auto;
+                padding: 1.6rem 1.2rem 1.4rem 1.2rem;
             }
 
             .welcome-box {
@@ -215,13 +222,15 @@ def mostrar_login():
     </style>
     """, unsafe_allow_html=True)
 
-    st.write("")
+    st.markdown("<div class='login-space'></div>", unsafe_allow_html=True)
+
     col_izq, col_der = st.columns([1.05, 1], gap="medium")
 
     with col_izq:
         st.markdown("""
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
+
             <div class="welcome-box">
                 <h1>Bienvenido a<br>PTAP</h1>
                 <p>
@@ -229,6 +238,7 @@ def mostrar_login():
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
+
             <div class="bottom-note">
                 Operación más ágil, técnica y confiable.
             </div>
@@ -236,7 +246,6 @@ def mostrar_login():
         """, unsafe_allow_html=True)
 
     with col_der:
-        st.markdown("<div class='login-right-box'>", unsafe_allow_html=True)
         st.markdown("<div class='login-title'>Iniciar sesión</div>", unsafe_allow_html=True)
         st.markdown(
             "<div class='login-sub'>Ingresa tus credenciales para acceder a la plataforma de recomendación de PAC.</div>",
@@ -269,9 +278,6 @@ def mostrar_login():
             <span><strong>PTAP</strong></span>
         </div>
         """, unsafe_allow_html=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
 
 if not st.session_state.autenticado:
     mostrar_login()
