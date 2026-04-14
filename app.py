@@ -492,7 +492,7 @@ def obtener_nombre_columna(df, candidatos):
     raise ValueError(f"No encontré ninguna de estas columnas: {candidatos}")
 
 
-@st.cache_data
+@st.cache_data(ttl=60)
 def cargar_y_limpiar_excel(archivo_excel, config_key):
     config = CONFIGS[config_key]
     df = pd.read_excel(archivo_excel)
@@ -804,14 +804,43 @@ if planta_base == "Diviso":
     else:
         config_key = "Diviso - Modulo 150"
 
+st.markdown("---")
+
+fuente_datos = st.radio(
+    "Fuente de datos",
+    ["Usar archivo del sistema", "Subir archivo Excel"],
+    horizontal=True
+)
+
+if st.button("🔄 Actualizar datos"):
+    st.cache_data.clear()
+    st.rerun()
+
 df = None
 archivo_excel = CONFIGS[config_key]["archivo"]
 
-try:
-    df = cargar_y_limpiar_excel(archivo_excel, config_key)
-    st.success(f"Archivo cargado correctamente para: {CONFIGS[config_key]['nombre_app']}")
-except Exception as e:
-    st.error(f"No pude abrir o procesar el archivo: {e}")
+if fuente_datos == "Usar archivo del sistema":
+    try:
+        df = cargar_y_limpiar_excel(archivo_excel, config_key)
+        st.success(f"Archivo cargado correctamente para: {CONFIGS[config_key]['nombre_app']}")
+    except Exception as e:
+        st.error(f"No pude abrir o procesar el archivo: {e}")
+
+else:
+    archivo_subido = st.file_uploader(
+        "Sube el archivo Excel de la planta seleccionada",
+        type=["xlsx"],
+        key=f"uploader_{config_key}"
+    )
+
+    if archivo_subido is not None:
+        try:
+            df = cargar_y_limpiar_excel(archivo_subido, config_key)
+            st.success(f"Archivo subido correctamente para: {CONFIGS[config_key]['nombre_app']}")
+        except Exception as e:
+            st.error(f"No pude leer el archivo subido: {e}")
+    else:
+        st.info("Sube un archivo Excel para continuar.")
 
 if df is not None:
     st.write(f"Modo seleccionado: {CONFIGS[config_key]['nombre_app']}")
