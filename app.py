@@ -21,6 +21,9 @@ CLAVE_CORRECTA = "plantas2026"
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
+if "vista" not in st.session_state:
+    st.session_state.vista = "menu"
+
 
 # =========================================
 # LOGIN
@@ -50,12 +53,10 @@ def mostrar_login():
             height: 10px;
         }
 
-        /* CONTENEDOR GENERAL */
         div[data-testid="stHorizontalBlock"] {
             align-items: stretch !important;
         }
 
-        /* PANEL IZQUIERDO */
         .login-left-box {
             background: linear-gradient(180deg, #42d4e6 0%, #49b7ee 55%, #4d95f2 100%);
             border-radius: 20px;
@@ -129,7 +130,6 @@ def mostrar_login():
             font-size: 0.98rem;
         }
 
-        /* PANEL DERECHO BLANCO FUERTE */
         div[data-testid="stHorizontalBlock"] > div:nth-child(2) > div {
             background: #ffffff !important;
             border-radius: 20px !important;
@@ -239,7 +239,7 @@ def mostrar_login():
         <div class="login-left-box">
             <div class="brand-top">SERVAF</div>
             <div class="welcome-box">
-                <h1>Bienvenido <br></h1>
+                <h1>Bienvenido</h1>
                 <p>
                     Sistema de apoyo operativo para recomendación de dosis de PAC,
                     basado en condiciones actuales y datos históricos similares.
@@ -274,6 +274,7 @@ def mostrar_login():
         if st.button("INGRESAR", key="btn_login"):
             if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
                 st.session_state.autenticado = True
+                st.session_state.vista = "menu"
                 st.rerun()
             else:
                 st.error("Usuario o contraseña incorrectos")
@@ -285,172 +286,163 @@ def mostrar_login():
         </div>
         """, unsafe_allow_html=True)
 
-if not st.session_state.autenticado:
-    mostrar_login()
-    st.stop()
-
 
 # =========================================
 # ESTILOS DE LA APP
 # =========================================
-st.markdown("""
-<style>
-    .block-container {
-        padding-top: 0.35rem !important;
-        padding-left: 0.8rem !important;
-        padding-right: 0.8rem !important;
-        max-width: 100% !important;
-    }
-
-    header {
-        visibility: hidden;
-    }
-
-    .main > div {
-        padding-top: 0rem !important;
-    }
-
-    .stApp {
-        background: linear-gradient(180deg, #f8fcff 0%, #eef9ff 35%, #f8fcff 100%);
-    }
-
-    .bloque {
-        background: rgba(255,255,255,0.96);
-        padding: 1rem;
-        border-radius: 16px;
-        box-shadow: 0 4px 14px rgba(7,62,94,0.08);
-        border: 1px solid rgba(7,62,94,0.08);
-        margin-bottom: 0.9rem;
-    }
-
-    .etiqueta {
-        display: inline-block;
-        background: #cfefff;
-        color: #0a4d6a;
-        padding: 0.28rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.82rem;
-        font-weight: 700;
-        margin-bottom: 0.8rem;
-    }
-
-    .caja-rango {
-        background: linear-gradient(135deg, #e5f6ff, #f4fbff);
-        border-left: 6px solid #0b4f6c;
-        padding: 0.9rem;
-        border-radius: 12px;
-        font-size: 1rem;
-        margin-top: 0.8rem;
-        margin-bottom: 0.8rem;
-    }
-
-    .stButton > button {
-        background: linear-gradient(135deg, #0b6e4f, #15926d);
-        color: white;
-        border-radius: 12px;
-        border: none;
-        padding: 0.78rem 1rem;
-        font-weight: 700;
-        width: 100%;
-        min-height: 48px;
-    }
-
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #09543d, #0f7c5c);
-        color: white;
-    }
-
-    div[data-testid="stMetric"] {
-        background: white;
-        border: 1px solid #d6e8f2;
-        padding: 12px;
-        border-radius: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    h1, h2, h3 {
-        color: #0b4f6c !important;
-        word-break: break-word;
-    }
-
-    .element-container, .stDataFrame {
-        width: 100% !important;
-    }
-
-    div[data-baseweb="input"] input,
-    div[data-baseweb="select"] input {
-        font-size: 16px !important;
-    }
-
-    .streamlit-expanderHeader {
-        font-weight: 700;
-        color: #0b4f6c;
-    }
-
-    div[data-testid="stExpander"] {
-        border: 1px solid #d6e8f2;
-        border-radius: 14px;
-        background: rgba(255,255,255,0.65);
-        padding: 5px;
-        margin-top: 8px;
-    }
-
-    @media (max-width: 768px) {
+def aplicar_estilos_app():
+    st.markdown("""
+    <style>
         .block-container {
-            padding-top: 0.2rem !important;
-            padding-left: 0.55rem !important;
-            padding-right: 0.55rem !important;
+            padding-top: 0.35rem !important;
+            padding-left: 0.8rem !important;
+            padding-right: 0.8rem !important;
+            max-width: 100% !important;
+        }
+
+        header {
+            visibility: hidden;
+        }
+
+        .main > div {
+            padding-top: 0rem !important;
+        }
+
+        .stApp {
+            background: linear-gradient(180deg, #f8fcff 0%, #eef9ff 35%, #f8fcff 100%);
         }
 
         .bloque {
-            padding: 0.85rem;
-            border-radius: 14px;
+            background: rgba(255,255,255,0.96);
+            padding: 1rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(7,62,94,0.08);
+            border: 1px solid rgba(7,62,94,0.08);
+            margin-bottom: 0.9rem;
         }
 
         .etiqueta {
-            font-size: 0.78rem;
-            padding: 0.24rem 0.65rem;
+            display: inline-block;
+            background: #cfefff;
+            color: #0a4d6a;
+            padding: 0.28rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
         }
 
         .caja-rango {
-            font-size: 0.95rem;
-            padding: 0.8rem;
+            background: linear-gradient(135deg, #e5f6ff, #f4fbff);
+            border-left: 6px solid #0b4f6c;
+            padding: 0.9rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            margin-top: 0.8rem;
+            margin-bottom: 0.8rem;
         }
 
-        h1 {
-            font-size: 1.2rem !important;
+        .stButton > button {
+            background: linear-gradient(135deg, #0b6e4f, #15926d);
+            color: white;
+            border-radius: 12px;
+            border: none;
+            padding: 0.78rem 1rem;
+            font-weight: 700;
+            width: 100%;
+            min-height: 48px;
         }
 
-        h2 {
-            font-size: 1.05rem !important;
-        }
-
-        h3 {
-            font-size: 0.98rem !important;
+        .stButton > button:hover {
+            background: linear-gradient(135deg, #09543d, #0f7c5c);
+            color: white;
         }
 
         div[data-testid="stMetric"] {
-            padding: 10px;
-            border-radius: 12px;
+            background: white;
+            border: 1px solid #d6e8f2;
+            padding: 12px;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        div[data-testid="stHorizontalBlock"] {
-            flex-direction: column !important;
-            gap: 0.7rem !important;
+        h1, h2, h3 {
+            color: #0b4f6c !important;
+            word-break: break-word;
         }
-    }
-</style>
-""", unsafe_allow_html=True)
+
+        .element-container, .stDataFrame {
+            width: 100% !important;
+        }
+
+        div[data-baseweb="input"] input,
+        div[data-baseweb="select"] input {
+            font-size: 16px !important;
+        }
+
+        .streamlit-expanderHeader {
+            font-weight: 700;
+            color: #0b4f6c;
+        }
+
+        div[data-testid="stExpander"] {
+            border: 1px solid #d6e8f2;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.65);
+            padding: 5px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 0.2rem !important;
+                padding-left: 0.55rem !important;
+                padding-right: 0.55rem !important;
+            }
+
+            .bloque {
+                padding: 0.85rem;
+                border-radius: 14px;
+            }
+
+            .etiqueta {
+                font-size: 0.78rem;
+                padding: 0.24rem 0.65rem;
+            }
+
+            .caja-rango {
+                font-size: 0.95rem;
+                padding: 0.8rem;
+            }
+
+            h1 {
+                font-size: 1.2rem !important;
+            }
+
+            h2 {
+                font-size: 1.05rem !important;
+            }
+
+            h3 {
+                font-size: 0.98rem !important;
+            }
+
+            div[data-testid="stMetric"] {
+                padding: 10px;
+                border-radius: 12px;
+            }
+
+            div[data-testid="stHorizontalBlock"] {
+                flex-direction: column !important;
+                gap: 0.7rem !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 # =========================================
-# ENCABEZADO CON IMAGEN
-# =========================================
-st.image("ENCABEZADOS.png", use_container_width=True)
-
-
-# =========================================
-# CONFIGURACIONES POR PLANTA / MODULO
+# FUNCIONES AUXILIARES
 # =========================================
 CONFIGS = {
     "Caldas": {
@@ -471,9 +463,6 @@ CONFIGS = {
 }
 
 
-# =========================================
-# FUNCIONES AUXILIARES
-# =========================================
 def limpiar_columna_numerica(serie):
     return pd.to_numeric(
         serie.astype(str)
@@ -780,6 +769,119 @@ def valores_por_defecto(config_key):
         }
 
 
+def mostrar_calculadora_pac():
+    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>Calculadora de consumo de PAC</div>", unsafe_allow_html=True)
+
+    st.write("Ingresa los datos para calcular el consumo total de PAC en gramos y en kilogramos.")
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        tiempo_min = st.number_input(
+            "Tiempo (min)",
+            min_value=0.0,
+            value=60.0,
+            step=1.0,
+            key="calc_tiempo"
+        )
+
+    with c2:
+        caudal_pac = st.number_input(
+            "Caudal de PAC (mL/min)",
+            min_value=0.0,
+            value=100.0,
+            step=0.1,
+            key="calc_caudal"
+        )
+
+    with c3:
+        densidad_pac_calc = st.number_input(
+            "Densidad del PAC (g/mL)",
+            min_value=0.0,
+            value=1.33,
+            step=0.01,
+            format="%.2f",
+            key="calc_densidad"
+        )
+
+    if st.button("Calcular consumo PAC", use_container_width=True, key="btn_calcular_consumo"):
+        consumo_g = tiempo_min * caudal_pac * densidad_pac_calc
+        consumo_kg = consumo_g / 1000
+
+        r1, r2 = st.columns(2)
+        r1.metric("Consumo PAC (g)", f"{consumo_g:.2f}")
+        r2.metric("Consumo PAC (kg)", f"{consumo_kg:.4f}")
+
+        st.markdown(
+            """
+            <div class='caja-rango'>
+                <b>Fórmula usada:</b><br>
+                Consumo (g) = Tiempo (min) × Caudal PAC (mL/min) × Densidad (g/mL)
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+# =========================================
+# FLUJO DE ACCESO
+# =========================================
+if not st.session_state.autenticado:
+    mostrar_login()
+    st.stop()
+
+aplicar_estilos_app()
+
+# =========================================
+# ENCABEZADO
+# =========================================
+st.image("ENCABEZADOS.png", use_container_width=True)
+
+# =========================================
+# MENU DINAMICO
+# =========================================
+st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Menú principal</div>", unsafe_allow_html=True)
+
+m1, m2, m3 = st.columns([1.2, 1.2, 1])
+
+with m1:
+    if st.button("Ir a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
+        st.session_state.vista = "recomendacion"
+        st.rerun()
+
+with m2:
+    if st.button("Ir a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
+        st.session_state.vista = "calculadora"
+        st.rerun()
+
+with m3:
+    if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
+        st.session_state.autenticado = False
+        st.session_state.vista = "menu"
+        st.rerun()
+
+if st.session_state.vista == "menu":
+    st.info("Selecciona una herramienta desde el menú principal.")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================================
+# VISTA CALCULADORA
+# =========================================
+if st.session_state.vista == "calculadora":
+    mostrar_calculadora_pac()
+    st.stop()
+
+# =========================================
+# VISTA RECOMENDACION
+# =========================================
+if st.session_state.vista != "recomendacion":
+    st.stop()
+
 # =========================================
 # SELECCION DE PLANTA Y CARGA DE ARCHIVO
 # =========================================
@@ -812,7 +914,7 @@ fuente_datos = st.radio(
     horizontal=True
 )
 
-if st.button("🔄 Actualizar datos"):
+if st.button("🔄 Actualizar datos", key="actualizar_datos"):
     st.cache_data.clear()
     st.rerun()
 
@@ -825,7 +927,6 @@ if fuente_datos == "Usar archivo del sistema":
         st.success(f"Archivo cargado correctamente para: {CONFIGS[config_key]['nombre_app']}")
     except Exception as e:
         st.error(f"No pude abrir o procesar el archivo: {e}")
-
 else:
     archivo_subido = st.file_uploader(
         "Sube el archivo Excel de la planta seleccionada",
@@ -847,7 +948,6 @@ if df is not None:
     st.write(f"Filas útiles: {len(df)}")
 
 st.markdown("</div>", unsafe_allow_html=True)
-
 
 # =========================================
 # DATOS DEL CASO ACTUAL
@@ -912,17 +1012,15 @@ with st.expander("Abrir / cerrar formulario", expanded=True):
         step=1
     )
 
-    b1, b2 = st.columns(2)
+    c1, c2 = st.columns(2)
 
-    with b1:
+    with c1:
         calcular = st.button("Calcular rango PAC", use_container_width=True)
 
-    with b2:
-        cerrar_sesion = st.button("Cerrar sesión", type="secondary", use_container_width=True)
-
-    if cerrar_sesion:
-        st.session_state.autenticado = False
-        st.rerun()
+    with c2:
+        if st.button("Volver al menú", type="secondary", use_container_width=True, key="volver_menu"):
+            st.session_state.vista = "menu"
+            st.rerun()
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -930,7 +1028,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 # RESULTADOS
 # =========================================
 if df is not None and calcular:
-
     resultado = calcular_rango_pac(
         df=df,
         config_key=config_key,
@@ -945,16 +1042,15 @@ if df is not None and calcular:
 
     if not resultado["ok"]:
         st.error(resultado["mensaje"])
-
     else:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Resultado del análisis</div>", unsafe_allow_html=True)
 
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Casos usados", resultado["n"])
-        c2.metric("PAC promedio", round(resultado["pac_promedio"], 1))
-        c3.metric("PAC mínimo", round(resultado["pac_min"], 1))
-        c4.metric("PAC máximo", round(resultado["pac_max"], 1))
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Casos usados", resultado["n"])
+        r2.metric("PAC promedio", round(resultado["pac_promedio"], 1))
+        r3.metric("PAC mínimo", round(resultado["pac_min"], 1))
+        r4.metric("PAC máximo", round(resultado["pac_max"], 1))
 
         if resultado.get("tolerancia_usada") is not None:
             tol = resultado["tolerancia_usada"]
@@ -979,7 +1075,6 @@ if df is not None and calcular:
 
         st.write(f"Densidad PAC usada: {densidad_pac:.2f} g/mL")
         st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
-
         st.write("Dosis sugeridas para 6 jarras")
         st.dataframe(resultado["tabla_jarras"], use_container_width=True)
 
@@ -994,8 +1089,6 @@ if df is not None and calcular:
         st.dataframe(resultado["similares_filtrados"], use_container_width=True)
 
         df_grafica = resultado["similares_filtrados"].copy()
-
-        # Ordenar por Caudal PAC para que la línea siga los puntos correctamente
         df_grafica = df_grafica.sort_values(by="Caudal PAC (mL/min)")
 
         fig = px.line(
