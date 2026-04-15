@@ -1071,7 +1071,7 @@ def mostrar_calculadora_pac():
         )
 
         st.markdown(
-            """
+            f"""
             <div class='caja-rango'>
                 <b>Fórmulas usadas:</b><br>
                 Si Hora final >= Hora inicio:<br>
