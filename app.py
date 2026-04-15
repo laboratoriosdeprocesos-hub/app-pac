@@ -798,8 +798,8 @@ def mostrar_calculadora_pac():
 
     if "tabla_consumos_pac" not in st.session_state:
         st.session_state.tabla_consumos_pac = pd.DataFrame({
-            "Hora inicio": [6:00],
-            "Hora final": [14:00],
+            "Hora inicio": [7:00],
+            "Hora final": [8:00],
             "Caudal PAC (mL/min)": [100.0],
             "Densidad PAC (g/mL)": [1.33]
         })
@@ -826,8 +826,8 @@ def mostrar_calculadora_pac():
     with c_btn2:
         if st.button("Limpiar tabla de consumos", use_container_width=True, key="btn_limpiar_tabla"):
             st.session_state.tabla_consumos_pac = pd.DataFrame({
-                "Hora inicio": [6:00],
-                "Hora final": [14:00],
+                "Hora inicio": [7:00],
+                "Hora final": [8:00],
                 "Caudal PAC (mL/min)": [100.0],
                 "Densidad PAC (g/mL)": [1.33]
             })
