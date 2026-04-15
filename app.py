@@ -777,7 +777,7 @@ def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>Calculadora de consumo y altura de PAC</div>", unsafe_allow_html=True)
 
-    st.write("Ingresa los datos para calcular el consumo total de PAC y estimar la altura actual del tanque.")
+    st.write("Ingresa uno o varios consumos de PAC. La app sumará todos los resultados y estimará la altura actual del tanque.")
 
     tanques = {
         "TQ1 - 10000": {"area": 2.6267, "radio": 0.9144},
@@ -796,69 +796,114 @@ def mostrar_calculadora_pac():
 
     st.info(f"Tanque seleccionado: {tanque} | Radio: {radio_tanque:.4f} m | Área: {area_tanque:.4f} m²")
 
-    c1, c2 = st.columns(2)
+    altura_pasada = st.number_input(
+        "Altura pasada del tanque (m)",
+        min_value=0.0,
+        value=2.00,
+        step=0.01,
+        format="%.2f",
+        key="calc_altura_pasada"
+    )
 
-    with c1:
-        tiempo_min = st.number_input(
-            "Tiempo (min)",
-            min_value=0.0,
-            value=60.0,
-            step=1.0,
-            key="calc_tiempo"
+    st.markdown("### Registros de consumo")
+    st.write("Puedes escribir varios consumos. Cada fila representa un periodo diferente.")
+
+    if "tabla_consumos_pac" not in st.session_state:
+        st.session_state.tabla_consumos_pac = pd.DataFrame({
+            "Tiempo (min)": [60.0],
+            "Caudal PAC (mL/min)": [100.0],
+            "Densidad PAC (g/mL)": [1.33]
+        })
+
+    tabla_editada = st.data_editor(
+        st.session_state.tabla_consumos_pac,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="editor_consumos_pac"
+    )
+
+    st.session_state.tabla_consumos_pac = tabla_editada.copy()
+
+    if st.button("Calcular consumos y altura", use_container_width=True, key="btn_calcular_consumo"):
+        df_calc = tabla_editada.copy()
+
+        columnas_requeridas = ["Tiempo (min)", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)"]
+
+        for col in columnas_requeridas:
+            df_calc[col] = pd.to_numeric(df_calc[col], errors="coerce")
+
+        df_calc = df_calc.dropna(subset=columnas_requeridas).copy()
+
+        if df_calc.empty:
+            st.error("Debes ingresar al menos una fila válida de consumo.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
+        df_calc = df_calc[
+            (df_calc["Tiempo (min)"] >= 0) &
+            (df_calc["Caudal PAC (mL/min)"] >= 0) &
+            (df_calc["Densidad PAC (g/mL)"] > 0)
+        ].copy()
+
+        if df_calc.empty:
+            st.error("Los datos deben ser válidos. La densidad debe ser mayor que cero.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
+        df_calc["Consumo (g)"] = (
+            df_calc["Tiempo (min)"] *
+            df_calc["Caudal PAC (mL/min)"] *
+            df_calc["Densidad PAC (g/mL)"]
         )
 
-        caudal_pac = st.number_input(
-            "Caudal de PAC (mL/min)",
-            min_value=0.0,
-            value=100.0,
-            step=0.1,
-            key="calc_caudal"
-        )
+        df_calc["Consumo (kg)"] = df_calc["Consumo (g)"] / 1000
+        df_calc["Densidad (kg/m³)"] = df_calc["Densidad PAC (g/mL)"] * 1000
+        df_calc["Volumen consumido (m³)"] = df_calc["Consumo (kg)"] / df_calc["Densidad (kg/m³)"]
+        df_calc["Descenso altura (m)"] = df_calc["Volumen consumido (m³)"] / area_tanque
 
-    with c2:
-        densidad_pac_calc = st.number_input(
-            "Densidad del PAC (g/mL)",
-            min_value=0.0,
-            value=1.33,
-            step=0.01,
-            format="%.2f",
-            key="calc_densidad"
-        )
-
-        altura_pasada = st.number_input(
-            "Altura pasada del tanque (m)",
-            min_value=0.0,
-            value=2.00,
-            step=0.01,
-            format="%.2f",
-            key="calc_altura_pasada"
-        )
-
-    if st.button("Calcular consumo y altura", use_container_width=True, key="btn_calcular_consumo"):
-        consumo_g = tiempo_min * caudal_pac * densidad_pac_calc
-        consumo_kg = consumo_g / 1000
-
-        densidad_kg_m3 = densidad_pac_calc * 1000
-        volumen_consumido_m3 = consumo_kg / densidad_kg_m3
-        diferencia_altura_m = volumen_consumido_m3 / area_tanque
-        altura_actual = altura_pasada - diferencia_altura_m
+        consumo_total_g = df_calc["Consumo (g)"].sum()
+        consumo_total_kg = df_calc["Consumo (kg)"].sum()
+        volumen_total_m3 = df_calc["Volumen consumido (m³)"].sum()
+        descenso_total_m = df_calc["Descenso altura (m)"].sum()
+        altura_actual = altura_pasada - descenso_total_m
 
         if altura_actual < 0:
             altura_actual = 0.0
 
         r1, r2, r3, r4 = st.columns(4)
-        r1.metric("Consumo PAC (g)", f"{consumo_g:.2f}")
-        r2.metric("Consumo PAC (kg)", f"{consumo_kg:.4f}")
-        r3.metric("Descenso de altura (m)", f"{diferencia_altura_m:.4f}")
+        r1.metric("Consumo total (g)", f"{consumo_total_g:.2f}")
+        r2.metric("Consumo total (kg)", f"{consumo_total_kg:.4f}")
+        r3.metric("Descenso total (m)", f"{descenso_total_m:.4f}")
         r4.metric("Altura actual estimada (m)", f"{altura_actual:.4f}")
+
+        st.markdown("### Detalle por registro")
+
+        df_mostrar = df_calc.copy()
+        df_mostrar.insert(0, "Consumo No.", range(1, len(df_mostrar) + 1))
+
+        st.dataframe(
+            df_mostrar.style.format({
+                "Tiempo (min)": "{:.1f}",
+                "Caudal PAC (mL/min)": "{:.1f}",
+                "Densidad PAC (g/mL)": "{:.2f}",
+                "Consumo (g)": "{:.2f}",
+                "Consumo (kg)": "{:.4f}",
+                "Densidad (kg/m³)": "{:.1f}",
+                "Volumen consumido (m³)": "{:.6f}",
+                "Descenso altura (m)": "{:.6f}"
+            }),
+            use_container_width=True
+        )
 
         st.markdown(
             f"""
             <div class='caja-rango'>
-                <b>Resumen del cálculo:</b><br>
+                <b>Resumen final:</b><br>
                 Tanque: {tanque}<br>
                 Área del tanque: {area_tanque:.4f} m²<br>
                 Altura pasada: {altura_pasada:.2f} m<br>
+                Volumen total consumido: {volumen_total_m3:.6f} m³<br>
+                Descenso total de altura: {descenso_total_m:.4f} m<br>
                 Altura actual estimada: {altura_actual:.4f} m
             </div>
             """,
@@ -873,15 +918,14 @@ def mostrar_calculadora_pac():
                 Consumo (kg) = Consumo (g) / 1000<br>
                 Densidad (kg/m³) = Densidad (g/mL) × 1000<br>
                 Volumen consumido (m³) = Consumo (kg) / Densidad (kg/m³)<br>
-                Diferencia de altura (m) = Volumen consumido (m³) / Área (m²)<br>
-                Altura actual (m) = Altura pasada - Diferencia de altura
+                Descenso de altura (m) = Volumen consumido (m³) / Área (m²)<br>
+                Altura actual (m) = Altura pasada - suma de descensos
             </div>
             """,
             unsafe_allow_html=True
         )
 
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 # =========================================
 # FLUJO DE ACCESO
