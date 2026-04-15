@@ -241,7 +241,7 @@ def mostrar_login():
             <div class="welcome-box">
                 <h1>Bienvenido</h1>
                 <p>
-                    Sistema de apoyo operativo para recomendación de dosis de PAC,
+                    Sistema de apoyo operativo,
                     basado en condiciones actuales y datos históricos similares.
                 </p>
             </div>
