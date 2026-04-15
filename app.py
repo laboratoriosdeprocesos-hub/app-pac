@@ -294,9 +294,9 @@ def aplicar_estilos_app():
     st.markdown("""
     <style>
         .block-container {
-            padding-top: 0.35rem !important;
-            padding-left: 0.8rem !important;
-            padding-right: 0.8rem !important;
+            padding-top: 0.45rem !important;
+            padding-left: 0.9rem !important;
+            padding-right: 0.9rem !important;
             max-width: 100% !important;
         }
 
@@ -309,37 +309,62 @@ def aplicar_estilos_app():
         }
 
         .stApp {
-            background: linear-gradient(180deg, #f8fcff 0%, #eef9ff 35%, #f8fcff 100%);
+            background: linear-gradient(180deg, #f4fbff 0%, #eef8ff 40%, #f8fcff 100%);
         }
 
         .bloque {
-            background: rgba(255,255,255,0.96);
-            padding: 1rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 14px rgba(7,62,94,0.08);
-            border: 1px solid rgba(7,62,94,0.08);
-            margin-bottom: 0.9rem;
+            background: rgba(255,255,255,0.97);
+            padding: 1.15rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(7,62,94,0.08);
+            border: 1px solid rgba(7,62,94,0.07);
+            margin-bottom: 1rem;
         }
 
         .etiqueta {
             display: inline-block;
-            background: #cfefff;
+            background: linear-gradient(135deg, #d9f2ff, #cbe9ff);
             color: #0a4d6a;
-            padding: 0.28rem 0.75rem;
+            padding: 0.32rem 0.85rem;
             border-radius: 999px;
             font-size: 0.82rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
+            font-weight: 800;
+            margin-bottom: 0.9rem;
+            letter-spacing: 0.2px;
         }
 
         .caja-rango {
-            background: linear-gradient(135deg, #e5f6ff, #f4fbff);
+            background: linear-gradient(135deg, #e8f7ff, #f7fbff);
             border-left: 6px solid #0b4f6c;
-            padding: 0.9rem;
-            border-radius: 12px;
+            padding: 1rem;
+            border-radius: 14px;
             font-size: 1rem;
-            margin-top: 0.8rem;
-            margin-bottom: 0.8rem;
+            margin-top: 0.9rem;
+            margin-bottom: 0.9rem;
+            color: #11384c;
+        }
+
+        .menu-caja {
+            background: linear-gradient(135deg, #ffffff, #f6fbff);
+            border: 1px solid #dbeaf4;
+            border-radius: 18px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(8,66,99,0.05);
+        }
+
+        .menu-titulo {
+            font-weight: 800;
+            font-size: 1rem;
+            color: #0b4f6c;
+            margin-bottom: 0.35rem;
+        }
+
+        .menu-texto {
+            font-size: 0.93rem;
+            color: #5b7482;
+            margin-bottom: 0.7rem;
+            line-height: 1.4;
         }
 
         .stButton > button {
@@ -347,10 +372,11 @@ def aplicar_estilos_app():
             color: white;
             border-radius: 12px;
             border: none;
-            padding: 0.78rem 1rem;
-            font-weight: 700;
+            padding: 0.8rem 1rem;
+            font-weight: 800;
             width: 100%;
             min-height: 48px;
+            box-shadow: 0 8px 18px rgba(21,146,109,0.18);
         }
 
         .stButton > button:hover {
@@ -359,11 +385,20 @@ def aplicar_estilos_app():
         }
 
         div[data-testid="stMetric"] {
-            background: white;
-            border: 1px solid #d6e8f2;
-            padding: 12px;
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fcff 100%);
+            border: 1px solid #d9e9f3;
+            padding: 14px;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+        }
+
+        div[data-testid="stMetricLabel"] {
+            font-weight: 700 !important;
+        }
+
+        div[data-testid="stMetricValue"] {
+            color: #0b4f6c !important;
+            font-weight: 800 !important;
         }
 
         h1, h2, h3 {
@@ -378,19 +413,50 @@ def aplicar_estilos_app():
         div[data-baseweb="input"] input,
         div[data-baseweb="select"] input {
             font-size: 16px !important;
+            border-radius: 12px !important;
         }
 
         .streamlit-expanderHeader {
-            font-weight: 700;
+            font-weight: 800;
             color: #0b4f6c;
         }
 
         div[data-testid="stExpander"] {
-            border: 1px solid #d6e8f2;
-            border-radius: 14px;
-            background: rgba(255,255,255,0.65);
-            padding: 5px;
+            border: 1px solid #d8e8f3;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.75);
+            padding: 6px;
             margin-top: 8px;
+        }
+
+        div[data-testid="stInfo"] {
+            border-radius: 14px !important;
+        }
+
+        div[data-testid="stSuccess"] {
+            border-radius: 14px !important;
+        }
+
+        div[data-testid="stError"] {
+            border-radius: 14px !important;
+        }
+
+        /* Tablas */
+        thead tr th {
+            text-align: center !important;
+            font-weight: 800 !important;
+            color: #0b4f6c !important;
+            background: #f3faff !important;
+        }
+
+        tbody tr td {
+            text-align: center !important;
+        }
+
+        [data-testid="stDataFrame"] {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #dceaf3;
         }
 
         @media (max-width: 768px) {
@@ -401,35 +467,35 @@ def aplicar_estilos_app():
             }
 
             .bloque {
-                padding: 0.85rem;
-                border-radius: 14px;
+                padding: 0.9rem;
+                border-radius: 16px;
             }
 
             .etiqueta {
-                font-size: 0.78rem;
-                padding: 0.24rem 0.65rem;
+                font-size: 0.76rem;
+                padding: 0.24rem 0.68rem;
             }
 
             .caja-rango {
-                font-size: 0.95rem;
-                padding: 0.8rem;
+                font-size: 0.94rem;
+                padding: 0.85rem;
             }
 
             h1 {
-                font-size: 1.2rem !important;
+                font-size: 1.15rem !important;
             }
 
             h2 {
-                font-size: 1.05rem !important;
+                font-size: 1.03rem !important;
             }
 
             h3 {
-                font-size: 0.98rem !important;
+                font-size: 0.96rem !important;
             }
 
             div[data-testid="stMetric"] {
                 padding: 10px;
-                border-radius: 12px;
+                border-radius: 14px;
             }
 
             div[data-testid="stHorizontalBlock"] {
@@ -439,8 +505,6 @@ def aplicar_estilos_app():
         }
     </style>
     """, unsafe_allow_html=True)
-
-
 # =========================================
 # CONFIGURACIONES POR PLANTA / MODULO
 # =========================================
@@ -775,7 +839,8 @@ def valores_por_defecto(config_key):
 # =========================================
 def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown("<div class='etiqueta'>Calculadora de consumo y altura de PAC</div>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>Calculadora de PAC</div>", unsafe_allow_html=True)
+    st.markdown("Consumo, descenso y altura estimada del tanque")
 
     st.write(
         "Ingresa uno o varios registros de consumo de PAC. "
@@ -1041,7 +1106,7 @@ def mostrar_calculadora_pac():
         r3.metric("Descenso total (m)", f"{resultado['descenso_total_m']:.4f}")
         r4.metric("Altura actual estimada (m)", f"{resultado['altura_actual']:.4f}")
 
-        st.markdown("### Detalle por registro")
+        st.subheader("Detalle por registro")
 
         st.dataframe(
             resultado["df_mostrar"].style.format({
@@ -1109,19 +1174,37 @@ st.image("ENCABEZADOS.png", use_container_width=True)
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
 st.markdown("<div class='etiqueta'>Menú principal</div>", unsafe_allow_html=True)
 
-m1, m2, m3 = st.columns([1.2, 1.2, 1])
+m1, m2, m3 = st.columns([1.15, 1.15, 1])
 
 with m1:
-    if st.button("Ir a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
+    st.markdown("""
+    <div class='menu-caja'>
+        <div class='menu-titulo'>Recomendación PAC</div>
+        <div class='menu-texto'>Consulta casos históricos similares y genera dosis sugeridas para prueba de jarras.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Entrar a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
         st.session_state.vista = "recomendacion"
         st.rerun()
 
 with m2:
-    if st.button("Ir a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
+    st.markdown("""
+    <div class='menu-caja'>
+        <div class='menu-titulo'>Calculadora PAC</div>
+        <div class='menu-texto'>Calcula consumos, descenso de nivel y altura estimada del tanque con varios registros.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Entrar a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
         st.session_state.vista = "calculadora"
         st.rerun()
 
 with m3:
+    st.markdown("""
+    <div class='menu-caja'>
+        <div class='menu-titulo'>Sesión</div>
+        <div class='menu-texto'>Cierra la sesión actual y vuelve al acceso principal.</div>
+    </div>
+    """, unsafe_allow_html=True)
     if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
         st.session_state.autenticado = False
         st.session_state.vista = "menu"
@@ -1308,6 +1391,7 @@ if df is not None and calcular:
     else:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Resultado del análisis</div>", unsafe_allow_html=True)
+        st.markdown("Resumen de la recomendación)
 
         r1, r2, r3, r4 = st.columns(4)
         r1.metric("Casos usados", resultado["n"])
@@ -1336,7 +1420,7 @@ if df is not None and calcular:
 
         st.write(f"Densidad PAC usada: {densidad_pac:.2f} g/mL")
         st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
-        st.write("Dosis sugeridas para 6 jarras")
+        st.subheader("Dosis sugeridas para 6 jarras")
         st.dataframe(resultado["tabla_jarras"], use_container_width=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -1344,6 +1428,7 @@ if df is not None and calcular:
         # CASOS HISTORICOS
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Casos históricos similares</div>", unsafe_allow_html=True)
+        st.markdown("Se muestran los registros historicos mpas cercanos al caso actual.")
 
         st.dataframe(
             resultado["similares_filtrados"].style.format({
