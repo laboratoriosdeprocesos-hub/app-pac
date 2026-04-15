@@ -1391,7 +1391,7 @@ if df is not None and calcular:
     else:
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Resultado del análisis</div>", unsafe_allow_html=True)
-        st.markdown("Resumen de la recomendación)
+        st.markdown("Resumen de la recomendación")
 
         r1, r2, r3, r4 = st.columns(4)
         r1.metric("Casos usados", resultado["n"])
