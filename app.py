@@ -442,7 +442,7 @@ def aplicar_estilos_app():
 
 
 # =========================================
-# FUNCIONES AUXILIARES
+# CONFIGURACIONES POR PLANTA / MODULO
 # =========================================
 CONFIGS = {
     "Caldas": {
@@ -463,6 +463,9 @@ CONFIGS = {
 }
 
 
+# =========================================
+# FUNCIONES AUXILIARES
+# =========================================
 def limpiar_columna_numerica(serie):
     return pd.to_numeric(
         serie.astype(str)
@@ -586,13 +589,12 @@ def obtener_tolerancias(config_key):
             {"caudal": 25, "turb": 15, "ph": 0.25, "alc": 8},
             {"caudal": 40, "turb": 25, "ph": 0.35, "alc": 12},
         ]
-    else:
-        return [
-            {"caudal": 20, "turb": 5, "ph": 0.20, "alc": 6, "alc_enc": 6},
-            {"caudal": 35, "turb": 10, "ph": 0.30, "alc": 10, "alc_enc": 10},
-            {"caudal": 60, "turb": 20, "ph": 0.45, "alc": 15, "alc_enc": 15},
-            {"caudal": 90, "turb": 30, "ph": 0.60, "alc": 20, "alc_enc": 20},
-        ]
+    return [
+        {"caudal": 20, "turb": 5, "ph": 0.20, "alc": 6, "alc_enc": 6},
+        {"caudal": 35, "turb": 10, "ph": 0.30, "alc": 10, "alc_enc": 10},
+        {"caudal": 60, "turb": 20, "ph": 0.45, "alc": 15, "alc_enc": 15},
+        {"caudal": 90, "turb": 30, "ph": 0.60, "alc": 20, "alc_enc": 20},
+    ]
 
 
 def calcular_rango_pac(
@@ -749,7 +751,7 @@ def valores_por_defecto(config_key):
             "alcalinidad_encalada": None,
             "densidad_pac": 1.33
         }
-    elif config_key == "Diviso - Modulo 500":
+    if config_key == "Diviso - Modulo 500":
         return {
             "caudal": 340.0,
             "turbiedad": 10.0,
@@ -758,24 +760,43 @@ def valores_por_defecto(config_key):
             "alcalinidad_encalada": 16.0,
             "densidad_pac": 1.33
         }
-    else:
-        return {
-            "caudal": 160.0,
-            "turbiedad": 10.0,
-            "ph": 7.20,
-            "alcalinidad_cruda": 11.0,
-            "alcalinidad_encalada": 16.0,
-            "densidad_pac": 1.33
-        }
+    return {
+        "caudal": 160.0,
+        "turbiedad": 10.0,
+        "ph": 7.20,
+        "alcalinidad_cruda": 11.0,
+        "alcalinidad_encalada": 16.0,
+        "densidad_pac": 1.33
+    }
 
 
+# =========================================
+# CALCULADORA DE CONSUMO Y TANQUE
+# =========================================
 def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown("<div class='etiqueta'>Calculadora de consumo de PAC</div>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>Calculadora de consumo y altura de PAC</div>", unsafe_allow_html=True)
 
-    st.write("Ingresa los datos para calcular el consumo total de PAC en gramos y en kilogramos.")
+    st.write("Ingresa los datos para calcular el consumo total de PAC y estimar la altura actual del tanque.")
 
-    c1, c2, c3 = st.columns(3)
+    tanques = {
+        "TQ1 - 10000": {"area": 2.6267, "radio": 0.9144},
+        "TQ2 - 10000": {"area": 2.6746, "radio": 0.9227},
+        "TQ3 - 15000": {"area": 3.8484, "radio": 1.1068}
+    }
+
+    tanque = st.selectbox(
+        "Selecciona el tanque",
+        list(tanques.keys()),
+        key="calc_tanque"
+    )
+
+    area_tanque = tanques[tanque]["area"]
+    radio_tanque = tanques[tanque]["radio"]
+
+    st.info(f"Tanque seleccionado: {tanque} | Radio: {radio_tanque:.4f} m | Área: {area_tanque:.4f} m²")
+
+    c1, c2 = st.columns(2)
 
     with c1:
         tiempo_min = st.number_input(
@@ -786,7 +807,6 @@ def mostrar_calculadora_pac():
             key="calc_tiempo"
         )
 
-    with c2:
         caudal_pac = st.number_input(
             "Caudal de PAC (mL/min)",
             min_value=0.0,
@@ -795,7 +815,7 @@ def mostrar_calculadora_pac():
             key="calc_caudal"
         )
 
-    with c3:
+    with c2:
         densidad_pac_calc = st.number_input(
             "Densidad del PAC (g/mL)",
             min_value=0.0,
@@ -805,19 +825,56 @@ def mostrar_calculadora_pac():
             key="calc_densidad"
         )
 
-    if st.button("Calcular consumo PAC", use_container_width=True, key="btn_calcular_consumo"):
+        altura_pasada = st.number_input(
+            "Altura pasada del tanque (m)",
+            min_value=0.0,
+            value=2.00,
+            step=0.01,
+            format="%.2f",
+            key="calc_altura_pasada"
+        )
+
+    if st.button("Calcular consumo y altura", use_container_width=True, key="btn_calcular_consumo"):
         consumo_g = tiempo_min * caudal_pac * densidad_pac_calc
         consumo_kg = consumo_g / 1000
 
-        r1, r2 = st.columns(2)
+        densidad_kg_m3 = densidad_pac_calc * 1000
+        volumen_consumido_m3 = consumo_kg / densidad_kg_m3
+        diferencia_altura_m = volumen_consumido_m3 / area_tanque
+        altura_actual = altura_pasada - diferencia_altura_m
+
+        if altura_actual < 0:
+            altura_actual = 0.0
+
+        r1, r2, r3, r4 = st.columns(4)
         r1.metric("Consumo PAC (g)", f"{consumo_g:.2f}")
         r2.metric("Consumo PAC (kg)", f"{consumo_kg:.4f}")
+        r3.metric("Descenso de altura (m)", f"{diferencia_altura_m:.4f}")
+        r4.metric("Altura actual estimada (m)", f"{altura_actual:.4f}")
+
+        st.markdown(
+            f"""
+            <div class='caja-rango'>
+                <b>Resumen del cálculo:</b><br>
+                Tanque: {tanque}<br>
+                Área del tanque: {area_tanque:.4f} m²<br>
+                Altura pasada: {altura_pasada:.2f} m<br>
+                Altura actual estimada: {altura_actual:.4f} m
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         st.markdown(
             """
             <div class='caja-rango'>
-                <b>Fórmula usada:</b><br>
-                Consumo (g) = Tiempo (min) × Caudal PAC (mL/min) × Densidad (g/mL)
+                <b>Fórmulas usadas:</b><br>
+                Consumo (g) = Tiempo (min) × Caudal PAC (mL/min) × Densidad (g/mL)<br>
+                Consumo (kg) = Consumo (g) / 1000<br>
+                Densidad (kg/m³) = Densidad (g/mL) × 1000<br>
+                Volumen consumido (m³) = Consumo (kg) / Densidad (kg/m³)<br>
+                Diferencia de altura (m) = Volumen consumido (m³) / Área (m²)<br>
+                Altura actual (m) = Altura pasada - Diferencia de altura
             </div>
             """,
             unsafe_allow_html=True
@@ -1067,9 +1124,7 @@ if df is not None and calcular:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # =========================
         # DOSIS SUGERIDAS
-        # =========================
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Dosis sugeridas</div>", unsafe_allow_html=True)
 
@@ -1080,13 +1135,22 @@ if df is not None and calcular:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # =========================
         # CASOS HISTORICOS
-        # =========================
         st.markdown("<div class='bloque'>", unsafe_allow_html=True)
         st.markdown("<div class='etiqueta'>Casos históricos similares</div>", unsafe_allow_html=True)
 
-        st.dataframe(resultado["similares_filtrados"], use_container_width=True)
+        st.dataframe(
+            resultado["similares_filtrados"].style.format({
+                "Caudal a tratar (L/s)": "{:.1f}",
+                "Turbiedad de agua cruda (UNT)": "{:.1f}",
+                "pH de agua cruda": "{:.2f}",
+                "Alcalinidad de agua cruda (mg/L)": "{:.1f}",
+                "Alcalinidad de agua encalada (mg/L)": "{:.1f}",
+                "Caudal PAC (mL/min)": "{:.1f}",
+                "Distancia": "{:.3f}"
+            }),
+            use_container_width=True
+        )
 
         df_grafica = resultado["similares_filtrados"].copy()
         df_grafica = df_grafica.sort_values(by="Caudal PAC (mL/min)")
