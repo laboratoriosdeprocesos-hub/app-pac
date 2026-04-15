@@ -1079,7 +1079,6 @@ def mostrar_calculadora_pac():
 
                 Si Hora final < Hora inicio:<br>
                 Tiempo (min) = (24:00 - Hora inicio) + Hora final<br><br>
-
                 Consumo (g) = Tiempo (min) × Caudal PAC (mL/min) × Densidad (g/mL)<br>
                 Consumo (kg) = Consumo (g) / 1000<br>
                 Descenso de altura (m) = [Consumo (kg) / (Densidad (g/mL) × 1000)] / Área (m²)<br>
