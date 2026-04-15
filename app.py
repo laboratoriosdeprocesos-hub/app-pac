@@ -1076,7 +1076,6 @@ def mostrar_calculadora_pac():
                 <b>Fórmulas usadas:</b><br>
                 Si Hora final >= Hora inicio:<br>
                 Tiempo (min) = Hora final - Hora inicio<br><br>
-
                 Si Hora final < Hora inicio:<br>
                 Tiempo (min) = (24:00 - Hora inicio) + Hora final<br><br>
                 Consumo (g) = Tiempo (min) × Caudal PAC (mL/min) × Densidad (g/mL)<br>
