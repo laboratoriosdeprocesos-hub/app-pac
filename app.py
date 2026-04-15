@@ -777,7 +777,7 @@ def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>Calculadora de consumo y altura de PAC</div>", unsafe_allow_html=True)
 
-    st.write("Ingresa uno o varios consumos de PAC. La app sumará todos los resultados y estimará la altura actual del tanque.")
+    st.write("Ingresa uno o varios registros de consumo de PAC. La aplicación calculará automáticamente los minutos a partir de la hora de inicio y la hora final, y estimará la altura actual del tanque.")
 
     tanques = {
         "TQ1 - 10000": {"area": 2.6267, "radio": 0.9144},
@@ -798,7 +798,8 @@ def mostrar_calculadora_pac():
 
     if "tabla_consumos_pac" not in st.session_state:
         st.session_state.tabla_consumos_pac = pd.DataFrame({
-            "Tiempo (min)": [60.0],
+            "Hora inicio": [7.00],
+            "Hora final": [8.00],
             "Caudal PAC (mL/min)": [100.0],
             "Densidad PAC (g/mL)": [1.33]
         })
@@ -806,26 +807,45 @@ def mostrar_calculadora_pac():
     if "resultado_calculadora_pac" not in st.session_state:
         st.session_state.resultado_calculadora_pac = None
 
-    with st.form("form_calculadora_pac", clear_on_submit=False):
-        c1, c2 = st.columns(2)
+    c_btn1, c_btn2 = st.columns(2)
 
-        with c1:
-            altura_pasada = st.number_input(
-                "Altura pasada del tanque (m)",
-                min_value=0.0,
-                value=2.00,
-                step=0.01,
-                format="%.2f",
-                key="calc_altura_pasada"
+    with c_btn1:
+        if st.button("Agregar fila base", use_container_width=True, key="btn_fila_base"):
+            nueva_fila = pd.DataFrame({
+                "Hora inicio": [0.00],
+                "Hora final": [0.00],
+                "Caudal PAC (mL/min)": [0.0],
+                "Densidad PAC (g/mL)": [1.33]
+            })
+            st.session_state.tabla_consumos_pac = pd.concat(
+                [st.session_state.tabla_consumos_pac, nueva_fila],
+                ignore_index=True
             )
+            st.rerun()
 
-        with c2:
-            st.write("")
-            st.write("")
-            st.caption("Agrega tantas filas como necesites en la tabla de abajo.")
+    with c_btn2:
+        if st.button("Limpiar tabla de consumos", use_container_width=True, key="btn_limpiar_tabla"):
+            st.session_state.tabla_consumos_pac = pd.DataFrame({
+                "Hora inicio": [7.00],
+                "Hora final": [8.00],
+                "Caudal PAC (mL/min)": [100.0],
+                "Densidad PAC (g/mL)": [1.33]
+            })
+            st.session_state.resultado_calculadora_pac = None
+            st.rerun()
+
+    with st.form("form_calculadora_pac", clear_on_submit=False):
+        altura_pasada = st.number_input(
+            "Altura pasada del tanque (m)",
+            min_value=0.0,
+            value=2.00,
+            step=0.01,
+            format="%.2f",
+            key="calc_altura_pasada"
+        )
 
         st.markdown("### Registros de consumo")
-        st.write("Cada fila representa un consumo diferente.")
+        st.write("En cada fila escribe la hora de inicio y la hora final en formato de 0 a 24 horas. Ejemplo: 7.50 significa 7 horas con 50 centésimas de hora, no 7:50 exacto.")
 
         tabla_editada = st.data_editor(
             st.session_state.tabla_consumos_pac,
@@ -834,13 +854,16 @@ def mostrar_calculadora_pac():
             key="editor_consumos_pac"
         )
 
-        calcular_consumos = st.form_submit_button("Calcular consumos y altura", use_container_width=True)
+        calcular_consumos = st.form_submit_button(
+            "Calcular consumos y altura",
+            use_container_width=True
+        )
 
     if calcular_consumos:
         st.session_state.tabla_consumos_pac = tabla_editada.copy()
 
         df_calc = tabla_editada.copy()
-        columnas_requeridas = ["Tiempo (min)", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)"]
+        columnas_requeridas = ["Hora inicio", "Hora final", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)"]
 
         for col in columnas_requeridas:
             df_calc[col] = pd.to_numeric(df_calc[col], errors="coerce")
@@ -852,16 +875,24 @@ def mostrar_calculadora_pac():
             st.markdown("</div>", unsafe_allow_html=True)
             return
 
+        # Validaciones básicas
         df_calc = df_calc[
-            (df_calc["Tiempo (min)"] >= 0) &
+            (df_calc["Hora inicio"] >= 0) &
+            (df_calc["Hora inicio"] <= 24) &
+            (df_calc["Hora final"] >= 0) &
+            (df_calc["Hora final"] <= 24) &
+            (df_calc["Hora final"] >= df_calc["Hora inicio"]) &
             (df_calc["Caudal PAC (mL/min)"] >= 0) &
             (df_calc["Densidad PAC (g/mL)"] > 0)
         ].copy()
 
         if df_calc.empty:
-            st.error("Los datos deben ser válidos. La densidad debe ser mayor que cero.")
+            st.error("Revisa los datos. Las horas deben estar entre 0 y 24, la hora final debe ser mayor o igual a la inicial y la densidad debe ser mayor que cero.")
             st.markdown("</div>", unsafe_allow_html=True)
             return
+
+        # Calcular tiempo en minutos
+        df_calc["Tiempo (min)"] = (df_calc["Hora final"] - df_calc["Hora inicio"]) * 60
 
         # Calculos por fila
         df_calc["Consumo (g)"] = (
@@ -872,12 +903,13 @@ def mostrar_calculadora_pac():
 
         df_calc["Consumo (kg)"] = df_calc["Consumo (g)"] / 1000
 
-        # densidad g/mL -> kg/m3
+        # Volumen consumido en m3
         df_calc["Volumen consumido (m³)"] = df_calc["Consumo (kg)"] / (df_calc["Densidad PAC (g/mL)"] * 1000)
 
+        # Descenso de altura por cada fila
         df_calc["Descenso altura (m)"] = df_calc["Volumen consumido (m³)"] / area_tanque
 
-        # Altura estimada acumulada por cada caso
+        # Altura estimada acumulada
         df_calc["Altura estimada (m)"] = altura_pasada - df_calc["Descenso altura (m)"].cumsum()
         df_calc["Altura estimada (m)"] = df_calc["Altura estimada (m)"].clip(lower=0)
 
@@ -889,9 +921,11 @@ def mostrar_calculadora_pac():
         df_mostrar = df_calc.copy()
         df_mostrar.insert(0, "Consumo No.", range(1, len(df_mostrar) + 1))
 
-        # Quitamos columnas que no quieres ver
+        # Mostrar solo columnas necesarias
         df_mostrar = df_mostrar[[
             "Consumo No.",
+            "Hora inicio",
+            "Hora final",
             "Tiempo (min)",
             "Caudal PAC (mL/min)",
             "Densidad PAC (g/mL)",
@@ -912,7 +946,6 @@ def mostrar_calculadora_pac():
             "area_tanque": area_tanque
         }
 
-    # Mostrar ultimo resultado calculado
     if st.session_state.resultado_calculadora_pac is not None:
         resultado = st.session_state.resultado_calculadora_pac
 
@@ -926,6 +959,8 @@ def mostrar_calculadora_pac():
 
         st.dataframe(
             resultado["df_mostrar"].style.format({
+                "Hora inicio": "{:.2f}",
+                "Hora final": "{:.2f}",
                 "Tiempo (min)": "{:.1f}",
                 "Caudal PAC (mL/min)": "{:.1f}",
                 "Densidad PAC (g/mL)": "{:.2f}",
@@ -955,6 +990,7 @@ def mostrar_calculadora_pac():
             """
             <div class='caja-rango'>
                 <b>Fórmulas usadas:</b><br>
+                Tiempo (min) = (Hora final - Hora inicio) × 60<br>
                 Consumo (g) = Tiempo (min) × Caudal PAC (mL/min) × Densidad (g/mL)<br>
                 Consumo (kg) = Consumo (g) / 1000<br>
                 Descenso de altura (m) = [Consumo (kg) / (Densidad (g/mL) × 1000)] / Área (m²)<br>
