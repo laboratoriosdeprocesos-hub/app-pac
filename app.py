@@ -13,25 +13,26 @@ from sklearn.neighbors import NearestNeighbors
 # =========================================
 
 st.set_page_config(
-page_title="PTAP — DIVISO & CALDAS",
-page_icon="💧",
-layout="wide"
+page_title=“PTAP - DIVISO & CALDAS”,
+page_icon=“💧”,
+layout=“wide”
 )
 
-USUARIO_CORRECTO = "ptap"
-CLAVE_CORRECTA = "plantas2026"
+USUARIO_CORRECTO = “ptap”
+CLAVE_CORRECTA = “plantas2026”
 
-if "autenticado" not in st.session_state:
+if “autenticado” not in st.session_state:
 st.session_state.autenticado = False
-if "vista" not in st.session_state:
-st.session_state.vista = "menu"
+if “vista” not in st.session_state:
+st.session_state.vista = “menu”
+
 # =========================================
 
 # ESTILOS GLOBALES
 
 # =========================================
 
-ESTILOS_GLOBALES = """
+ESTILOS_GLOBALES = “””
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -67,7 +68,7 @@ footer { visibility: hidden !important; }
 }
 .main > div { padding-top: 0 !important; }
 
-/* ── Encabezado ── */
+/* -- Encabezado -- */
 .app-header {
     background: linear-gradient(135deg, #0a1628 0%, #0d2347 55%, #0f3060 100%);
     border-radius: 20px;
@@ -125,7 +126,7 @@ footer { visibility: hidden !important; }
     position: relative; z-index: 2;
 }
 
-/* ── Bloques / Cards ── */
+/* -- Bloques / Cards -- */
 .bloque {
     background: white;
     padding: 1.4rem 1.6rem;
@@ -135,7 +136,7 @@ footer { visibility: hidden !important; }
     margin-bottom: 1.1rem;
 }
 
-/* ── Etiquetas ── */
+/* -- Etiquetas -- */
 .etiqueta {
     display: inline-flex;
     align-items: center;
@@ -152,7 +153,7 @@ footer { visibility: hidden !important; }
     border: 1px solid rgba(26,111,255,0.15);
 }
 
-/* ── Métricas ── */
+/* -- Métricas -- */
 div[data-testid="stMetric"] {
     background: linear-gradient(160deg, #f8fbff 0%, #eef5ff 100%) !important;
     border: 1px solid rgba(26,111,255,0.12) !important;
@@ -180,7 +181,7 @@ div[data-testid="stMetricValue"] > div {
     font-size: 1.65rem !important;
 }
 
-/* ── Botones principales ── */
+/* -- Botones principales -- */
 .stButton > button {
     font-family: 'Syne', sans-serif !important;
     font-weight: 700 !important;
@@ -215,7 +216,7 @@ div[data-testid="stMetricValue"] > div {
     box-shadow: 0 6px 18px rgba(10,22,40,0.12) !important;
 }
 
-/* ── Cards menú ── */
+/* -- Cards menú -- */
 .menu-card {
     background: white;
     border: 1px solid rgba(220,233,247,0.9);
@@ -258,7 +259,7 @@ div[data-testid="stMetricValue"] > div {
     margin-bottom: 1rem;
 }
 
-/* ── Caja de rango ── */
+/* -- Caja de rango -- */
 .caja-rango {
     background: linear-gradient(135deg, #eef6ff, #f5faff);
     border-left: 5px solid #1a6fff;
@@ -271,7 +272,7 @@ div[data-testid="stMetricValue"] > div {
     box-shadow: inset 0 0 0 1px rgba(26,111,255,0.08);
 }
 
-/* ── Inputs ── */
+/* -- Inputs -- */
 div[data-testid="stTextInput"] > label,
 div[data-testid="stNumberInput"] > label,
 div[data-testid="stSelectbox"] > label,
@@ -299,7 +300,7 @@ div[data-baseweb="select"] > div:focus-within {
     box-shadow: 0 0 0 3px rgba(26,111,255,0.1) !important;
 }
 
-/* ── Tablas ── */
+/* -- Tablas -- */
 [data-testid="stDataFrame"] {
     border-radius: 16px !important;
     overflow: hidden !important;
@@ -319,7 +320,7 @@ thead tr th {
 tbody tr:nth-child(even) { background: #f8fbff !important; }
 tbody tr td { text-align: center !important; color: #0a1628 !important; }
 
-/* ── Expander ── */
+/* -- Expander -- */
 div[data-testid="stExpander"] {
     border: 1.5px solid #dce9f7 !important;
     border-radius: 16px !important;
@@ -334,7 +335,7 @@ div[data-testid="stExpander"] {
     background: linear-gradient(135deg, #f4f9ff, #eef4ff) !important;
 }
 
-/* ── Alerts ── */
+/* -- Alerts -- */
 div[data-testid="stInfo"] {
     background: linear-gradient(135deg, #eef6ff, #e6f0ff) !important;
     border: 1px solid rgba(26,111,255,0.18) !important;
@@ -350,7 +351,7 @@ div[data-testid="stError"] {
     border-radius: 14px !important;
 }
 
-/* ── Títulos ── */
+/* -- Títulos -- */
 h1, h2, h3 {
     font-family: 'Syne', sans-serif !important;
     color: #0a1628 !important;
@@ -359,10 +360,10 @@ h1 { font-size: 1.5rem !important; font-weight: 800 !important; }
 h2 { font-size: 1.15rem !important; font-weight: 700 !important; }
 h3 { font-size: 1rem !important; font-weight: 700 !important; }
 
-/* ── Divisor ── */
+/* -- Divisor -- */
 hr { border-color: #dce9f7 !important; margin: 0.8rem 0 !important; }
 
-/* ── Radio buttons ── */
+/* -- Radio buttons -- */
 div[data-testid="stRadio"] > label {
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.83rem !important;
@@ -370,23 +371,23 @@ div[data-testid="stRadio"] > label {
     color: #3a5270 !important;
 }
 
-/* ── Slider ── */
+/* -- Slider -- */
 div[data-testid="stSlider"] > div > div > div > div {
     background: linear-gradient(90deg, #1a6fff, #00c8ff) !important;
 }
 
-/* ── Selectbox ── */
+/* -- Selectbox -- */
 div[data-baseweb="select"] {
     border-radius: 12px !important;
 }
 
-/* ── Scrollbar ── */
+/* -- Scrollbar -- */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f0f6ff; border-radius: 10px; }
 ::-webkit-scrollbar-thumb { background: #b8d0e8; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #1a6fff; }
 
-/* ── Responsive ── */
+/* -- Responsive -- */
 @media (max-width: 768px) {
     .block-container { padding: 0.4rem 0.6rem 1.5rem !important; }
     .bloque { padding: 1rem 1.1rem; border-radius: 16px; }
@@ -589,12 +590,12 @@ with col_c:
                 st.session_state.vista = "menu"
                 st.rerun()
             else:
-                st.error("⚠️ Usuario o contraseña incorrectos")
+                st.error("!️ Usuario o contraseña incorrectos")
 
         st.markdown("""
         <div class="login-bottom-note">
             <span style="color:#8a9db0">Acceso institucional</span>
-            <span>PTAP DIVISO y CALDAS</span>
+            <span>PTAP DIVISO · CALDAS</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -613,12 +614,12 @@ CONFIGS = {
 },
 “Diviso - Modulo 500”: {
 “archivo”: “2026 PTAP DIVISO.xlsx”,
-“nombre_app”: “PTAP Diviso — Módulo 500”,
+“nombre_app”: “PTAP Diviso - Módulo 500”,
 “usa_alcalinidad_encalada”: True
 },
 “Diviso - Modulo 150”: {
 “archivo”: “2026 PTAP DIVISO.xlsx”,
-“nombre_app”: “PTAP Diviso — Módulo 150”,
+“nombre_app”: “PTAP Diviso - Módulo 150”,
 “usa_alcalinidad_encalada”: True
 }
 }
@@ -849,9 +850,9 @@ Si la hora final es menor que la inicial, se asume cruce a la madrugada del día
 """, unsafe_allow_html=True)
 
 tanques = {
-    "TQ1 — 10 000 L": {"area": 2.6267, "radio": 0.9144},
-    "TQ2 — 10 000 L": {"area": 2.6746, "radio": 0.9227},
-    "TQ3 — 15 000 L": {"area": 3.8484, "radio": 1.1068}
+    "TQ1 - 10000 L": {"area": 2.6267, "radio": 0.9144},
+    "TQ2 - 10000 L": {"area": 2.6746, "radio": 0.9227},
+    "TQ3 - 15000 L": {"area": 3.8484, "radio": 1.1068}
 }
 
 tanque = st.selectbox("Selecciona el tanque de PAC", list(tanques.keys()), key="calc_tanque")
@@ -906,7 +907,7 @@ if "resultado_calculadora_pac" not in st.session_state:
 
 c_btn1, c_btn2 = st.columns(2)
 with c_btn1:
-    if st.button("＋ Agregar fila", use_container_width=True, key="btn_fila_base"):
+    if st.button("+ Agregar fila", use_container_width=True, key="btn_fila_base"):
         nueva_fila = pd.DataFrame({"Hora inicio": ["00:00"], "Hora final": ["00:00"], "Caudal PAC (mL/min)": [0.0], "Densidad PAC (g/mL)": [1.33]})
         st.session_state.tabla_consumos_pac = pd.concat([st.session_state.tabla_consumos_pac, nueva_fila], ignore_index=True)
         st.rerun()
@@ -965,8 +966,8 @@ if calcular_consumos:
     altura_actual = max(altura_pasada - descenso_total_m, 0)
 
     df_mostrar = df_calc.copy()
-    df_mostrar.insert(0, "N°", range(1, len(df_mostrar) + 1))
-    df_mostrar = df_mostrar[["N°", "Hora inicio", "Hora final", "Tiempo (min)", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)", "Consumo (g)", "Consumo (kg)", "Descenso altura (m)", "Altura estimada (m)"]]
+    df_mostrar.insert(0, "No.", range(1, len(df_mostrar) + 1))
+    df_mostrar = df_mostrar[["No.", "Hora inicio", "Hora final", "Tiempo (min)", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)", "Consumo (g)", "Consumo (kg)", "Descenso altura (m)", "Altura estimada (m)"]]
 
     st.session_state.resultado_calculadora_pac = {
         "consumo_total_g": consumo_total_g, "consumo_total_kg": consumo_total_kg,
@@ -1033,10 +1034,10 @@ if st.session_state.resultado_calculadora_pac is not None:
     <div class="caja-rango" style="border-left-color:#00c8ff">
         <b>Fórmulas aplicadas</b><br>
         <span style="color:#3a5270">
-        Tiempo (min) = Hora final − Hora inicio &nbsp;|&nbsp; Si final &lt; inicio → (1440 − inicio) + final<br>
+        Tiempo (min) = Hora final - Hora inicio &nbsp;|&nbsp; Si final &lt; inicio -> (1440 - inicio) + final<br>
         Consumo (g) = Tiempo × Caudal (mL/min) × Densidad (g/mL)<br>
         Descenso (m) = [Consumo (kg) / (Densidad × 1000)] / Área (m²)<br>
-        Altura estimada = Altura inicial − Σ descensos acumulados
+        Altura estimada = Altura inicial - Σ descensos acumulados
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -1227,7 +1228,7 @@ c1, c2 = st.columns(2)
 with c1:
     calcular = st.button("⚡ Calcular rango PAC", use_container_width=True)
 with c2:
-    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu"):
+    if st.button("<- Volver al menú", type="secondary", use_container_width=True, key="volver_menu"):
         st.session_state.vista = "menu"
         st.rerun()
 
@@ -1249,9 +1250,9 @@ vecinos_deseados=vecinos_deseados, alcalinidad_encalada=alcalinidad_encalada
 
 
 if not resultado["ok"]:
-    st.error(f"⚠️ {resultado['mensaje']}")
+    st.error(f"!️ {resultado['mensaje']}")
 else:
-    # — Resumen —
+    # - Resumen -
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>📊 Resultado del análisis</div>", unsafe_allow_html=True)
 
@@ -1270,7 +1271,7 @@ else:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # — Dosis sugeridas —
+    # - Dosis sugeridas -
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>🧪 Dosis sugeridas para prueba de jarras</div>", unsafe_allow_html=True)
 
@@ -1290,7 +1291,7 @@ else:
     st.dataframe(resultado["tabla_jarras"], use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # — Casos históricos —
+    # - Casos históricos -
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>🗂 Registros históricos similares</div>", unsafe_allow_html=True)
     st.markdown("<p style='color:#5a7899;font-size:0.88rem;margin-bottom:0.8rem'>Registros más cercanos al caso actual ordenados por similitud (menor distancia = más similar).</p>", unsafe_allow_html=True)
@@ -1308,7 +1309,7 @@ else:
 
     st.dataframe(resultado["similares_filtrados"].style.format(fmt), use_container_width=True)
 
-    # — Gráfico mejorado —
+    # - Gráfico mejorado -
     df_grafica = resultado["similares_filtrados"].sort_values("Caudal PAC (mL/min)")
 
     fig = go.Figure()
@@ -1330,7 +1331,7 @@ else:
         marker=dict(size=14, color="#00e5c0", line=dict(color="#0a1628", width=2), symbol="star")
     ))
     fig.update_layout(
-        title=dict(text="Caudal PAC vs Turbiedad — Registros similares", font=dict(family="Syne", size=14, color="#0a1628")),
+        title=dict(text="Caudal PAC vs Turbiedad - Registros similares", font=dict(family="Syne", size=14, color="#0a1628")),
         plot_bgcolor="white", paper_bgcolor="white",
         font=dict(family="DM Sans", color="#0a1628", size=12),
         xaxis=dict(title="Caudal PAC (mL/min)", gridcolor="#e8f0fe", linecolor="#dce9f7"),
