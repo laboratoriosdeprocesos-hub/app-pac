@@ -13,26 +13,25 @@ from sklearn.neighbors import NearestNeighbors
 # =========================================
 
 st.set_page_config(
-page_title=“PTAP — DIVISO & CALDAS”,
-page_icon=“💧”,
-layout=“wide”
+page_title="PTAP — DIVISO & CALDAS",
+page_icon="💧",
+layout="wide"
 )
 
-USUARIO_CORRECTO = “ptap”
-CLAVE_CORRECTA = “plantas2026”
+USUARIO_CORRECTO = "ptap"
+CLAVE_CORRECTA = "plantas2026"
 
-if “autenticado” not in st.session_state:
+if "autenticado" not in st.session_state:
 st.session_state.autenticado = False
-if “vista” not in st.session_state:
-st.session_state.vista = “menu”
-
+if "vista" not in st.session_state:
+st.session_state.vista = "menu"
 # =========================================
 
 # ESTILOS GLOBALES
 
 # =========================================
 
-ESTILOS_GLOBALES = “””
+ESTILOS_GLOBALES = """
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
