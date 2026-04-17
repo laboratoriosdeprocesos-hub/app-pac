@@ -594,7 +594,7 @@ with col_c:
         st.markdown("""
         <div class="login-bottom-note">
             <span style="color:#8a9db0">Acceso institucional</span>
-            <span>PTAP DIVISO · CALDAS</span>
+            <span>PTAP DIVISO y CALDAS</span>
         </div>
         """, unsafe_allow_html=True)
 
