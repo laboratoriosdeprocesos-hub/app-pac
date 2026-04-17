@@ -1,218 +1,1354 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import NearestNeighbors
+
+
+# =========================================
+# CONFIGURACION GENERAL
+# =========================================
+st.set_page_config(
+    page_title="PTAP - DIVISO & CALDAS",
+    page_icon="💧",
+    layout="wide"
+)
+
+USUARIO_CORRECTO = "ptap"
+CLAVE_CORRECTA = "plantas2026"
+
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+if "vista" not in st.session_state:
+    st.session_state.vista = "menu"
+
+
+# =========================================
+# LOGIN
+# =========================================
+def mostrar_login():
+    st.markdown("""
+    <style>
+        .stApp {
+            background: linear-gradient(135deg, #1f5fff 0%, #7b4dff 100%);
+        }
+
+        header {
+            visibility: hidden;
+        }
+
+        .block-container {
+            padding-top: 0.4rem !important;
+            padding-bottom: 0rem !important;
+            max-width: 1180px !important;
+        }
+
+        .main > div {
+            padding-top: 0rem !important;
+        }
+
+        .login-space {
+            height: 10px;
+        }
+
+        div[data-testid="stHorizontalBlock"] {
+            align-items: stretch !important;
+        }
+
+        .login-left-box {
+            background: linear-gradient(180deg, #42d4e6 0%, #49b7ee 55%, #4d95f2 100%);
+            border-radius: 20px;
+            padding: 2.2rem 2rem;
+            min-height: 620px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.16);
+        }
+
+        .login-left-box::before {
+            content: "";
+            position: absolute;
+            bottom: -40px;
+            left: -30px;
+            width: 120%;
+            height: 180px;
+            background: rgba(255,255,255,0.10);
+            border-radius: 50%;
+        }
+
+        .login-left-box::after {
+            content: "";
+            position: absolute;
+            bottom: 35px;
+            left: 50px;
+            width: 90%;
+            height: 120px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .brand-top {
+            font-size: 1.25rem;
+            font-weight: 800;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.2px;
+        }
+
+        .welcome-box {
+            position: relative;
+            z-index: 2;
+            margin-top: 6rem;
+        }
+
+        .welcome-box h1 {
+            color: white !important;
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-box p {
+            color: #eefcff !important;
+            font-size: 1.04rem;
+            line-height: 1.6;
+            margin: 0;
+            max-width: 500px;
+        }
+
+        .bottom-note {
+            position: absolute;
+            left: 2rem;
+            bottom: 1.8rem;
+            color: #eefcff !important;
+            font-weight: 600;
+            z-index: 2;
+            font-size: 0.98rem;
+        }
+
+        div[data-testid="stHorizontalBlock"] > div:nth-child(2) > div {
+            background: #ffffff !important;
+            border-radius: 20px !important;
+            padding: 2.5rem 2.3rem 2rem 2.3rem !important;
+            min-height: 620px !important;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.16) !important;
+            border: 1px solid rgba(0,0,0,0.05) !important;
+        }
+
+        .login-title {
+            color: #1f4fc9 !important;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+        }
+
+        .login-sub {
+            color: #5f6b76 !important;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1.7rem;
+        }
+
+        div[data-testid="stTextInput"] > label {
+            color: #334155 !important;
+            font-weight: 700 !important;
+        }
+
+        div[data-testid="stTextInput"] > div > div input {
+            border: 1px solid #cfd8e3 !important;
+            border-radius: 12px !important;
+            min-height: 52px !important;
+            background: #ffffff !important;
+            color: #183b56 !important;
+            font-size: 16px !important;
+        }
+
+        .stButton > button {
+            background: linear-gradient(135deg, #3a9bf0, #4f95ef) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            border: none !important;
+            min-height: 52px !important;
+            font-weight: 800 !important;
+            font-size: 1rem !important;
+            width: 100% !important;
+            margin-top: 0.35rem;
+            box-shadow: 0 8px 18px rgba(58,155,240,0.25);
+        }
+
+        .stButton > button:hover {
+            background: linear-gradient(135deg, #2787dc, #3f84dd) !important;
+            color: white !important;
+        }
+
+        .helper-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            color: #6b7280 !important;
+        }
+
+        .helper-row strong {
+            color: #3797e6 !important;
+        }
+
+        @media (max-width: 900px) {
+            .block-container {
+                padding-left: 0.6rem !important;
+                padding-right: 0.6rem !important;
+            }
+
+            .login-left-box {
+                min-height: auto;
+            }
+
+            div[data-testid="stHorizontalBlock"] > div:nth-child(2) > div {
+                min-height: auto !important;
+                padding: 1.5rem 1.2rem 1.4rem 1.2rem !important;
+            }
+
+            .welcome-box {
+                margin-top: 2rem;
+            }
+
+            .welcome-box h1 {
+                font-size: 2rem;
+            }
+
+            .bottom-note {
+                position: relative;
+                left: 0;
+                bottom: 0;
+                margin-top: 2rem;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='login-space'></div>", unsafe_allow_html=True)
+
+    col_izq, col_der = st.columns([1.02, 1], gap="medium")
+
+    with col_izq:
+        st.markdown("""
+        <div class="login-left-box">
+            <div class="brand-top">SERVAF</div>
+            <div class="welcome-box">
+                <h1>Bienvenido</h1>
+                <p>
+                    Sistema de apoyo operativo,
+                    basado en condiciones actuales y datos históricos similares.
+                </p>
+            </div>
+            <div class="bottom-note">
+                DIRECCIÓN DE PRODUCCIÓN Y TRATAMIENTO.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_der:
+        st.markdown("<div class='login-title'>Iniciar sesión</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='login-sub'>Ingresa tus credenciales para acceder a la plataforma de recomendación de PAC.</div>",
+            unsafe_allow_html=True
+        )
+
+        usuario = st.text_input(
+            "Usuario",
+            placeholder="Ingresa tu usuario",
+            key="login_usuario"
+        )
+
+        clave = st.text_input(
+            "Contraseña",
+            type="password",
+            placeholder="Ingresa tu contraseña",
+            key="login_clave"
+        )
+
+        if st.button("INGRESAR", key="btn_login"):
+            if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
+                st.session_state.autenticado = True
+                st.session_state.vista = "menu"
+                st.rerun()
+            else:
+                st.error("Usuario o contraseña incorrectos")
+
+        st.markdown("""
+        <div class="helper-row">
+            <span>Acceso institucional</span>
+            <span><strong>PTAP DIVISO Y CALDAS</strong></span>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+# =========================================
+# ESTILOS DE LA APP
+# =========================================
+def aplicar_estilos_app():
+    st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 0.45rem !important;
+            padding-left: 0.9rem !important;
+            padding-right: 0.9rem !important;
+            max-width: 100% !important;
+        }
+
+        header {
+            visibility: hidden;
+        }
+
+        .main > div {
+            padding-top: 0rem !important;
+        }
+
+        .stApp {
+            background: linear-gradient(180deg, #f4fbff 0%, #eef8ff 40%, #f8fcff 100%);
+        }
+
+        .bloque {
+            background: rgba(255,255,255,0.97);
+            padding: 1.15rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(7,62,94,0.08);
+            border: 1px solid rgba(7,62,94,0.07);
+            margin-bottom: 1rem;
+        }
+
+        .etiqueta {
+            display: inline-block;
+            background: linear-gradient(135deg, #d9f2ff, #cbe9ff);
+            color: #0a4d6a;
+            padding: 0.32rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            margin-bottom: 0.9rem;
+            letter-spacing: 0.2px;
+        }
+
+        .caja-rango {
+            background: linear-gradient(135deg, #e8f7ff, #f7fbff);
+            border-left: 6px solid #0b4f6c;
+            padding: 1rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            margin-top: 0.9rem;
+            margin-bottom: 0.9rem;
+            color: #11384c;
+        }
+
+        .menu-caja {
+            background: linear-gradient(135deg, #ffffff, #f6fbff);
+            border: 1px solid #dbeaf4;
+            border-radius: 18px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(8,66,99,0.05);
+        }
+
+        .menu-titulo {
+            font-weight: 800;
+            font-size: 1rem;
+            color: #0b4f6c;
+            margin-bottom: 0.35rem;
+        }
+
+        .menu-texto {
+            font-size: 0.93rem;
+            color: #5b7482;
+            margin-bottom: 0.7rem;
+            line-height: 1.4;
+        }
+
+        .stButton > button {
+            background: linear-gradient(135deg, #0b6e4f, #15926d);
+            color: white;
+            border-radius: 12px;
+            border: none;
+            padding: 0.8rem 1rem;
+            font-weight: 800;
+            width: 100%;
+            min-height: 48px;
+            box-shadow: 0 8px 18px rgba(21,146,109,0.18);
+        }
+
+        .stButton > button:hover {
+            background: linear-gradient(135deg, #09543d, #0f7c5c);
+            color: white;
+        }
+
+        div[data-testid="stMetric"] {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fcff 100%);
+            border: 1px solid #d9e9f3;
+            padding: 14px;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+        }
+
+        div[data-testid="stMetricLabel"] {
+            font-weight: 700 !important;
+        }
+
+        div[data-testid="stMetricValue"] {
+            color: #0b4f6c !important;
+            font-weight: 800 !important;
+        }
+
+        h1, h2, h3 {
+            color: #0b4f6c !important;
+            word-break: break-word;
+        }
+
+        .element-container, .stDataFrame {
+            width: 100% !important;
+        }
+
+        div[data-baseweb="input"] input,
+        div[data-baseweb="select"] input {
+            font-size: 16px !important;
+            border-radius: 12px !important;
+        }
+
+        .streamlit-expanderHeader {
+            font-weight: 800;
+            color: #0b4f6c;
+        }
+
+        div[data-testid="stExpander"] {
+            border: 1px solid #d8e8f3;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.75);
+            padding: 6px;
+            margin-top: 8px;
+        }
+
+        div[data-testid="stInfo"] {
+            border-radius: 14px !important;
+        }
+
+        div[data-testid="stSuccess"] {
+            border-radius: 14px !important;
+        }
+
+        div[data-testid="stError"] {
+            border-radius: 14px !important;
+        }
+
+        /* Tablas */
+        thead tr th {
+            text-align: center !important;
+            font-weight: 800 !important;
+            color: #0b4f6c !important;
+            background: #f3faff !important;
+        }
+
+        tbody tr td {
+            text-align: center !important;
+        }
+
+        [data-testid="stDataFrame"] {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #dceaf3;
+        }
+
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 0.2rem !important;
+                padding-left: 0.55rem !important;
+                padding-right: 0.55rem !important;
+            }
+
+            .bloque {
+                padding: 0.9rem;
+                border-radius: 16px;
+            }
+
+            .etiqueta {
+                font-size: 0.76rem;
+                padding: 0.24rem 0.68rem;
+            }
+
+            .caja-rango {
+                font-size: 0.94rem;
+                padding: 0.85rem;
+            }
+
+            h1 {
+                font-size: 1.15rem !important;
+            }
+
+            h2 {
+                font-size: 1.03rem !important;
+            }
+
+            h3 {
+                font-size: 0.96rem !important;
+            }
+
+            div[data-testid="stMetric"] {
+                padding: 10px;
+                border-radius: 14px;
+            }
+
+            div[data-testid="stHorizontalBlock"] {
+                flex-direction: column !important;
+                gap: 0.7rem !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+# =========================================
+# CONFIGURACIONES POR PLANTA / MODULO
+# =========================================
+CONFIGS = {
+    "Caldas": {
+        "archivo": "2026 PTAP CALDAS.xlsx",
+        "nombre_app": "PTAP Caldas",
+        "usa_alcalinidad_encalada": False
+    },
+    "Diviso - Modulo 500": {
+        "archivo": "2026 PTAP DIVISO.xlsx",
+        "nombre_app": "PTAP Diviso - Módulo 500",
+        "usa_alcalinidad_encalada": True
+    },
+    "Diviso - Modulo 150": {
+        "archivo": "2026 PTAP DIVISO.xlsx",
+        "nombre_app": "PTAP Diviso - Módulo 150",
+        "usa_alcalinidad_encalada": True
+    }
+}
+
+
+# =========================================
+# FUNCIONES AUXILIARES
+# =========================================
+def limpiar_columna_numerica(serie):
+    return pd.to_numeric(
+        serie.astype(str)
+        .str.strip()
+        .str.replace(" ", "", regex=False)
+        .str.replace(",,", ",", regex=False)
+        .str.replace(",", ".", regex=False),
+        errors="coerce"
+    )
+
+
+def obtener_nombre_columna(df, candidatos):
+    for col in candidatos:
+        if col in df.columns:
+            return col
+    raise ValueError(f"No encontré ninguna de estas columnas: {candidatos}")
+
+
+@st.cache_data(ttl=60)
+def cargar_y_limpiar_excel(archivo_excel, config_key):
+    config = CONFIGS[config_key]
+    df = pd.read_excel(archivo_excel)
+
+    if config_key == "Caldas":
+        col_caudal = obtener_nombre_columna(df, [
+            "Caudal A tratar (L/s)"
+        ])
+        col_turbiedad = obtener_nombre_columna(df, [
+            "Turbiedad de agua cruda (UNT)"
+        ])
+        col_ph = obtener_nombre_columna(df, [
+            "pH de agua cruda (Unid)",
+            "pH de agua cruda"
+        ])
+        col_alcalinidad_cruda = obtener_nombre_columna(df, [
+            "Alcalinidad de agua cruda (mg/L)"
+        ])
+        col_pac = obtener_nombre_columna(df, [
+            "Caudal de dosificación del PAC (mL/min)"
+        ])
+
+        rename_map = {
+            col_caudal: "caudal",
+            col_turbiedad: "turbiedad",
+            col_ph: "ph",
+            col_alcalinidad_cruda: "alcalinidad_cruda",
+            col_pac: "pac_ml_min",
+        }
+
+    else:
+        if config_key == "Diviso - Modulo 500":
+            col_caudal = obtener_nombre_columna(df, [
+                "Caudal A tratar módulo de 500 (L/s)",
+                "Caudal A tratar modulo de 500 (L/s)",
+                "Caudal A tratar módulo 500 (L/s)",
+                "Caudal A tratar modulo 500 (L/s)"
+            ])
+            col_pac = obtener_nombre_columna(df, [
+                "Caudal de dosificación del PAC módulo de 500 (mL/min)",
+                "Caudal de dosificacion del PAC modulo de 500 (mL/min)",
+                "Caudal de dosificación del PAC módulo 500 (mL/min)",
+                "Caudal de dosificacion del PAC modulo 500 (mL/min)"
+            ])
+        else:
+            col_caudal = obtener_nombre_columna(df, [
+                "Caudal A tratar módulo de 150 (L/s)",
+                "Caudal A tratar modulo de 150 (L/s)",
+                "Caudal A tratar módulo 150 (L/s)",
+                "Caudal A tratar modulo 150 (L/s)"
+            ])
+            col_pac = obtener_nombre_columna(df, [
+                "Caudal de dosificación del PAC módulo de 150 (mL/min)",
+                "Caudal de dosificacion del PAC modulo de 150 (mL/min)",
+                "Caudal de dosificación del PAC módulo 150 (mL/min)",
+                "Caudal de dosificacion del PAC modulo 150 (mL/min)"
+            ])
+
+        col_turbiedad = obtener_nombre_columna(df, [
+            "Turbiedad de agua cruda (UNT)",
+            "Turbiedad de agua cruda (UNT).1"
+        ])
+        col_ph = obtener_nombre_columna(df, [
+            "pH de agua cruda (Unid)",
+            "pH de agua cruda"
+        ])
+        col_alcalinidad_cruda = obtener_nombre_columna(df, [
+            "Alcalinidad de agua cruda (mg/L)"
+        ])
+        col_alcalinidad_encalada = obtener_nombre_columna(df, [
+            "Alcalinidad de agua encalada (mg/L)",
+            "Alcalinidad de agua encalda (mg/L)"
+        ])
+
+        rename_map = {
+            col_caudal: "caudal",
+            col_turbiedad: "turbiedad",
+            col_ph: "ph",
+            col_alcalinidad_cruda: "alcalinidad_cruda",
+            col_alcalinidad_encalada: "alcalinidad_encalada",
+            col_pac: "pac_ml_min",
+        }
+
+    df = df.rename(columns=rename_map)
+
+    columnas_numericas = ["caudal", "turbiedad", "ph", "alcalinidad_cruda", "pac_ml_min"]
+
+    if config["usa_alcalinidad_encalada"]:
+        columnas_numericas.append("alcalinidad_encalada")
+
+    for col in columnas_numericas:
+        df[col] = limpiar_columna_numerica(df[col])
+
+    df = df.dropna(subset=columnas_numericas).copy()
+    return df
+
+
+def obtener_tolerancias(config_key):
+    if config_key == "Caldas":
+        return [
+            {"caudal": 15, "turb": 8, "ph": 0.15, "alc": 5},
+            {"caudal": 25, "turb": 15, "ph": 0.25, "alc": 8},
+            {"caudal": 40, "turb": 25, "ph": 0.35, "alc": 12},
+        ]
+    return [
+        {"caudal": 20, "turb": 5, "ph": 0.20, "alc": 6, "alc_enc": 6},
+        {"caudal": 35, "turb": 10, "ph": 0.30, "alc": 10, "alc_enc": 10},
+        {"caudal": 60, "turb": 20, "ph": 0.45, "alc": 15, "alc_enc": 15},
+        {"caudal": 90, "turb": 30, "ph": 0.60, "alc": 20, "alc_enc": 20},
+    ]
+
+
+def calcular_rango_pac(
+    df: pd.DataFrame,
+    config_key: str,
+    caudal: float,
+    turbiedad: float,
+    ph: float,
+    alcalinidad_cruda: float,
+    densidad_pac: float,
+    vecinos_deseados: int,
+    alcalinidad_encalada: float = None
+):
+    config = CONFIGS[config_key]
+
+    variables = ["caudal", "turbiedad", "ph", "alcalinidad_cruda"]
+
+    nuevo_dict = {
+        "caudal": caudal,
+        "turbiedad": turbiedad,
+        "ph": ph,
+        "alcalinidad_cruda": alcalinidad_cruda
+    }
+
+    if config["usa_alcalinidad_encalada"]:
+        variables.append("alcalinidad_encalada")
+        nuevo_dict["alcalinidad_encalada"] = alcalinidad_encalada
+
+    nuevo = pd.DataFrame([nuevo_dict])
+
+    df_base = pd.DataFrame()
+    tolerancia_usada = None
+    intentos = obtener_tolerancias(config_key)
+
+    for tol in intentos:
+        filtro = (
+            df["caudal"].between(caudal - tol["caudal"], caudal + tol["caudal"]) &
+            df["turbiedad"].between(turbiedad - tol["turb"], turbiedad + tol["turb"]) &
+            df["ph"].between(ph - tol["ph"], ph + tol["ph"]) &
+            df["alcalinidad_cruda"].between(alcalinidad_cruda - tol["alc"], alcalinidad_cruda + tol["alc"])
+        )
+
+        if config["usa_alcalinidad_encalada"]:
+            filtro = filtro & df["alcalinidad_encalada"].between(
+                alcalinidad_encalada - tol["alc_enc"],
+                alcalinidad_encalada + tol["alc_enc"]
+            )
+
+        df_base = df[filtro].copy()
+
+        if len(df_base) >= 5:
+            tolerancia_usada = tol
+            break
+
+    if len(df_base) < 5:
+        return {
+            "ok": False,
+            "mensaje": "Muy pocos datos después del prefiltro, incluso ampliando tolerancias."
+        }
+
+    scaler = StandardScaler()
+    X_hist = scaler.fit_transform(df_base[variables])
+    X_new = scaler.transform(nuevo[variables])
+
+    if config["usa_alcalinidad_encalada"]:
+        pesos = np.array([3, 4, 3, 2, 2], dtype=float)
+    else:
+        pesos = np.array([3, 4, 3, 2], dtype=float)
+
+    X_hist = X_hist * pesos
+    X_new = X_new * pesos
+
+    n_neighbors = min(vecinos_deseados, len(df_base))
+    knn = NearestNeighbors(n_neighbors=n_neighbors)
+    knn.fit(X_hist)
+    distancias, indices = knn.kneighbors(X_new)
+
+    similares = df_base.iloc[indices[0]].copy()
+    similares["distancia"] = distancias[0]
+    similares = similares.sort_values("distancia")
+
+    q1 = similares["pac_ml_min"].quantile(0.25)
+    q3 = similares["pac_ml_min"].quantile(0.75)
+    iqr = q3 - q1
+
+    lim_inf = q1 - 1.5 * iqr
+    lim_sup = q3 + 1.5 * iqr
+
+    similares_filtrados = similares[
+        (similares["pac_ml_min"] >= lim_inf) &
+        (similares["pac_ml_min"] <= lim_sup)
+    ].copy()
+
+    if len(similares_filtrados) < 3:
+        similares_filtrados = similares.copy()
+
+    pac_min = float(similares_filtrados["pac_ml_min"].min())
+    pac_max = float(similares_filtrados["pac_ml_min"].max())
+    pac_promedio = float(similares_filtrados["pac_ml_min"].mean())
+    std = float(similares_filtrados["pac_ml_min"].std()) if len(similares_filtrados) > 1 else 0.0
+    n = int(len(similares_filtrados))
+
+    jarras = [1, 2, 3, 4, 5, 6]
+    jarras_recomendadas = np.round(np.linspace(pac_min, pac_max, 6), 1)
+    dosis_mgL = np.round((jarras_recomendadas * densidad_pac * 1000) / (60 * caudal), 2)
+
+    tabla_jarras = pd.DataFrame({
+        "Jarra": jarras,
+        "Caudal PAC recomendado (mL/min)": jarras_recomendadas,
+        "Dosis PAC recomendada (mg/L)": dosis_mgL
+    })
+
+    columnas_mostrar = ["caudal", "turbiedad", "ph", "alcalinidad_cruda"]
+
+    if config["usa_alcalinidad_encalada"]:
+        columnas_mostrar.append("alcalinidad_encalada")
+
+    columnas_mostrar += ["pac_ml_min", "distancia"]
+
+    similares_filtrados = similares_filtrados[columnas_mostrar].copy()
+
+    nombres_mostrar = {
+        "caudal": "Caudal a tratar (L/s)",
+        "turbiedad": "Turbiedad de agua cruda (UNT)",
+        "ph": "pH de agua cruda",
+        "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
+        "alcalinidad_encalada": "Alcalinidad de agua encalada (mg/L)",
+        "pac_ml_min": "Caudal PAC (mL/min)",
+        "distancia": "Distancia"
+    }
+
+    similares_filtrados = similares_filtrados.rename(columns=nombres_mostrar)
+
+    return {
+        "ok": True,
+        "similares_filtrados": similares_filtrados,
+        "pac_min": pac_min,
+        "pac_max": pac_max,
+        "pac_promedio": pac_promedio,
+        "std": std,
+        "n": n,
+        "tabla_jarras": tabla_jarras,
+        "tolerancia_usada": tolerancia_usada
+    }
+
+
+def valores_por_defecto(config_key):
+    if config_key == "Caldas":
+        return {
+            "caudal": 170.0,
+            "turbiedad": 50.0,
+            "ph": 7.35,
+            "alcalinidad_cruda": 17.0,
+            "alcalinidad_encalada": None,
+            "densidad_pac": 1.33
+        }
+    if config_key == "Diviso - Modulo 500":
+        return {
+            "caudal": 340.0,
+            "turbiedad": 10.0,
+            "ph": 7.20,
+            "alcalinidad_cruda": 11.0,
+            "alcalinidad_encalada": 16.0,
+            "densidad_pac": 1.33
+        }
+    return {
+        "caudal": 160.0,
+        "turbiedad": 10.0,
+        "ph": 7.20,
+        "alcalinidad_cruda": 11.0,
+        "alcalinidad_encalada": 16.0,
+        "densidad_pac": 1.33
+    }
+
+
+# =========================================
+# CALCULADORA DE CONSUMO Y TANQUE
+# =========================================
+def mostrar_calculadora_pac():
+    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>Calculadora de PAC</div>", unsafe_allow_html=True)
+    st.markdown("Consumo, descenso y altura estimada del tanque")
+
+    st.write(
+        "Ingresa uno o varios registros de consumo de PAC. "
+        "Puedes escribir horas como 07:00, 13:30, 22:00 o solo 7, 13. "
+        "Si la hora final es menor que la inicial, la aplicación asumirá que el registro pasó a la madrugada del día siguiente."
+    )
+
+    tanques = {
+        "TQ1 - 10000": {"area": 2.6267, "radio": 0.9144},
+        "TQ2 - 10000": {"area": 2.6746, "radio": 0.9227},
+        "TQ3 - 15000": {"area": 3.8484, "radio": 1.1068}
+    }
+
+    tanque = st.selectbox(
+        "Selecciona el tanque",
+        list(tanques.keys()),
+        key="calc_tanque"
+    )
+
+    area_tanque = tanques[tanque]["area"]
+    radio_tanque = tanques[tanque]["radio"]
+
+    st.info(
+        f"Tanque seleccionado: {tanque} | "
+        f"Radio: {radio_tanque:.4f} m | "
+        f"Área: {area_tanque:.4f} m²"
+    )
+
+    def normalizar_hora(valor):
+        """
+        Convierte entradas como:
+        7 -> 07:00
+        13 -> 13:00
+        7:5 -> 07:05
+        07:30 -> 07:30
+        """
+        if pd.isna(valor):
+            return None
+
+        texto = str(valor).strip()
+
+        if texto == "":
+            return None
+
+        if ":" not in texto:
+            if texto.isdigit():
+                h = int(texto)
+                if 0 <= h <= 24:
+                    return f"{h:02d}:00"
+            return None
+
+        partes = texto.split(":")
+        if len(partes) != 2:
+            return None
+
+        h_txt, m_txt = partes[0].strip(), partes[1].strip()
+
+        if not h_txt.isdigit() or not m_txt.isdigit():
+            return None
+
+        h = int(h_txt)
+        m = int(m_txt)
+
+        if 0 <= h <= 24 and 0 <= m <= 59:
+            if h == 24 and m != 0:
+                return None
+            return f"{h:02d}:{m:02d}"
+
+        return None
+
+    def hora_a_minutos(hora_str):
+        hora_normal = normalizar_hora(hora_str)
+        if hora_normal is None:
+            return np.nan
+        h, m = hora_normal.split(":")
+        return int(h) * 60 + int(m)
+
+    if "tabla_consumos_pac" not in st.session_state:
+        st.session_state.tabla_consumos_pac = pd.DataFrame({
+            "Hora inicio": ["07:00"],
+            "Hora final": ["08:00"],
+            "Caudal PAC (mL/min)": [100.0],
+            "Densidad PAC (g/mL)": [1.33]
+        })
+
+    if "resultado_calculadora_pac" not in st.session_state:
+        st.session_state.resultado_calculadora_pac = None
+
+    c_btn1, c_btn2 = st.columns(2)
+
+    with c_btn1:
+        if st.button("Agregar fila base", use_container_width=True, key="btn_fila_base"):
+            nueva_fila = pd.DataFrame({
+                "Hora inicio": ["00:00"],
+                "Hora final": ["00:00"],
+                "Caudal PAC (mL/min)": [0.0],
+                "Densidad PAC (g/mL)": [1.33]
+            })
+            st.session_state.tabla_consumos_pac = pd.concat(
+                [st.session_state.tabla_consumos_pac, nueva_fila],
+                ignore_index=True
+            )
+            st.rerun()
+
+    with c_btn2:
+        if st.button("Limpiar tabla de consumos", use_container_width=True, key="btn_limpiar_tabla"):
+            st.session_state.tabla_consumos_pac = pd.DataFrame({
+                "Hora inicio": ["07:00"],
+                "Hora final": ["08:00"],
+                "Caudal PAC (mL/min)": [100.0],
+                "Densidad PAC (g/mL)": [1.33]
+            })
+            st.session_state.resultado_calculadora_pac = None
+            st.rerun()
+
+    with st.form("form_calculadora_pac", clear_on_submit=False):
+        altura_pasada = st.number_input(
+            "Altura pasada del tanque (m)",
+            min_value=0.0,
+            value=2.00,
+            step=0.01,
+            format="%.2f",
+            key="calc_altura_pasada"
+        )
+
+        st.markdown("### Registros de consumo")
+        st.write(
+            "Escribe horas como 07:00, 13:45 o solo 7, 13. "
+            "Si el consumo cruzó medianoche, por ejemplo 22:00 a 02:00, la app lo calculará automáticamente."
+        )
+
+        tabla_editada = st.data_editor(
+            st.session_state.tabla_consumos_pac,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="editor_consumos_pac"
+        )
+
+        calcular_consumos = st.form_submit_button(
+            "Calcular consumos y altura",
+            use_container_width=True
+        )
+
+    if calcular_consumos:
+        st.session_state.tabla_consumos_pac = tabla_editada.copy()
+
+        df_calc = tabla_editada.copy()
+        columnas_requeridas = ["Hora inicio", "Hora final", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)"]
+
+        df_calc = df_calc.dropna(subset=columnas_requeridas).copy()
+
+        if df_calc.empty:
+            st.error("Debes ingresar al menos una fila válida de consumo.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
+        # Normalizar horas
+        df_calc["Hora inicio"] = df_calc["Hora inicio"].apply(normalizar_hora)
+        df_calc["Hora final"] = df_calc["Hora final"].apply(normalizar_hora)
+
+        # Convertir a numéricos
+        df_calc["Caudal PAC (mL/min)"] = pd.to_numeric(df_calc["Caudal PAC (mL/min)"], errors="coerce")
+        df_calc["Densidad PAC (g/mL)"] = pd.to_numeric(df_calc["Densidad PAC (g/mL)"], errors="coerce")
+
+        # Convertir horas a minutos
+        df_calc["Min inicio"] = df_calc["Hora inicio"].apply(hora_a_minutos)
+        df_calc["Min final"] = df_calc["Hora final"].apply(hora_a_minutos)
+
+        # Quitar filas inválidas
+        df_calc = df_calc.dropna(subset=[
+            "Hora inicio", "Hora final",
+            "Caudal PAC (mL/min)", "Densidad PAC (g/mL)",
+            "Min inicio", "Min final"
+        ]).copy()
+
+        if df_calc.empty:
+            st.error("No hay filas válidas. Usa horas como 07:00, 13:30 o solo 7, 13.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
+        # Validaciones básicas
+        df_calc = df_calc[
+            (df_calc["Min inicio"] >= 0) &
+            (df_calc["Min inicio"] <= 1440) &
+            (df_calc["Min final"] >= 0) &
+            (df_calc["Min final"] <= 1440) &
+            (df_calc["Caudal PAC (mL/min)"] >= 0) &
+            (df_calc["Densidad PAC (g/mL)"] > 0)
+        ].copy()
+
+        if df_calc.empty:
+            st.error("Revisa los datos. La densidad debe ser mayor que cero y las horas deben ser válidas.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
+        # Calcular tiempo en minutos, permitiendo cruce de medianoche
+        df_calc["Tiempo (min)"] = np.where(
+            df_calc["Min final"] >= df_calc["Min inicio"],
+            df_calc["Min final"] - df_calc["Min inicio"],
+            (24 * 60 - df_calc["Min inicio"]) + df_calc["Min final"]
+        )
+
+        # Cálculos por fila
+        df_calc["Consumo (g)"] = (
+            df_calc["Tiempo (min)"] *
+            df_calc["Caudal PAC (mL/min)"] *
+            df_calc["Densidad PAC (g/mL)"]
+        )
+
+        df_calc["Consumo (kg)"] = df_calc["Consumo (g)"] / 1000
+
+        # Volumen consumido en m3
+        df_calc["Volumen consumido (m³)"] = (
+            df_calc["Consumo (kg)"] /
+            (df_calc["Densidad PAC (g/mL)"] * 1000)
+        )
+
+        # Descenso de altura por fila
+        df_calc["Descenso altura (m)"] = df_calc["Volumen consumido (m³)"] / area_tanque
+
+        # Altura estimada acumulada
+        df_calc["Altura estimada (m)"] = altura_pasada - df_calc["Descenso altura (m)"].cumsum()
+        df_calc["Altura estimada (m)"] = df_calc["Altura estimada (m)"].clip(lower=0)
+
+        consumo_total_g = df_calc["Consumo (g)"].sum()
+        consumo_total_kg = df_calc["Consumo (kg)"].sum()
+        descenso_total_m = df_calc["Descenso altura (m)"].sum()
+        altura_actual = max(altura_pasada - descenso_total_m, 0)
+
+        df_mostrar = df_calc.copy()
+        df_mostrar.insert(0, "Consumo No.", range(1, len(df_mostrar) + 1))
+
+        df_mostrar = df_mostrar[[
+            "Consumo No.",
+            "Hora inicio",
+            "Hora final",
+            "Tiempo (min)",
+            "Caudal PAC (mL/min)",
+            "Densidad PAC (g/mL)",
+            "Consumo (g)",
+            "Consumo (kg)",
+            "Descenso altura (m)",
+            "Altura estimada (m)"
+        ]]
+
+        st.session_state.resultado_calculadora_pac = {
+            "consumo_total_g": consumo_total_g,
+            "consumo_total_kg": consumo_total_kg,
+            "descenso_total_m": descenso_total_m,
+            "altura_actual": altura_actual,
+            "df_mostrar": df_mostrar,
+            "altura_pasada": altura_pasada,
+            "tanque": tanque,
+            "area_tanque": area_tanque
+        }
+
+    if st.session_state.resultado_calculadora_pac is not None:
+        resultado = st.session_state.resultado_calculadora_pac
+
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Consumo total (g)", f"{resultado['consumo_total_g']:.2f}")
+        r2.metric("Consumo total (kg)", f"{resultado['consumo_total_kg']:.4f}")
+        r3.metric("Descenso total (m)", f"{resultado['descenso_total_m']:.4f}")
+        r4.metric("Altura actual estimada (m)", f"{resultado['altura_actual']:.4f}")
+
+        st.subheader("Detalle por registro")
+
+        st.dataframe(
+            resultado["df_mostrar"].style.format({
+                "Tiempo (min)": "{:.1f}",
+                "Caudal PAC (mL/min)": "{:.1f}",
+                "Densidad PAC (g/mL)": "{:.2f}",
+                "Consumo (g)": "{:.2f}",
+                "Consumo (kg)": "{:.4f}",
+                "Descenso altura (m)": "{:.4f}",
+                "Altura estimada (m)": "{:.4f}"
+            }),
+            use_container_width=True
+        )
+
+        st.markdown(
+            f"""
+            <div class='caja-rango'>
+                <b>Resumen final:</b><br>
+                Tanque: {resultado['tanque']}<br>
+                Área del tanque: {resultado['area_tanque']:.4f} m²<br>
+                Altura pasada: {resultado['altura_pasada']:.2f} m<br>
+                Descenso total de altura: {resultado['descenso_total_m']:.4f} m<br>
+                Altura actual estimada: {resultado['altura_actual']:.4f} m
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            """
+            <div class='caja-rango'>
+                <b>Fórmulas usadas:</b><br>
+                Si Hora final >= Hora inicio:<br>
+                Tiempo (min) = Hora final - Hora inicio<br><br>
+                Si Hora final < Hora inicio:<br>
+                Tiempo (min) = (24:00 - Hora inicio) + Hora final<br><br>
+                Consumo (g) = Tiempo (min) × Caudal PAC (mL/min) × Densidad (g/mL)<br>
+                Consumo (kg) = Consumo (g) / 1000<br>
+                Descenso de altura (m) = [Consumo (kg) / (Densidad (g/mL) × 1000)] / Área (m²)<br>
+                Altura estimada por caso = Altura pasada - suma acumulada de descensos
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================================
+# FLUJO DE ACCESO
+# =========================================
+if not st.session_state.autenticado:
+    mostrar_login()
+    st.stop()
+
+aplicar_estilos_app()
+
+# =========================================
+# ENCABEZADO
+# =========================================
+st.image("ENCABEZADOS.png", use_container_width=True)
+
+# =========================================
+# MENU DINAMICO
+# =========================================
+st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Menú principal</div>", unsafe_allow_html=True)
+
+m1, m2, m3 = st.columns([1.15, 1.15, 1])
+
+with m1:
+    st.markdown("""
+    <div class='menu-caja'>
+        <div class='menu-titulo'>Recomendación PAC</div>
+        <div class='menu-texto'>Consulta casos históricos similares y genera dosis sugeridas para prueba de jarras.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Entrar a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
+        st.session_state.vista = "recomendacion"
+        st.rerun()
+
+with m2:
+    st.markdown("""
+    <div class='menu-caja'>
+        <div class='menu-titulo'>Calculadora PAC</div>
+        <div class='menu-texto'>Calcula consumos, descenso de nivel y altura estimada del tanque con varios registros.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Entrar a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
+        st.session_state.vista = "calculadora"
+        st.rerun()
+
+with m3:
+    st.markdown("""
+    <div class='menu-caja'>
+        <div class='menu-titulo'>Sesión</div>
+        <div class='menu-texto'>Cierra la sesión actual y vuelve al acceso principal.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
+        st.session_state.autenticado = False
+        st.session_state.vista = "menu"
+        st.rerun()
+
+if st.session_state.vista == "menu":
+    st.info("Selecciona una herramienta desde el menú principal.")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================================
+# VISTA CALCULADORA
+# =========================================
+if st.session_state.vista == "calculadora":
+    mostrar_calculadora_pac()
+    st.stop()
+
 # =========================================
 # VISTA RECOMENDACION
 # =========================================
 if st.session_state.vista != "recomendacion":
     st.stop()
 
-# ---------- ESTILO EXTRA SOLO PARA VISTA RECOMENDACION ----------
-st.markdown("""
-<style>
-.panel-izquierdo {
-    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-    border: 1px solid #dceaf4;
-    border-radius: 20px;
-    padding: 1rem 1rem 0.6rem 1rem;
-    box-shadow: 0 8px 24px rgba(7,62,94,0.08);
-    position: sticky;
-    top: 0.8rem;
-}
-
-.panel-derecho {
-    background: rgba(255,255,255,0.96);
-    border: 1px solid #dceaf4;
-    border-radius: 20px;
-    padding: 1rem;
-    box-shadow: 0 8px 24px rgba(7,62,94,0.08);
-}
-
-.subtitulo-panel {
-    color: #0b4f6c;
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin-bottom: 0.4rem;
-}
-
-.texto-panel {
-    color: #5b7482;
-    font-size: 0.93rem;
-    line-height: 1.45;
-    margin-bottom: 0.9rem;
-}
-
-.hr-suave {
-    border: none;
-    border-top: 1px solid #e5eef5;
-    margin: 0.8rem 0 1rem 0;
-}
-
-.bloque-mini {
-    background: #f8fcff;
-    border: 1px solid #e1edf5;
-    border-radius: 16px;
-    padding: 0.9rem;
-    margin-bottom: 0.8rem;
-}
-
-.titulo-mini {
-    font-size: 0.92rem;
-    font-weight: 800;
-    color: #0b4f6c;
-    margin-bottom: 0.35rem;
-}
-
-.texto-mini {
-    font-size: 0.88rem;
-    color: #5b7482;
-    line-height: 1.4;
-}
-
-.titulo-seccion-resultado {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #0b4f6c;
-    margin-bottom: 0.4rem;
-    margin-top: 0.2rem;
-}
-
-@media (max-width: 1100px) {
-    .panel-izquierdo {
-        position: relative;
-        top: 0;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
 # =========================================
-# VARIABLES DE RECOMENDACION
+# SELECCION DE PLANTA Y CARGA DE ARCHIVO
 # =========================================
-col_form, col_result = st.columns([1, 1.85], gap="large")
+st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Selección de planta</div>", unsafe_allow_html=True)
 
-with col_form:
-    st.markdown("<div class='panel-izquierdo'>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitulo-panel'>Configuración del análisis</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='texto-panel'>Selecciona la planta, define las condiciones actuales del agua y ejecuta la recomendación.</div>",
-        unsafe_allow_html=True
+planta_base = st.selectbox(
+    "Selecciona la planta",
+    ["Caldas", "Diviso"]
+)
+
+config_key = "Caldas"
+
+if planta_base == "Diviso":
+    modulo_diviso = st.selectbox(
+        "Selecciona el módulo de Diviso",
+        ["Módulo 500", "Módulo 150"]
     )
 
-    # ---------------------------
-    # SELECCION DE PLANTA
-    # ---------------------------
-    planta_base = st.selectbox(
-        "Selecciona la planta",
-        ["Caldas", "Diviso"]
-    )
-
-    config_key = "Caldas"
-
-    if planta_base == "Diviso":
-        modulo_diviso = st.selectbox(
-            "Selecciona el módulo de Diviso",
-            ["Módulo 500", "Módulo 150"]
-        )
-
-        if modulo_diviso == "Módulo 500":
-            config_key = "Diviso - Modulo 500"
-        else:
-            config_key = "Diviso - Modulo 150"
-
-    st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
-    # ---------------------------
-    # FUENTE DE DATOS
-    # ---------------------------
-    st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
-    st.markdown("<div class='titulo-mini'>Fuente de datos</div>", unsafe_allow_html=True)
-
-    fuente_datos = st.radio(
-        "Selecciona el origen",
-        ["Usar archivo del sistema", "Subir archivo Excel"],
-        horizontal=False,
-        label_visibility="collapsed"
-    )
-
-    if st.button("Actualizar datos", key="actualizar_datos_lateral", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
-
-    df = None
-    archivo_excel = CONFIGS[config_key]["archivo"]
-
-    if fuente_datos == "Usar archivo del sistema":
-        try:
-            df = cargar_y_limpiar_excel(archivo_excel, config_key)
-            st.success(f"Datos cargados: {CONFIGS[config_key]['nombre_app']}")
-        except Exception as e:
-            st.error(f"No pude abrir o procesar el archivo: {e}")
+    if modulo_diviso == "Módulo 500":
+        config_key = "Diviso - Modulo 500"
     else:
-        archivo_subido = st.file_uploader(
-            "Sube el archivo Excel de la planta seleccionada",
-            type=["xlsx"],
-            key=f"uploader_{config_key}"
-        )
+        config_key = "Diviso - Modulo 150"
 
-        if archivo_subido is not None:
-            try:
-                df = cargar_y_limpiar_excel(archivo_subido, config_key)
-                st.success(f"Archivo subido correctamente para: {CONFIGS[config_key]['nombre_app']}")
-            except Exception as e:
-                st.error(f"No pude leer el archivo subido: {e}")
-        else:
-            st.info("Sube un archivo Excel para continuar.")
+st.markdown("---")
 
-    if df is not None:
-        st.caption(f"{CONFIGS[config_key]['nombre_app']} · Filas útiles: {len(df)}")
+fuente_datos = st.radio(
+    "Fuente de datos",
+    ["Usar archivo del sistema", "Subir archivo Excel"],
+    horizontal=True
+)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+if st.button("🔄 Actualizar datos", key="actualizar_datos"):
+    st.cache_data.clear()
+    st.rerun()
 
-    # ---------------------------
-    # DATOS DEL CASO ACTUAL
-    # ---------------------------
-    defaults = valores_por_defecto(config_key)
+df = None
+archivo_excel = CONFIGS[config_key]["archivo"]
 
-    st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
-    st.markdown("<div class='titulo-mini'>Datos del caso actual</div>", unsafe_allow_html=True)
-
-    caudal = st.number_input(
-        "Caudal a tratar (L/s)",
-        value=float(defaults["caudal"]),
-        step=1.0
+if fuente_datos == "Usar archivo del sistema":
+    try:
+        df = cargar_y_limpiar_excel(archivo_excel, config_key)
+        st.success(f"Archivo cargado correctamente para: {CONFIGS[config_key]['nombre_app']}")
+    except Exception as e:
+        st.error(f"No pude abrir o procesar el archivo: {e}")
+else:
+    archivo_subido = st.file_uploader(
+        "Sube el archivo Excel de la planta seleccionada",
+        type=["xlsx"],
+        key=f"uploader_{config_key}"
     )
 
-    turbiedad = st.number_input(
-        "Turbiedad de agua cruda (UNT)",
-        value=float(defaults["turbiedad"]),
-        step=0.1
-    )
+    if archivo_subido is not None:
+        try:
+            df = cargar_y_limpiar_excel(archivo_subido, config_key)
+            st.success(f"Archivo subido correctamente para: {CONFIGS[config_key]['nombre_app']}")
+        except Exception as e:
+            st.error(f"No pude leer el archivo subido: {e}")
+    else:
+        st.info("Sube un archivo Excel para continuar.")
 
-    ph = st.number_input(
-        "pH de agua cruda",
-        value=float(defaults["ph"]),
-        step=0.01,
-        format="%.2f"
-    )
+if df is not None:
+    st.write(f"Modo seleccionado: {CONFIGS[config_key]['nombre_app']}")
+    st.write(f"Filas útiles: {len(df)}")
 
-    alcalinidad_cruda = st.number_input(
-        "Alcalinidad de agua cruda (mg/L)",
-        value=float(defaults["alcalinidad_cruda"]),
-        step=1.0
-    )
+st.markdown("</div>", unsafe_allow_html=True)
 
-    alcalinidad_encalada = None
-    if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
-        alcalinidad_encalada = st.number_input(
-            "Alcalinidad de agua encalada (mg/L)",
-            value=float(defaults["alcalinidad_encalada"]),
+# =========================================
+# DATOS DEL CASO ACTUAL
+# =========================================
+defaults = valores_por_defecto(config_key)
+
+st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+st.markdown("<div class='etiqueta'>Datos del caso actual</div>", unsafe_allow_html=True)
+
+with st.expander("Abrir / cerrar formulario", expanded=True):
+    st.markdown("Ingresa las condiciones actuales del agua cruda.")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        caudal = st.number_input(
+            "Caudal A tratar (L/s)",
+            value=float(defaults["caudal"]),
             step=1.0
         )
 
-    densidad_pac = st.number_input(
-        "Densidad del PAC (g/mL)",
-        value=float(defaults["densidad_pac"]),
-        step=0.01,
-        format="%.2f"
-    )
+        turbiedad = st.number_input(
+            "Turbiedad de agua cruda (UNT)",
+            value=float(defaults["turbiedad"]),
+            step=0.1
+        )
+
+        ph = st.number_input(
+            "pH de agua cruda",
+            value=float(defaults["ph"]),
+            step=0.01,
+            format="%.2f"
+        )
+
+    with col2:
+        alcalinidad_cruda = st.number_input(
+            "Alcalinidad de agua cruda (mg/L)",
+            value=float(defaults["alcalinidad_cruda"]),
+            step=1.0
+        )
+
+        alcalinidad_encalada = None
+        if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
+            alcalinidad_encalada = st.number_input(
+                "Alcalinidad de agua encalada (mg/L)",
+                value=float(defaults["alcalinidad_encalada"]),
+                step=1.0
+            )
+
+        densidad_pac = st.number_input(
+            "Densidad del PAC (g/mL)",
+            value=float(defaults["densidad_pac"]),
+            step=0.01,
+            format="%.2f"
+        )
 
     vecinos_deseados = st.slider(
         "Cantidad de datos históricos a evaluar",
@@ -222,135 +1358,129 @@ with col_form:
         step=1
     )
 
-    calcular = st.button("Calcular recomendación", use_container_width=True, key="btn_calcular_panel")
+    c1, c2 = st.columns(2)
 
-    if st.button("Volver al menú", type="secondary", use_container_width=True, key="volver_menu_lateral"):
-        st.session_state.vista = "menu"
-        st.rerun()
+    with c1:
+        calcular = st.button("Calcular rango PAC", use_container_width=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    with c2:
+        if st.button("Volver al menú", type="secondary", use_container_width=True, key="volver_menu"):
+            st.session_state.vista = "menu"
+            st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================
-# PANEL DERECHO - RESULTADOS
+# RESULTADOS
 # =========================================
-with col_result:
-    st.markdown("<div class='panel-derecho'>", unsafe_allow_html=True)
-
-    st.markdown("<div class='subtitulo-panel'>Resultado de la recomendación</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='texto-panel'>Aquí verás el resumen, dosis sugeridas, casos históricos similares y la relación entre PAC y turbiedad.</div>",
-        unsafe_allow_html=True
+if df is not None and calcular:
+    resultado = calcular_rango_pac(
+        df=df,
+        config_key=config_key,
+        caudal=caudal,
+        turbiedad=turbiedad,
+        ph=ph,
+        alcalinidad_cruda=alcalinidad_cruda,
+        densidad_pac=densidad_pac,
+        vecinos_deseados=vecinos_deseados,
+        alcalinidad_encalada=alcalinidad_encalada
     )
 
-    if df is None:
-        st.info("Primero carga una fuente de datos válida en el panel izquierdo.")
-    elif not calcular:
-        st.info("Completa los datos del panel izquierdo y presiona «Calcular recomendación».")
+    if not resultado["ok"]:
+        st.error(resultado["mensaje"])
     else:
-        resultado = calcular_rango_pac(
-            df=df,
-            config_key=config_key,
-            caudal=caudal,
-            turbiedad=turbiedad,
-            ph=ph,
-            alcalinidad_cruda=alcalinidad_cruda,
-            densidad_pac=densidad_pac,
-            vecinos_deseados=vecinos_deseados,
-            alcalinidad_encalada=alcalinidad_encalada
+        st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+        st.markdown("<div class='etiqueta'>Resultado del análisis</div>", unsafe_allow_html=True)
+        st.markdown("Resumen de la recomendación")
+
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Casos usados", resultado["n"])
+        r2.metric("PAC promedio", round(resultado["pac_promedio"], 1))
+        r3.metric("PAC mínimo", round(resultado["pac_min"], 1))
+        r4.metric("PAC máximo", round(resultado["pac_max"], 1))
+
+        if resultado.get("tolerancia_usada") is not None:
+            tol = resultado["tolerancia_usada"]
+            texto_tol = (
+                f"Caudal ±{tol['caudal']}, "
+                f"Turbiedad ±{tol['turb']}, "
+                f"pH ±{tol['ph']}, "
+                f"Alcalinidad cruda ±{tol['alc']}"
+            )
+            if "alc_enc" in tol:
+                texto_tol += f", Alcalinidad encalada ±{tol['alc_enc']}"
+
+            st.info(f"Tolerancias usadas en el prefiltro: {texto_tol}")
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # DOSIS SUGERIDAS
+        st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+        st.markdown("<div class='etiqueta'>Dosis sugeridas</div>", unsafe_allow_html=True)
+
+        st.write(f"Densidad PAC usada: {densidad_pac:.2f} g/mL")
+        st.write(f"Caudal a tratar usado: {caudal:.2f} L/s")
+        st.subheader("Dosis sugeridas para 6 jarras")
+        st.dataframe(resultado["tabla_jarras"], use_container_width=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # CASOS HISTORICOS
+        st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+        st.markdown("<div class='etiqueta'>Casos históricos similares</div>", unsafe_allow_html=True)
+        st.markdown("Se muestran los registros historicos mpas cercanos al caso actual.")
+
+        st.dataframe(
+            resultado["similares_filtrados"].style.format({
+                "Caudal a tratar (L/s)": "{:.1f}",
+                "Turbiedad de agua cruda (UNT)": "{:.1f}",
+                "pH de agua cruda": "{:.2f}",
+                "Alcalinidad de agua cruda (mg/L)": "{:.1f}",
+                "Alcalinidad de agua encalada (mg/L)": "{:.1f}",
+                "Caudal PAC (mL/min)": "{:.1f}",
+                "Distancia": "{:.3f}"
+            }),
+            use_container_width=True
         )
 
-        if not resultado["ok"]:
-            st.error(resultado["mensaje"])
-        else:
-            st.markdown("<div class='titulo-seccion-resultado'>Resumen general</div>", unsafe_allow_html=True)
+        df_grafica = resultado["similares_filtrados"].copy()
+        df_grafica = df_grafica.sort_values(by="Caudal PAC (mL/min)")
 
-            r1, r2, r3, r4 = st.columns(4)
-            r1.metric("Casos usados", resultado["n"])
-            r2.metric("PAC promedio", round(resultado["pac_promedio"], 1))
-            r3.metric("PAC mínimo", round(resultado["pac_min"], 1))
-            r4.metric("PAC máximo", round(resultado["pac_max"], 1))
+        fig = px.line(
+            df_grafica,
+            x="Caudal PAC (mL/min)",
+            y="Turbiedad de agua cruda (UNT)",
+            title="Relación Caudal PAC vs Turbiedad",
+            markers=True
+        )
 
-            if resultado.get("tolerancia_usada") is not None:
-                tol = resultado["tolerancia_usada"]
-                texto_tol = (
-                    f"Caudal ±{tol['caudal']}, "
-                    f"Turbiedad ±{tol['turb']}, "
-                    f"pH ±{tol['ph']}, "
-                    f"Alcalinidad cruda ±{tol['alc']}"
-                )
-                if "alc_enc" in tol:
-                    texto_tol += f", Alcalinidad encalada ±{tol['alc_enc']}"
-
-                st.info(f"Tolerancias usadas en el prefiltro: {texto_tol}")
-
-            st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
-            st.markdown("<div class='titulo-seccion-resultado'>Dosis sugeridas para prueba de jarras</div>", unsafe_allow_html=True)
-            st.caption(f"Densidad PAC usada: {densidad_pac:.2f} g/mL · Caudal a tratar: {caudal:.2f} L/s")
-            st.dataframe(resultado["tabla_jarras"], use_container_width=True)
-
-            st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
-            st.markdown("<div class='titulo-seccion-resultado'>Casos históricos similares</div>", unsafe_allow_html=True)
-
-            st.dataframe(
-                resultado["similares_filtrados"].style.format({
-                    "Caudal a tratar (L/s)": "{:.1f}",
-                    "Turbiedad de agua cruda (UNT)": "{:.1f}",
-                    "pH de agua cruda": "{:.2f}",
-                    "Alcalinidad de agua cruda (mg/L)": "{:.1f}",
-                    "Alcalinidad de agua encalada (mg/L)": "{:.1f}",
-                    "Caudal PAC (mL/min)": "{:.1f}",
-                    "Distancia": "{:.3f}"
-                }),
-                use_container_width=True
+        fig.update_traces(
+            line=dict(
+                color="#1f77ff",
+                width=1.2,
+                shape="spline"
+            ),
+            marker=dict(
+                size=6,
+                color="#1f77ff",
+                line=dict(color="white", width=1)
             )
+        )
 
-            st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
-            st.markdown("<div class='titulo-seccion-resultado'>Visualización</div>", unsafe_allow_html=True)
-
-            df_grafica = resultado["similares_filtrados"].copy()
-            df_grafica = df_grafica.sort_values(by="Caudal PAC (mL/min)")
-
-            fig = px.line(
-                df_grafica,
-                x="Caudal PAC (mL/min)",
-                y="Turbiedad de agua cruda (UNT)",
-                title="Relación Caudal PAC vs Turbiedad",
-                markers=True
+        fig.update_layout(
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            font=dict(color="#0b4f6c"),
+            xaxis=dict(
+                title="Caudal PAC (mL/min)",
+                gridcolor="#dbeafe"
+            ),
+            yaxis=dict(
+                title="Turbiedad de agua cruda (UNT)",
+                gridcolor="#dbeafe"
             )
+        )
 
-            fig.update_traces(
-                line=dict(
-                    color="#1f77ff",
-                    width=2,
-                    shape="spline"
-                ),
-                marker=dict(
-                    size=7,
-                    color="#1f77ff",
-                    line=dict(color="white", width=1)
-                )
-            )
+        st.plotly_chart(fig, use_container_width=True)
 
-            fig.update_layout(
-                plot_bgcolor="white",
-                paper_bgcolor="white",
-                font=dict(color="#0b4f6c"),
-                xaxis=dict(
-                    title="Caudal PAC (mL/min)",
-                    gridcolor="#dbeafe"
-                ),
-                yaxis=dict(
-                    title="Turbiedad de agua cruda (UNT)",
-                    gridcolor="#dbeafe"
-                ),
-                height=460
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
