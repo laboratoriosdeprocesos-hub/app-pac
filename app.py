@@ -463,7 +463,7 @@ ESTILOS_LOGIN = “””
     display: flex; align-items: center; gap: 0.6rem;
 }
 .login-brand::before {
-    content: "●";
+    content: "o";
     font-size: 0.5rem;
     color: #00e5c0;
 }
@@ -580,7 +580,7 @@ with col_c:
         st.markdown("<div class='login-sub-r'>Accede con tus credenciales institucionales para continuar.</div>", unsafe_allow_html=True)
 
         usuario = st.text_input("Usuario", placeholder="Ingresa tu usuario", key="login_usuario")
-        clave = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_clave")
+        clave = st.text_input("Contraseña", type="password", placeholder="--------", key="login_clave")
 
         st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
 
@@ -590,12 +590,12 @@ with col_c:
                 st.session_state.vista = "menu"
                 st.rerun()
             else:
-                st.error("!️ Usuario o contraseña incorrectos")
+                st.error("! Usuario o contraseña incorrectos")
 
         st.markdown("""
         <div class="login-bottom-note">
             <span style="color:#8a9db0">Acceso institucional</span>
-            <span>PTAP DIVISO · CALDAS</span>
+            <span>PTAP DIVISO . CALDAS</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -867,7 +867,7 @@ st.markdown(f"""
     </div>
     <div style="background:#f0f6ff;border:1px solid #dce9f7;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#0d2347">
         <span style="font-weight:700;display:block;font-size:0.72rem;color:#5a7899;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Área</span>
-        {area_tanque:.4f} m²
+        {area_tanque:.4f} m2
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -921,7 +921,7 @@ with st.form("form_calculadora_pac", clear_on_submit=False):
     altura_pasada = st.number_input("Altura actual del tanque (m)", min_value=0.0, value=2.00, step=0.01, format="%.2f", key="calc_altura_pasada")
     st.markdown("#### Registros de consumo")
     tabla_editada = st.data_editor(st.session_state.tabla_consumos_pac, num_rows="dynamic", use_container_width=True, key="editor_consumos_pac")
-    calcular_consumos = st.form_submit_button("⚡ Calcular consumos y altura estimada", use_container_width=True)
+    calcular_consumos = st.form_submit_button(" Calcular consumos y altura estimada", use_container_width=True)
 
 if calcular_consumos:
     st.session_state.tabla_consumos_pac = tabla_editada.copy()
@@ -956,8 +956,8 @@ if calcular_consumos:
     df_calc["Tiempo (min)"] = np.where(df_calc["Min final"] >= df_calc["Min inicio"], df_calc["Min final"] - df_calc["Min inicio"], (24 * 60 - df_calc["Min inicio"]) + df_calc["Min final"])
     df_calc["Consumo (g)"] = df_calc["Tiempo (min)"] * df_calc["Caudal PAC (mL/min)"] * df_calc["Densidad PAC (g/mL)"]
     df_calc["Consumo (kg)"] = df_calc["Consumo (g)"] / 1000
-    df_calc["Volumen consumido (m³)"] = df_calc["Consumo (kg)"] / (df_calc["Densidad PAC (g/mL)"] * 1000)
-    df_calc["Descenso altura (m)"] = df_calc["Volumen consumido (m³)"] / area_tanque
+    df_calc["Volumen consumido (m3)"] = df_calc["Consumo (kg)"] / (df_calc["Densidad PAC (g/mL)"] * 1000)
+    df_calc["Descenso altura (m)"] = df_calc["Volumen consumido (m3)"] / area_tanque
     df_calc["Altura estimada (m)"] = (altura_pasada - df_calc["Descenso altura (m)"].cumsum()).clip(lower=0)
 
     consumo_total_g = df_calc["Consumo (g)"].sum()
@@ -1023,9 +1023,9 @@ if st.session_state.resultado_calculadora_pac is not None:
     st.markdown(f"""
     <div class="caja-rango">
         <b>Resumen final</b><br>
-        Tanque: {r['tanque']} · Área: {r['area_tanque']:.4f} m² · 
-        Altura inicial: {r['altura_pasada']:.2f} m · 
-        Descenso total: {r['descenso_total_m']:.4f} m · 
+        Tanque: {r['tanque']} . Área: {r['area_tanque']:.4f} m2 . 
+        Altura inicial: {r['altura_pasada']:.2f} m . 
+        Descenso total: {r['descenso_total_m']:.4f} m . 
         <b>Altura estimada actual: {r['altura_actual']:.4f} m</b>
     </div>
     """, unsafe_allow_html=True)
@@ -1035,9 +1035,9 @@ if st.session_state.resultado_calculadora_pac is not None:
         <b>Fórmulas aplicadas</b><br>
         <span style="color:#3a5270">
         Tiempo (min) = Hora final - Hora inicio &nbsp;|&nbsp; Si final &lt; inicio -> (1440 - inicio) + final<br>
-        Consumo (g) = Tiempo × Caudal (mL/min) × Densidad (g/mL)<br>
-        Descenso (m) = [Consumo (kg) / (Densidad × 1000)] / Área (m²)<br>
-        Altura estimada = Altura inicial - Σ descensos acumulados
+        Consumo (g) = Tiempo x Caudal (mL/min) x Densidad (g/mL)<br>
+        Descenso (m) = [Consumo (kg) / (Densidad x 1000)] / Área (m2)<br>
+        Altura estimada = Altura inicial - Suma descensos acumulados
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -1069,7 +1069,7 @@ st.markdown(”””
     <div class="header-logo">💧 SERVAF</div>
     <div class="header-title">Sistema de Recomendación de PAC<br>
         <span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.55)">
-            Planta de Agua Potable · Diviso & Caldas
+            Planta de Agua Potable . Diviso & Caldas
         </span>
     </div>
     <div class="header-badge">PTAP 2026</div>
@@ -1177,7 +1177,7 @@ archivo_excel = CONFIGS[config_key][“archivo”]
 if fuente_datos == “Usar archivo del sistema”:
 try:
 df = cargar_y_limpiar_excel(archivo_excel, config_key)
-st.success(f”✅ Datos cargados correctamente · {CONFIGS[config_key][‘nombre_app’]} · {len(df):,} registros útiles”)
+st.success(f” Datos cargados correctamente . {CONFIGS[config_key][‘nombre_app’]} . {len(df):,} registros útiles”)
 except Exception as e:
 st.error(f”No se pudo abrir el archivo: {e}”)
 else:
@@ -1185,7 +1185,7 @@ archivo_subido = st.file_uploader(“Sube el archivo Excel de la planta seleccio
 if archivo_subido is not None:
 try:
 df = cargar_y_limpiar_excel(archivo_subido, config_key)
-st.success(f”✅ Archivo subido correctamente · {CONFIGS[config_key][‘nombre_app’]} · {len(df):,} registros útiles”)
+st.success(f” Archivo subido correctamente . {CONFIGS[config_key][‘nombre_app’]} . {len(df):,} registros útiles”)
 except Exception as e:
 st.error(f”No se pudo leer el archivo: {e}”)
 else:
@@ -1226,7 +1226,7 @@ vecinos_deseados = st.slider("Cantidad de registros históricos a evaluar", min_
 
 c1, c2 = st.columns(2)
 with c1:
-    calcular = st.button("⚡ Calcular rango PAC", use_container_width=True)
+    calcular = st.button(" Calcular rango PAC", use_container_width=True)
 with c2:
     if st.button("<- Volver al menú", type="secondary", use_container_width=True, key="volver_menu"):
         st.session_state.vista = "menu"
@@ -1250,7 +1250,7 @@ vecinos_deseados=vecinos_deseados, alcalinidad_encalada=alcalinidad_encalada
 
 
 if not resultado["ok"]:
-    st.error(f"!️ {resultado['mensaje']}")
+    st.error(f"! {resultado['mensaje']}")
 else:
     # - Resumen -
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
@@ -1264,9 +1264,9 @@ else:
 
     if resultado.get("tolerancia_usada"):
         tol = resultado["tolerancia_usada"]
-        texto_tol = f"Caudal ±{tol['caudal']} · Turbiedad ±{tol['turb']} · pH ±{tol['ph']} · Alc. cruda ±{tol['alc']}"
+        texto_tol = f"Caudal +/-{tol['caudal']} . Turbiedad +/-{tol['turb']} . pH +/-{tol['ph']} . Alc. cruda +/-{tol['alc']}"
         if "alc_enc" in tol:
-            texto_tol += f" · Alc. encalada ±{tol['alc_enc']}"
+            texto_tol += f" . Alc. encalada +/-{tol['alc_enc']}"
         st.info(f"🔍 Tolerancias del prefiltro: {texto_tol}")
 
     st.markdown("</div>", unsafe_allow_html=True)
