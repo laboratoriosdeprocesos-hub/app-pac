@@ -17,7 +17,7 @@ st.set_page_config(
     layout="wide"
 )
 
-BASE_DIR = Path(_file_).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
 
 USUARIO_CORRECTO = "ptap"
 CLAVE_CORRECTA = "plantas2026"
