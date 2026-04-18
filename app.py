@@ -32,6 +32,7 @@ if "vista" not in st.session_state:
 # =========================================
 # ESTILOS GLOBALES
 # =========================================
+
 ESTILOS_GLOBALES = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -49,22 +50,33 @@ ESTILOS_GLOBALES = """
     --texto-muted: #5a7899;
 }
 
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 html, body, .stApp {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     background: #f0f6ff !important;
 }
 
-header { visibility: hidden !important; }
-footer { visibility: hidden !important; }
+header {
+    visibility: hidden !important;
+}
+
+footer {
+    visibility: hidden !important;
+}
 
 .block-container {
     padding: 0.6rem 1.2rem 2rem 1.2rem !important;
     max-width: 100% !important;
 }
-.main > div { padding-top: 0 !important; }
 
+.main > div {
+    padding-top: 0 !important;
+}
+
+/* Encabezado */
 .app-header {
     background: linear-gradient(135deg, #0a1628 0%, #0d2347 55%, #0f3060 100%);
     border-radius: 20px;
@@ -77,39 +89,51 @@ footer { visibility: hidden !important; }
     position: relative;
     overflow: hidden;
 }
+
 .app-header::before {
     content: "";
     position: absolute;
-    right: -60px; top: -60px;
-    width: 260px; height: 260px;
+    right: -60px;
+    top: -60px;
+    width: 260px;
+    height: 260px;
     background: radial-gradient(circle, rgba(0,200,255,0.12) 0%, transparent 70%);
     border-radius: 50%;
 }
+
 .app-header::after {
     content: "";
     position: absolute;
-    right: 80px; bottom: -80px;
-    width: 180px; height: 180px;
+    right: 80px;
+    bottom: -80px;
+    width: 180px;
+    height: 180px;
     background: radial-gradient(circle, rgba(0,229,192,0.08) 0%, transparent 70%);
     border-radius: 50%;
 }
+
 .header-logo {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.05rem;
     font-weight: 800;
     color: var(--cyan);
     letter-spacing: 3px;
     text-transform: uppercase;
-    position: relative; z-index: 2;
+    position: relative;
+    z-index: 2;
 }
+
 .header-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.35rem;
-    font-weight: 800;
+    font-weight: 700;
+    letter-spacing: 0.2px;
     color: white;
-    position: relative; z-index: 2;
+    position: relative;
+    z-index: 2;
     text-align: center;
 }
+
 .header-badge {
     background: rgba(0,200,255,0.12);
     border: 1px solid rgba(0,200,255,0.3);
@@ -119,9 +143,11 @@ footer { visibility: hidden !important; }
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 1px;
-    position: relative; z-index: 2;
+    position: relative;
+    z-index: 2;
 }
 
+/* Bloques */
 .bloque {
     background: white;
     padding: 1.4rem 1.6rem;
@@ -131,6 +157,22 @@ footer { visibility: hidden !important; }
     margin-bottom: 1.1rem;
 }
 
+.bloque-mini {
+    background: #f8fcff;
+    border: 1px solid #e1edf5;
+    border-radius: 16px;
+    padding: 0.95rem;
+    margin-bottom: 0.85rem;
+}
+
+.titulo-mini {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0b4f6c;
+    margin-bottom: 0.4rem;
+}
+
+/* Etiquetas */
 .etiqueta {
     display: inline-flex;
     align-items: center;
@@ -142,53 +184,12 @@ footer { visibility: hidden !important; }
     font-size: 0.75rem;
     font-weight: 700;
     margin-bottom: 0.9rem;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
     border: 1px solid rgba(26,111,255,0.15);
 }
 
-div[data-testid="stMetric"] {
-    background: linear-gradient(160deg, #f8fbff 0%, #eef5ff 100%) !important;
-    border: 1px solid rgba(26,111,255,0.12) !important;
-    padding: 1rem 1.2rem !important;
-    border-radius: 16px !important;
-    box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
-}
-div[data-testid="stMetricLabel"] > div {
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    color: var(--texto-muted) !important;
-    text-transform: uppercase;
-}
-div[data-testid="stMetricValue"] > div {
-    font-family: 'Syne', sans-serif !important;
-    color: #0d2347 !important;
-    font-weight: 800 !important;
-    font-size: 1.65rem !important;
-}
-
-.stButton > button {
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 0.88rem !important;
-    background: linear-gradient(135deg, #1a6fff 0%, #0052cc 100%) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 12px !important;
-    min-height: 48px !important;
-    width: 100% !important;
-    box-shadow: 0 6px 20px rgba(26,111,255,0.28) !important;
-}
-.stButton > button:hover {
-    transform: translateY(-1px);
-}
-.stButton > button[kind="secondary"] {
-    background: linear-gradient(135deg, #f0f6ff 0%, #e4eeff 100%) !important;
-    color: #0d2347 !important;
-    border: 1px solid rgba(26,111,255,0.2) !important;
-    box-shadow: 0 4px 12px rgba(10,22,40,0.07) !important;
-}
-
+/* Menu cards */
 .menu-card {
     background: white;
     border: 1px solid rgba(220,233,247,0.9);
@@ -198,34 +199,95 @@ div[data-testid="stMetricValue"] > div {
     box-shadow: 0 4px 20px rgba(10,22,40,0.06);
     position: relative;
     overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .menu-card::before {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 4px;
     background: linear-gradient(90deg, #1a6fff, #00c8ff);
     border-radius: 20px 20px 0 0;
 }
+
+.menu-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(10,22,40,0.12);
+}
+
 .menu-icon {
     font-size: 2rem;
     margin-bottom: 0.7rem;
     display: block;
 }
+
 .menu-titulo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.05rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.08rem;
     color: #0a1628;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.45rem;
+    letter-spacing: 0.1px;
 }
+
 .menu-texto {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     color: var(--texto-muted);
     line-height: 1.55;
     margin-bottom: 1rem;
 }
 
+/* Paneles */
+.panel-izquierdo {
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+    border: 1px solid #dceaf4;
+    border-radius: 22px;
+    padding: 1.1rem 1.1rem 0.9rem 1.1rem;
+    box-shadow: 0 10px 28px rgba(7,62,94,0.08);
+    position: sticky;
+    top: 0.8rem;
+}
+
+.panel-derecho {
+    background: rgba(255,255,255,0.98);
+    border: 1px solid #dceaf4;
+    border-radius: 22px;
+    padding: 1.1rem;
+    box-shadow: 0 10px 28px rgba(7,62,94,0.08);
+}
+
+.subtitulo-panel {
+    color: #0b4f6c;
+    font-size: 1.12rem;
+    font-weight: 800;
+    margin-bottom: 0.35rem;
+}
+
+.texto-panel {
+    color: #5b7482;
+    font-size: 0.93rem;
+    line-height: 1.5;
+    margin-bottom: 0.9rem;
+}
+
+.titulo-seccion-resultado {
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: #0b4f6c;
+    margin-bottom: 0.45rem;
+    margin-top: 0.25rem;
+}
+
+.hr-suave {
+    border: none;
+    border-top: 1px solid #e5eef5;
+    margin: 0.8rem 0 1rem 0;
+}
+
+/* Caja resaltada */
 .caja-rango {
     background: linear-gradient(135deg, #eef6ff, #f5faff);
     border-left: 5px solid #1a6fff;
@@ -238,16 +300,69 @@ div[data-testid="stMetricValue"] > div {
     box-shadow: inset 0 0 0 1px rgba(26,111,255,0.08);
 }
 
+/* Métricas */
+div[data-testid="stMetric"] {
+    background: linear-gradient(160deg, #f8fbff 0%, #eef5ff 100%) !important;
+    border: 1px solid rgba(26,111,255,0.12) !important;
+    padding: 1rem 1.2rem !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
+}
+
+div[data-testid="stMetricLabel"] > div {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: var(--texto-muted) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+div[data-testid="stMetricValue"] > div {
+    font-family: 'Inter', sans-serif !important;
+    color: #0d2347 !important;
+    font-weight: 800 !important;
+    font-size: 1.65rem !important;
+    letter-spacing: 0 !important;
+}
+
+/* Botones */
+.stButton > button {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    background: linear-gradient(135deg, #1a6fff 0%, #0052cc 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    min-height: 48px !important;
+    width: 100% !important;
+    box-shadow: 0 6px 20px rgba(26,111,255,0.28) !important;
+}
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+}
+
+.stButton > button[kind="secondary"] {
+    background: linear-gradient(135deg, #f0f6ff 0%, #e4eeff 100%) !important;
+    color: #0d2347 !important;
+    border: 1px solid rgba(26,111,255,0.2) !important;
+    box-shadow: 0 4px 12px rgba(10,22,40,0.07) !important;
+}
+
+/* Inputs */
 div[data-testid="stTextInput"] > label,
 div[data-testid="stNumberInput"] > label,
 div[data-testid="stSelectbox"] > label,
 div[data-testid="stSlider"] > label,
 div[data-testid="stRadio"] > label {
+    font-family: 'Inter', sans-serif !important;
     font-size: 0.83rem !important;
     font-weight: 600 !important;
     color: #3a5270 !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
 }
 
 div[data-baseweb="input"] input,
@@ -259,6 +374,7 @@ div[data-baseweb="select"] > div {
     color: #0a1628 !important;
 }
 
+/* Dataframe */
 [data-testid="stDataFrame"] {
     border-radius: 16px !important;
     overflow: hidden !important;
@@ -269,103 +385,119 @@ div[data-baseweb="select"] > div {
 thead tr th {
     background: #0d2347 !important;
     color: white !important;
-    font-family: 'Syne', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
     font-weight: 700 !important;
     font-size: 0.8rem !important;
     text-align: center !important;
 }
-tbody tr:nth-child(even) { background: #f8fbff !important; }
-tbody tr td { text-align: center !important; color: #0a1628 !important; }
 
+tbody tr:nth-child(even) {
+    background: #f8fbff !important;
+}
+
+tbody tr td {
+    text-align: center !important;
+    color: #0a1628 !important;
+}
+
+/* Expander */
 div[data-testid="stExpander"] {
     border: 1.5px solid #dce9f7 !important;
     border-radius: 16px !important;
     background: white !important;
-}
-.streamlit-expanderHeader {
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
-    color: #0d2347 !important;
+    overflow: hidden;
 }
 
+.streamlit-expanderHeader {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    color: #0d2347 !important;
+    font-size: 0.95rem !important;
+}
+
+/* Alerts */
 div[data-testid="stInfo"],
 div[data-testid="stSuccess"],
 div[data-testid="stError"] {
     border-radius: 14px !important;
 }
 
-.panel-izquierdo {
-    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-    border: 1px solid #dceaf4;
-    border-radius: 20px;
-    padding: 1rem 1rem 0.8rem 1rem;
-    box-shadow: 0 8px 24px rgba(7,62,94,0.08);
-    position: sticky;
-    top: 0.8rem;
+/* Titulos */
+h1, h2, h3 {
+    font-family: 'Inter', sans-serif !important;
+    color: #0a1628 !important;
 }
-.panel-derecho {
-    background: rgba(255,255,255,0.96);
-    border: 1px solid #dceaf4;
-    border-radius: 20px;
-    padding: 1rem;
-    box-shadow: 0 8px 24px rgba(7,62,94,0.08);
+
+h1 {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
 }
-.subtitulo-panel {
-    color: #0b4f6c;
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin-bottom: 0.4rem;
+
+h2 {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
 }
-.texto-panel {
-    color: #5b7482;
-    font-size: 0.93rem;
-    line-height: 1.45;
-    margin-bottom: 0.9rem;
+
+h3 {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
 }
-.hr-suave {
-    border: none;
-    border-top: 1px solid #e5eef5;
-    margin: 0.8rem 0 1rem 0;
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
-.bloque-mini {
-    background: #f8fcff;
-    border: 1px solid #e1edf5;
-    border-radius: 16px;
-    padding: 0.9rem;
-    margin-bottom: 0.8rem;
+
+::-webkit-scrollbar-track {
+    background: #f0f6ff;
+    border-radius: 10px;
 }
-.titulo-mini {
-    font-size: 0.92rem;
-    font-weight: 800;
-    color: #0b4f6c;
-    margin-bottom: 0.35rem;
+
+::-webkit-scrollbar-thumb {
+    background: #b8d0e8;
+    border-radius: 10px;
 }
-.titulo-seccion-resultado {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #0b4f6c;
-    margin-bottom: 0.4rem;
-    margin-top: 0.2rem;
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1a6fff;
 }
 
 @media (max-width: 1100px) {
-    .panel-izquierdo { position: relative; top: 0; }
+    .panel-izquierdo {
+        position: relative;
+        top: 0;
+    }
 }
 
 @media (max-width: 768px) {
-    .block-container { padding: 0.4rem 0.6rem 1.5rem !important; }
-    .bloque { padding: 1rem 1.1rem; border-radius: 16px; }
+    .block-container {
+        padding: 0.4rem 0.6rem 1.5rem !important;
+    }
+
+    .bloque {
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+    }
+
     .app-header {
         padding: 1rem 1.2rem;
         flex-direction: column;
         gap: 0.6rem;
         text-align: center;
     }
-    .header-title { font-size: 1.1rem; }
-    div[data-testid="stMetricValue"] > div { font-size: 1.35rem !important; }
+
+    .header-title {
+        font-size: 1.1rem;
+    }
+
+    div[data-testid="stMetricValue"] > div {
+        font-size: 1.35rem !important;
+    }
 }
 </style>
 """
+
 
 
 # =========================================
@@ -843,13 +975,14 @@ def valores_por_defecto(config_key):
 # =========================================
 # CALCULADORA DE CONSUMO Y TANQUE
 # =========================================
-def mostrar_calculadora_pac():
+
+ def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>💧 Calculadora de PAC</div>", unsafe_allow_html=True)
 
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
-    Registra uno o varios periodos de consumo para calcular el consumo total de PAC,
+    Registra uno o varios periodos de consumo para calcular automáticamente el consumo total de PAC,
     el descenso en el nivel del tanque y la altura estimada restante.
     Acepta horas como <code>07:00</code>, <code>13:30</code>, <code>22:00</code> o solo <code>7</code>, <code>13</code>.
     Si la hora final es menor que la inicial, se asume cruce a la madrugada del día siguiente.
@@ -862,12 +995,17 @@ def mostrar_calculadora_pac():
         "TQ3 - 15000 L": {"area": 3.8484, "radio": 1.1068}
     }
 
-    tanque = st.selectbox("Selecciona el tanque de PAC", list(tanques.keys()), key="calc_tanque")
+    tanque = st.selectbox(
+        "Selecciona el tanque de PAC",
+        list(tanques.keys()),
+        key="calc_tanque"
+    )
+
     area_tanque = tanques[tanque]["area"]
     radio_tanque = tanques[tanque]["radio"]
 
     st.markdown(f"""
-    <div style="display:flex;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap">
+    <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
         <div style="background:#f0f6ff;border:1px solid #dce9f7;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#0d2347">
             <span style="font-weight:700;display:block;font-size:0.72rem;color:#5a7899;text-transform:uppercase;margin-bottom:2px">Radio</span>
             {radio_tanque:.4f} m
@@ -891,7 +1029,8 @@ def mostrar_calculadora_pac():
         if ":" not in texto:
             if texto.isdigit():
                 h = int(texto)
-                return f"{h:02d}:00" if 0 <= h <= 24 else None
+                if 0 <= h <= 24:
+                    return f"{h:02d}:00"
             return None
 
         partes = texto.split(":")
@@ -903,7 +1042,9 @@ def mostrar_calculadora_pac():
         if not h_txt.isdigit() or not m_txt.isdigit():
             return None
 
-        h, m = int(h_txt), int(m_txt)
+        h = int(h_txt)
+        m = int(m_txt)
+
         if 0 <= h <= 24 and 0 <= m <= 59:
             if h == 24 and m != 0:
                 return None
@@ -957,196 +1098,200 @@ def mostrar_calculadora_pac():
             st.rerun()
 
     altura_pasada = st.number_input(
-    "Altura actual del tanque (m)",
-    min_value=0.0,
-    value=2.00,
-    step=0.01,
-    format="%.2f",
-    key="calc_altura_pasada"
-)
+        "Altura actual del tanque (m)",
+        min_value=0.0,
+        value=2.00,
+        step=0.01,
+        format="%.2f",
+        key="calc_altura_pasada"
+    )
 
-st.markdown("#### Registros de consumo")
+    st.markdown("#### Registros de consumo")
 
-tabla_editada = st.data_editor(
-    st.session_state.tabla_consumos_pac,
-    num_rows="dynamic",
-    use_container_width=True,
-    key="editor_consumos_pac"
-)
+    tabla_editada = st.data_editor(
+        st.session_state.tabla_consumos_pac,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="editor_consumos_pac"
+    )
 
-st.session_state.tabla_consumos_pac = tabla_editada.copy()
+    st.session_state.tabla_consumos_pac = tabla_editada.copy()
 
-    if not tabla_editada.empty:
-        st.session_state.tabla_consumos_pac = tabla_editada.copy()
-        df_calc = tabla_editada.copy()
+    df_calc = tabla_editada.copy()
+    columnas_requeridas = ["Hora inicio", "Hora final", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)"]
 
-        columnas_requeridas = [
-            "Hora inicio",
-            "Hora final",
-            "Caudal PAC (mL/min)",
-            "Densidad PAC (g/mL)"
-        ]
+    df_calc = df_calc.dropna(subset=columnas_requeridas).copy()
 
-        df_calc = df_calc.dropna(subset=columnas_requeridas).copy()
+    if df_calc.empty:
+        st.info("Ingresa al menos una fila válida para ver el cálculo automático.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
 
-        if df_calc.empty:
-            st.error("Debes ingresar al menos una fila válida de consumo.")
-            st.markdown("</div>", unsafe_allow_html=True)
-            return
+    df_calc["Hora inicio"] = df_calc["Hora inicio"].apply(normalizar_hora)
+    df_calc["Hora final"] = df_calc["Hora final"].apply(normalizar_hora)
+    df_calc["Caudal PAC (mL/min)"] = pd.to_numeric(df_calc["Caudal PAC (mL/min)"], errors="coerce")
+    df_calc["Densidad PAC (g/mL)"] = pd.to_numeric(df_calc["Densidad PAC (g/mL)"], errors="coerce")
+    df_calc["Min inicio"] = df_calc["Hora inicio"].apply(hora_a_minutos)
+    df_calc["Min final"] = df_calc["Hora final"].apply(hora_a_minutos)
 
-        df_calc["Hora inicio"] = df_calc["Hora inicio"].apply(normalizar_hora)
-        df_calc["Hora final"] = df_calc["Hora final"].apply(normalizar_hora)
-        df_calc["Caudal PAC (mL/min)"] = pd.to_numeric(df_calc["Caudal PAC (mL/min)"], errors="coerce")
-        df_calc["Densidad PAC (g/mL)"] = pd.to_numeric(df_calc["Densidad PAC (g/mL)"], errors="coerce")
-        df_calc["Min inicio"] = df_calc["Hora inicio"].apply(hora_a_minutos)
-        df_calc["Min final"] = df_calc["Hora final"].apply(hora_a_minutos)
+    df_calc = df_calc.dropna(subset=[
+        "Hora inicio",
+        "Hora final",
+        "Caudal PAC (mL/min)",
+        "Densidad PAC (g/mL)",
+        "Min inicio",
+        "Min final"
+    ]).copy()
 
-        df_calc = df_calc.dropna(subset=[
-            "Hora inicio", "Hora final",
-            "Caudal PAC (mL/min)", "Densidad PAC (g/mL)",
-            "Min inicio", "Min final"
-        ]).copy()
+    if df_calc.empty:
+        st.error("No hay filas válidas. Usa horas como 07:00, 13:30 o solo 7, 13.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
 
-        if df_calc.empty:
-            st.error("No hay filas válidas. Usa horas como 07:00, 13:30 o solo 7, 13.")
-            st.markdown("</div>", unsafe_allow_html=True)
-            return
+    df_calc = df_calc[
+        (df_calc["Min inicio"] >= 0) &
+        (df_calc["Min inicio"] <= 1440) &
+        (df_calc["Min final"] >= 0) &
+        (df_calc["Min final"] <= 1440) &
+        (df_calc["Caudal PAC (mL/min)"] >= 0) &
+        (df_calc["Densidad PAC (g/mL)"] > 0)
+    ].copy()
 
-        df_calc = df_calc[
-            (df_calc["Min inicio"] >= 0) &
-            (df_calc["Min inicio"] <= 1440) &
-            (df_calc["Min final"] >= 0) &
-            (df_calc["Min final"] <= 1440) &
-            (df_calc["Caudal PAC (mL/min)"] >= 0) &
-            (df_calc["Densidad PAC (g/mL)"] > 0)
-        ].copy()
+    if df_calc.empty:
+        st.error("Revisa los datos. La densidad debe ser mayor que cero y las horas deben ser válidas.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
 
-        if df_calc.empty:
-            st.error("Revisa los datos.")
-            st.markdown("</div>", unsafe_allow_html=True)
-            return
+    df_calc["Tiempo (min)"] = np.where(
+        df_calc["Min final"] >= df_calc["Min inicio"],
+        df_calc["Min final"] - df_calc["Min inicio"],
+        (24 * 60 - df_calc["Min inicio"]) + df_calc["Min final"]
+    )
 
-        df_calc["Tiempo (min)"] = np.where(
-            df_calc["Min final"] >= df_calc["Min inicio"],
-            df_calc["Min final"] - df_calc["Min inicio"],
-            (24 * 60 - df_calc["Min inicio"]) + df_calc["Min final"]
+    df_calc["Consumo (g)"] = (
+        df_calc["Tiempo (min)"] *
+        df_calc["Caudal PAC (mL/min)"] *
+        df_calc["Densidad PAC (g/mL)"]
+    )
+
+    df_calc["Consumo (kg)"] = df_calc["Consumo (g)"] / 1000
+
+    df_calc["Volumen consumido (m³)"] = (
+        df_calc["Consumo (kg)"] /
+        (df_calc["Densidad PAC (g/mL)"] * 1000)
+    )
+
+    df_calc["Descenso altura (m)"] = df_calc["Volumen consumido (m³)"] / area_tanque
+
+    df_calc["Altura estimada (m)"] = (
+        altura_pasada - df_calc["Descenso altura (m)"].cumsum()
+    ).clip(lower=0)
+
+    consumo_total_g = df_calc["Consumo (g)"].sum()
+    consumo_total_kg = df_calc["Consumo (kg)"].sum()
+    descenso_total_m = df_calc["Descenso altura (m)"].sum()
+    altura_actual = max(altura_pasada - descenso_total_m, 0)
+
+    df_mostrar = df_calc.copy()
+    df_mostrar.insert(0, "No.", range(1, len(df_mostrar) + 1))
+
+    df_mostrar = df_mostrar[[
+        "No.",
+        "Hora inicio",
+        "Hora final",
+        "Tiempo (min)",
+        "Caudal PAC (mL/min)",
+        "Densidad PAC (g/mL)",
+        "Consumo (g)",
+        "Consumo (kg)",
+        "Descenso altura (m)",
+        "Altura estimada (m)"
+    ]]
+
+    st.session_state.resultado_calculadora_pac = {
+        "consumo_total_g": consumo_total_g,
+        "consumo_total_kg": consumo_total_kg,
+        "descenso_total_m": descenso_total_m,
+        "altura_actual": altura_actual,
+        "df_mostrar": df_mostrar,
+        "altura_pasada": altura_pasada,
+        "tanque": tanque,
+        "area_tanque": area_tanque
+    }
+
+    r = st.session_state.resultado_calculadora_pac
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>📊 Resultados</div>", unsafe_allow_html=True)
+
+    r1, r2, r3, r4 = st.columns(4)
+    r1.metric("Consumo total (g)", f"{r['consumo_total_g']:,.2f}")
+    r2.metric("Consumo total (kg)", f"{r['consumo_total_kg']:.4f}")
+    r3.metric("Descenso de nivel (m)", f"{r['descenso_total_m']:.4f}")
+    r4.metric("Altura estimada actual (m)", f"{r['altura_actual']:.4f}")
+
+    st.subheader("Detalle por registro")
+
+    st.dataframe(
+        r["df_mostrar"].style.format({
+            "Tiempo (min)": "{:.1f}",
+            "Caudal PAC (mL/min)": "{:.1f}",
+            "Densidad PAC (g/mL)": "{:.2f}",
+            "Consumo (g)": "{:.2f}",
+            "Consumo (kg)": "{:.4f}",
+            "Descenso altura (m)": "{:.4f}",
+            "Altura estimada (m)": "{:.4f}"
+        }),
+        use_container_width=True
+    )
+
+    if len(r["df_mostrar"]) > 1:
+        alturas = [r["altura_pasada"]] + list(r["df_mostrar"]["Altura estimada (m)"])
+        labels = ["Inicio"] + [f"Reg. {i}" for i in range(1, len(r["df_mostrar"]) + 1)]
+
+        fig_altura = go.Figure()
+        fig_altura.add_trace(go.Scatter(
+            x=labels,
+            y=alturas,
+            mode="lines+markers",
+            line=dict(color="#1a6fff", width=2.5, shape="spline"),
+            marker=dict(size=9, color="#1a6fff", line=dict(color="white", width=2)),
+            fill="tozeroy",
+            fillcolor="rgba(26,111,255,0.07)"
+        ))
+        fig_altura.update_layout(
+            title="Evolución de altura estimada del tanque",
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            font=dict(family="Inter", color="#0a1628", size=12),
+            xaxis=dict(title="Registro", gridcolor="#e8f0fe"),
+            yaxis=dict(title="Altura (m)", gridcolor="#e8f0fe"),
+            margin=dict(l=20, r=20, t=40, b=20),
+            height=300
         )
+        st.plotly_chart(fig_altura, use_container_width=True)
 
-        df_calc["Consumo (g)"] = (
-            df_calc["Tiempo (min)"] *
-            df_calc["Caudal PAC (mL/min)"] *
-            df_calc["Densidad PAC (g/mL)"]
-        )
+    st.markdown(f"""
+    <div class="caja-rango">
+        <b>Resumen final</b><br>
+        Tanque: {r['tanque']} · Área: {r['area_tanque']:.4f} m² ·
+        Altura inicial: {r['altura_pasada']:.2f} m ·
+        Descenso total: {r['descenso_total_m']:.4f} m ·
+        <b>Altura estimada actual: {r['altura_actual']:.4f} m</b>
+    </div>
+    """, unsafe_allow_html=True)
 
-        df_calc["Consumo (kg)"] = df_calc["Consumo (g)"] / 1000
-        df_calc["Volumen consumido (m³)"] = df_calc["Consumo (kg)"] / (df_calc["Densidad PAC (g/mL)"] * 1000)
-        df_calc["Descenso altura (m)"] = df_calc["Volumen consumido (m³)"] / area_tanque
-        df_calc["Altura estimada (m)"] = (altura_pasada - df_calc["Descenso altura (m)"].cumsum()).clip(lower=0)
-
-        consumo_total_g = df_calc["Consumo (g)"].sum()
-        consumo_total_kg = df_calc["Consumo (kg)"].sum()
-        descenso_total_m = df_calc["Descenso altura (m)"].sum()
-        altura_actual = max(altura_pasada - descenso_total_m, 0)
-
-        df_mostrar = df_calc.copy()
-        df_mostrar.insert(0, "No.", range(1, len(df_mostrar) + 1))
-        df_mostrar = df_mostrar[[
-            "No.",
-            "Hora inicio",
-            "Hora final",
-            "Tiempo (min)",
-            "Caudal PAC (mL/min)",
-            "Densidad PAC (g/mL)",
-            "Consumo (g)",
-            "Consumo (kg)",
-            "Descenso altura (m)",
-            "Altura estimada (m)"
-        ]]
-
-        st.session_state.resultado_calculadora_pac = {
-            "consumo_total_g": consumo_total_g,
-            "consumo_total_kg": consumo_total_kg,
-            "descenso_total_m": descenso_total_m,
-            "altura_actual": altura_actual,
-            "df_mostrar": df_mostrar,
-            "altura_pasada": altura_pasada,
-            "tanque": tanque,
-            "area_tanque": area_tanque
-        }
-
-    if st.session_state.resultado_calculadora_pac is not None:
-        r = st.session_state.resultado_calculadora_pac
-
-        st.markdown("<hr>", unsafe_allow_html=True)
-        st.markdown("<div class='etiqueta'>📊 Resultados</div>", unsafe_allow_html=True)
-
-        r1, r2, r3, r4 = st.columns(4)
-        r1.metric("Consumo total (g)", f"{r['consumo_total_g']:,.2f}")
-        r2.metric("Consumo total (kg)", f"{r['consumo_total_kg']:.4f}")
-        r3.metric("Descenso de nivel (m)", f"{r['descenso_total_m']:.4f}")
-        r4.metric("Altura estimada actual (m)", f"{r['altura_actual']:.4f}")
-
-        st.subheader("Detalle por registro")
-        st.dataframe(
-            r["df_mostrar"].style.format({
-                "Tiempo (min)": "{:.1f}",
-                "Caudal PAC (mL/min)": "{:.1f}",
-                "Densidad PAC (g/mL)": "{:.2f}",
-                "Consumo (g)": "{:.2f}",
-                "Consumo (kg)": "{:.4f}",
-                "Descenso altura (m)": "{:.4f}",
-                "Altura estimada (m)": "{:.4f}"
-            }),
-            use_container_width=True
-        )
-
-        if len(r["df_mostrar"]) > 1:
-            alturas = [r["altura_pasada"]] + list(r["df_mostrar"]["Altura estimada (m)"])
-            labels = ["Inicio"] + [f"Reg. {i}" for i in range(1, len(r["df_mostrar"]) + 1)]
-
-            fig_altura = go.Figure()
-            fig_altura.add_trace(go.Scatter(
-                x=labels,
-                y=alturas,
-                mode="lines+markers",
-                line=dict(color="#1a6fff", width=2.5, shape="spline"),
-                marker=dict(size=9, color="#1a6fff", line=dict(color="white", width=2)),
-                fill="tozeroy",
-                fillcolor="rgba(26,111,255,0.07)"
-            ))
-            fig_altura.update_layout(
-                title="Evolución de altura estimada del tanque",
-                plot_bgcolor="white",
-                paper_bgcolor="white",
-                font=dict(family="DM Sans", color="#0a1628", size=12),
-                xaxis=dict(title="Registro", gridcolor="#e8f0fe"),
-                yaxis=dict(title="Altura (m)", gridcolor="#e8f0fe"),
-                margin=dict(l=20, r=20, t=40, b=20),
-                height=300
-            )
-            st.plotly_chart(fig_altura, use_container_width=True)
-
-        st.markdown(f"""
-        <div class="caja-rango">
-            <b>Resumen final</b><br>
-            Tanque: {r['tanque']} · Área: {r['area_tanque']:.4f} m² ·
-            Altura inicial: {r['altura_pasada']:.2f} m ·
-            Descenso total: {r['descenso_total_m']:.4f} m ·
-            <b>Altura estimada actual: {r['altura_actual']:.4f} m</b>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="caja-rango" style="border-left-color:#00c8ff">
-            <b>Fórmulas aplicadas</b><br>
-            <span style="color:#3a5270">
-            Tiempo (min) = Hora final - Hora inicio &nbsp;|&nbsp; Si final &lt; inicio -> (1440 - inicio) + final<br>
-            Consumo (g) = Tiempo × Caudal (mL/min) × Densidad (g/mL)<br>
-            Descenso (m) = [Consumo (kg) / (Densidad × 1000)] / Área (m²)<br>
-            Altura estimada = Altura inicial - Σ descensos acumulados
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown("""
+    <div class="caja-rango" style="border-left-color:#00c8ff">
+        <b>Fórmulas aplicadas</b><br>
+        <span style="color:#3a5270">
+        Tiempo (min) = Hora final - Hora inicio &nbsp;|&nbsp; Si final &lt; inicio -> (1440 - inicio) + final<br>
+        Consumo (g) = Tiempo × Caudal (mL/min) × Densidad (g/mL)<br>
+        Descenso (m) = [Consumo (kg) / (Densidad × 1000)] / Área (m²)<br>
+        Altura estimada = Altura inicial - Σ descensos acumulados
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
