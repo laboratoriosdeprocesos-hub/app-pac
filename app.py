@@ -412,7 +412,7 @@ ESTILOS_LOGIN = """
     border-radius: 50%;
 }
 .login-brand {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     font-weight: 800;
     color: #00c8ff;
@@ -423,7 +423,7 @@ ESTILOS_LOGIN = """
 }
 .login-center { position: relative; z-index: 2; }
 .login-headline {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 3rem;
     font-weight: 800;
     color: white;
@@ -447,7 +447,7 @@ ESTILOS_LOGIN = """
     text-transform: uppercase;
 }
 .login-title-r {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.9rem;
     font-weight: 800;
     color: #0a1628;
@@ -1186,58 +1186,61 @@ st.markdown("""
 # MENU DINAMICO
 # =========================================
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-st.markdown("<div class='etiqueta'>🧭 Menú principal</div>", unsafe_allow_html=True)
 
-m1, m2, m3 = st.columns([1.15, 1.15, 0.85])
+with st.expander("🧭 Menú principal", expanded=False):
+    m1, m2, m3 = st.columns([1.15, 1.15, 0.85])
 
-with m1:
-    st.markdown("""
-    <div class="menu-card">
-        <span class="menu-icon">🔬</span>
-        <div class="menu-titulo">Recomendación PAC</div>
-        <div class="menu-texto">
-            Consulta casos históricos similares y genera dosis sugeridas para prueba de jarras basadas en KNN.
+    with m1:
+        st.markdown("""
+        <div class="menu-card">
+            <span class="menu-icon">🔬</span>
+            <div class="menu-titulo">Recomendación PAC</div>
+            <div class="menu-texto">
+                Consulta casos históricos similares y genera dosis sugeridas para prueba de jarras.
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-    if st.button("Entrar a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
-        st.session_state.vista = "recomendacion"
-        st.rerun()
+        """, unsafe_allow_html=True)
+        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
-with m2:
-    st.markdown("""
-    <div class="menu-card">
-        <span class="menu-icon">🧮</span>
-        <div class="menu-titulo">Calculadora PAC</div>
-        <div class="menu-texto">
-            Calcula consumos de PAC, descenso de nivel y altura estimada del tanque con múltiples registros.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-    if st.button("Entrar a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
-        st.session_state.vista = "calculadora"
-        st.rerun()
+        if st.button("Entrar a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
+            st.session_state.vista = "recomendacion"
+            st.rerun()
 
-with m3:
-    st.markdown("""
-    <div class="menu-card">
-        <span class="menu-icon">🔒</span>
-        <div class="menu-titulo">Sesión activa</div>
-        <div class="menu-texto">
-            Cierra la sesión y vuelve al acceso principal de la plataforma.
+    with m2:
+        st.markdown("""
+        <div class="menu-card">
+            <span class="menu-icon">🧮</span>
+            <div class="menu-titulo">Calculadora PAC</div>
+            <div class="menu-texto">
+                Calcula consumos de PAC, descenso de nivel y altura estimada del tanque.
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-    if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
-        st.session_state.autenticado = False
-        st.session_state.vista = "menu"
-        st.rerun()
+        """, unsafe_allow_html=True)
+        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+
+        if st.button("Entrar a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
+            st.session_state.vista = "calculadora"
+            st.rerun()
+
+    with m3:
+        st.markdown("""
+        <div class="menu-card">
+            <span class="menu-icon">🔒</span>
+            <div class="menu-titulo">Sesión activa</div>
+            <div class="menu-texto">
+                Cierra la sesión y vuelve al acceso principal.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+
+        if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
+            st.session_state.autenticado = False
+            st.session_state.vista = "menu"
+            st.rerun()
 
 if st.session_state.vista == "menu":
-    st.info("👆 Selecciona una herramienta desde el menú principal para comenzar.")
+    st.info("Selecciona una herramienta desde el menú desplegable.")
 
 st.markdown("</div>", unsafe_allow_html=True)
 
