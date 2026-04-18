@@ -956,31 +956,27 @@ def mostrar_calculadora_pac():
             st.session_state.resultado_calculadora_pac = None
             st.rerun()
 
-    with st.form("form_calculadora_pac", clear_on_submit=False):
-        altura_pasada = st.number_input(
-            "Altura actual del tanque (m)",
-            min_value=0.0,
-            value=2.00,
-            step=0.01,
-            format="%.2f",
-            key="calc_altura_pasada"
-        )
+    altura_pasada = st.number_input(
+    "Altura actual del tanque (m)",
+    min_value=0.0,
+    value=2.00,
+    step=0.01,
+    format="%.2f",
+    key="calc_altura_pasada"
+)
 
-        st.markdown("#### Registros de consumo")
+st.markdown("#### Registros de consumo")
 
-        tabla_editada = st.data_editor(
-            st.session_state.tabla_consumos_pac,
-            num_rows="dynamic",
-            use_container_width=True,
-            key="editor_consumos_pac"
-        )
+tabla_editada = st.data_editor(
+    st.session_state.tabla_consumos_pac,
+    num_rows="dynamic",
+    use_container_width=True,
+    key="editor_consumos_pac"
+)
 
-        calcular_consumos = st.form_submit_button(
-            "⚡ Calcular consumos y altura estimada",
-            use_container_width=True
-        )
+st.session_state.tabla_consumos_pac = tabla_editada.copy()
 
-    if calcular_consumos:
+    if not tabla_editada.empty:
         st.session_state.tabla_consumos_pac = tabla_editada.copy()
         df_calc = tabla_editada.copy()
 
