@@ -975,8 +975,7 @@ def valores_por_defecto(config_key):
 # =========================================
 # CALCULADORA DE CONSUMO Y TANQUE
 # =========================================
-
- def mostrar_calculadora_pac():
+def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>💧 Calculadora de PAC</div>", unsafe_allow_html=True)
 
