@@ -617,7 +617,7 @@ def mostrar_login():
             <div class="login-left">
                 <div class="login-brand">SERVAF</div>
                 <div class="login-center">
-                    <div class="login-headline">Planta<br><span>de Agua</span><br>Potable</div>
+                    <div class="login-headline">Planta de tratamiento<br><span>de Agua</span><br>Potable</div>
                     <div class="login-desc">
                         Sistema inteligente de apoyo operativo basado en datos históricos y
                         condiciones actuales para dosificación de PAC.
