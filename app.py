@@ -649,7 +649,7 @@ def mostrar_login():
             st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
 
             if st.button("INGRESAR AL SISTEMA", key="btn_login"):
-                if usuario == USUARIO_CORRECTO and clave == USUARIOS[usuario]["clave"]:
+                if usuario == USUARIOS and clave == USUARIOS[usuario]["clave"]:
                     st.session_state.autenticado = True
                     st.session_state.usuario = usuario
                     st.session_state.rol = USUARIOS[usuario]["clave"]
