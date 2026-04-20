@@ -978,7 +978,7 @@ def valores_por_defecto(config_key):
 def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>💧 Calculadora de PAC</div>", unsafe_allow_html=True)
-
+ 
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
     Registra uno o varios periodos de consumo para calcular automáticamente el consumo total de PAC,
@@ -987,22 +987,22 @@ def mostrar_calculadora_pac():
     Si la hora final es menor que la inicial, se asume cruce a la madrugada del día siguiente.
     </p>
     """, unsafe_allow_html=True)
-
+ 
     tanques = {
         "TQ1 - 10000 L": {"area": 2.6267, "radio": 0.9144},
         "TQ2 - 10000 L": {"area": 2.6746, "radio": 0.9227},
         "TQ3 - 15000 L": {"area": 3.8484, "radio": 1.1068}
     }
-
+ 
     tanque = st.selectbox(
         "Selecciona el tanque de PAC",
         list(tanques.keys()),
         key="calc_tanque"
     )
-
+ 
     area_tanque = tanques[tanque]["area"]
     radio_tanque = tanques[tanque]["radio"]
-
+ 
     st.markdown(f"""
     <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
         <div style="background:#f0f6ff;border:1px solid #dce9f7;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#0d2347">
@@ -1015,61 +1015,61 @@ def mostrar_calculadora_pac():
         </div>
     </div>
     """, unsafe_allow_html=True)
-
+ 
     def normalizar_hora(valor):
         if pd.isna(valor):
             return None
-
+ 
         texto = str(valor).strip()
-
+ 
         if texto == "":
             return None
-
+ 
         if ":" not in texto:
             if texto.isdigit():
                 h = int(texto)
                 if 0 <= h <= 24:
                     return f"{h:02d}:00"
             return None
-
+ 
         partes = texto.split(":")
         if len(partes) != 2:
             return None
-
+ 
         h_txt, m_txt = partes[0].strip(), partes[1].strip()
-
+ 
         if not h_txt.isdigit() or not m_txt.isdigit():
             return None
-
+ 
         h = int(h_txt)
         m = int(m_txt)
-
+ 
         if 0 <= h <= 24 and 0 <= m <= 59:
             if h == 24 and m != 0:
                 return None
             return f"{h:02d}:{m:02d}"
-
+ 
         return None
-
+ 
     def hora_a_minutos(hora_str):
         hora_normal = normalizar_hora(hora_str)
         if hora_normal is None:
             return np.nan
         h, m = hora_normal.split(":")
         return int(h) * 60 + int(m)
-
+ 
     tabla_inicial = pd.DataFrame({
         "Hora inicio": ["07:00"],
         "Hora final": ["08:00"],
         "Caudal PAC (mL/min)": [100.0],
         "Densidad PAC (g/mL)": [1.33]
     })
-
+ 
     if "tabla_consumos_pac" not in st.session_state:
         st.session_state.tabla_consumos_pac = tabla_inicial.copy()
-
+ 
     c_btn1, c_btn2 = st.columns(2)
-
+ 
     with c_btn1:
         if st.button("+ Agregar fila", use_container_width=True, key="btn_fila_base"):
             nueva_fila = pd.DataFrame({
@@ -1083,12 +1083,12 @@ def mostrar_calculadora_pac():
                 ignore_index=True
             )
             st.rerun()
-
+ 
     with c_btn2:
         if st.button("🗑 Limpiar tabla", use_container_width=True, key="btn_limpiar_tabla"):
             st.session_state.tabla_consumos_pac = tabla_inicial.copy()
             st.rerun()
-
+ 
     altura_pasada = st.number_input(
         "Altura actual del tanque (m)",
         min_value=0.0,
@@ -1097,9 +1097,12 @@ def mostrar_calculadora_pac():
         format="%.2f",
         key="calc_altura_pasada"
     )
-
+ 
     st.markdown("#### Registros de consumo")
-
+ 
+    # ─── FIX: se elimina la reasignación de session_state después del data_editor ───
+    # Streamlit sincroniza automáticamente el widget con session_state usando la key.
+    # Reasignarlo manualmente fuerza un re-render que borra lo que el usuario escribió.
     tabla_editada = st.data_editor(
         st.session_state.tabla_consumos_pac,
         num_rows="dynamic",
@@ -1133,44 +1136,44 @@ def mostrar_calculadora_pac():
             ),
         }
     )
-
-    # Guardar SOLO la tabla ya editada
-    st.session_state.tabla_consumos_pac = tabla_editada.copy(deep=True)
-
+    # ─── FIN FIX: la línea eliminada era:
+    #     st.session_state.tabla_consumos_pac = tabla_editada.copy(deep=True)
+    # ────────────────────────────────────────────────────────────────────────────
+ 
     df_calc = tabla_editada.copy(deep=True)
-
+ 
     columnas_requeridas = [
         "Hora inicio",
         "Hora final",
         "Caudal PAC (mL/min)",
         "Densidad PAC (g/mL)"
     ]
-
+ 
     if df_calc.empty:
         st.info("Ingresa al menos una fila para ver el cálculo.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
-
+ 
     # Limpiar filas completamente vacías
     df_calc = df_calc.dropna(how="all").copy()
-
+ 
     if df_calc.empty:
         st.info("Ingresa al menos una fila para ver el cálculo.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
-
+ 
     # Normalizar horas
     df_calc["Hora inicio"] = df_calc["Hora inicio"].apply(normalizar_hora)
     df_calc["Hora final"] = df_calc["Hora final"].apply(normalizar_hora)
-
+ 
     # Convertir numéricos
     df_calc["Caudal PAC (mL/min)"] = pd.to_numeric(df_calc["Caudal PAC (mL/min)"], errors="coerce")
     df_calc["Densidad PAC (g/mL)"] = pd.to_numeric(df_calc["Densidad PAC (g/mL)"], errors="coerce")
-
+ 
     # Convertir horas a minutos
     df_calc["Min inicio"] = df_calc["Hora inicio"].apply(hora_a_minutos)
     df_calc["Min final"] = df_calc["Hora final"].apply(hora_a_minutos)
-
+ 
     # Solo calcular con filas completas
     df_validas = df_calc.dropna(subset=[
         "Hora inicio",
@@ -1180,12 +1183,12 @@ def mostrar_calculadora_pac():
         "Min inicio",
         "Min final"
     ]).copy()
-
+ 
     if df_validas.empty:
         st.info("Completa una fila válida y el cálculo aparecerá automáticamente.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
-
+ 
     # Validaciones
     df_validas = df_validas[
         (df_validas["Min inicio"] >= 0) &
@@ -1195,45 +1198,45 @@ def mostrar_calculadora_pac():
         (df_validas["Caudal PAC (mL/min)"] >= 0) &
         (df_validas["Densidad PAC (g/mL)"] > 0)
     ].copy()
-
+ 
     if df_validas.empty:
         st.error("Revisa los datos. La densidad debe ser mayor que cero y las horas deben ser válidas.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
-
+ 
     df_validas["Tiempo (min)"] = np.where(
         df_validas["Min final"] >= df_validas["Min inicio"],
         df_validas["Min final"] - df_validas["Min inicio"],
         (24 * 60 - df_validas["Min inicio"]) + df_validas["Min final"]
     )
-
+ 
     df_validas["Consumo (g)"] = (
         df_validas["Tiempo (min)"] *
         df_validas["Caudal PAC (mL/min)"] *
         df_validas["Densidad PAC (g/mL)"]
     )
-
+ 
     df_validas["Consumo (kg)"] = df_validas["Consumo (g)"] / 1000
-
+ 
     df_validas["Volumen consumido (m³)"] = (
         df_validas["Consumo (kg)"] /
         (df_validas["Densidad PAC (g/mL)"] * 1000)
     )
-
+ 
     df_validas["Descenso altura (m)"] = df_validas["Volumen consumido (m³)"] / area_tanque
-
+ 
     df_validas["Altura estimada (m)"] = (
         altura_pasada - df_validas["Descenso altura (m)"].cumsum()
     ).clip(lower=0)
-
+ 
     consumo_total_g = df_validas["Consumo (g)"].sum()
     consumo_total_kg = df_validas["Consumo (kg)"].sum()
     descenso_total_m = df_validas["Descenso altura (m)"].sum()
     altura_actual = max(altura_pasada - descenso_total_m, 0)
-
+ 
     df_mostrar = df_validas.copy()
     df_mostrar.insert(0, "No.", range(1, len(df_mostrar) + 1))
-
+ 
     df_mostrar = df_mostrar[[
         "No.",
         "Hora inicio",
@@ -1246,18 +1249,18 @@ def mostrar_calculadora_pac():
         "Descenso altura (m)",
         "Altura estimada (m)"
     ]]
-
+ 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>📊 Resultados</div>", unsafe_allow_html=True)
-
+ 
     r1, r2, r3, r4 = st.columns(4)
     r1.metric("Consumo total (g)", f"{consumo_total_g:,.2f}")
     r2.metric("Consumo total (kg)", f"{consumo_total_kg:.4f}")
     r3.metric("Descenso de nivel (m)", f"{descenso_total_m:.4f}")
     r4.metric("Altura estimada actual (m)", f"{altura_actual:.4f}")
-
+ 
     st.subheader("Detalle por registro")
-
+ 
     st.dataframe(
         df_mostrar.style.format({
             "Tiempo (min)": "{:.1f}",
@@ -1270,11 +1273,11 @@ def mostrar_calculadora_pac():
         }),
         use_container_width=True
     )
-
+ 
     if len(df_mostrar) > 1:
         alturas = [altura_pasada] + list(df_mostrar["Altura estimada (m)"])
         labels = ["Inicio"] + [f"Reg. {i}" for i in range(1, len(df_mostrar) + 1)]
-
+ 
         fig_altura = go.Figure()
         fig_altura.add_trace(go.Scatter(
             x=labels,
@@ -1296,7 +1299,7 @@ def mostrar_calculadora_pac():
             height=300
         )
         st.plotly_chart(fig_altura, use_container_width=True)
-
+ 
     st.markdown(f"""
     <div class="caja-rango">
         <b>Resumen final</b><br>
@@ -1306,7 +1309,7 @@ def mostrar_calculadora_pac():
         <b>Altura estimada actual: {altura_actual:.4f} m</b>
     </div>
     """, unsafe_allow_html=True)
-
+ 
     st.markdown("""
     <div class="caja-rango" style="border-left-color:#00c8ff">
         <b>Fórmulas aplicadas</b><br>
@@ -1318,7 +1321,7 @@ def mostrar_calculadora_pac():
         </span>
     </div>
     """, unsafe_allow_html=True)
-
+ 
     st.markdown("</div>", unsafe_allow_html=True)
 
 
