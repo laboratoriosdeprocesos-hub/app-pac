@@ -19,8 +19,16 @@ st.set_page_config(
 
 BASE_DIR = Path(__file__).resolve().parent
 
-USUARIO_CORRECTO = "ptap"
-CLAVE_CORRECTA = "plantas2026"
+USUARIOS = {
+    "diviso": {
+        "clave": "diviso123",
+        "rol": "operador diviso"
+    },
+    "caldas": {
+        "clave": "caldas123",
+        "rol": "operador caldas"
+    }
+}
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
@@ -641,8 +649,10 @@ def mostrar_login():
             st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
 
             if st.button("INGRESAR AL SISTEMA", key="btn_login"):
-                if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
+                if usuario == USUARIO_CORRECTO and clave == USUARIOS[usuario]["clave"]:
                     st.session_state.autenticado = True
+                    st.session_state.usuario = usuario
+                    st.session_state.rol = USUARIOS[usuario]["clave"]
                     st.session_state.vista = "menu"
                     st.rerun()
                 else:
