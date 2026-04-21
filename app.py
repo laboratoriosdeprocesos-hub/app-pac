@@ -1345,7 +1345,7 @@ def mostrar_calculadora_tanque():
  
         caudal_salida_ls = st.number_input(
             "Caudal de salida (L/s)",
-            min_value=0.0, value=30.0, step=0.5, format="%.2f",
+            min_value=0.0, value=150.0, step=0.5, format="%.2f",
             key="tanq_caudal_salida"
         )
  
@@ -1756,9 +1756,9 @@ st.markdown(f"""
 <div class="app-header">
     <div class="header-logo">💧 SERVAF</div>
     <div class="header-title">
-        Sistema de Recomendación de PAC<br>
+        HERRAMIENTA WEB DE APOYO PARA OPERACIÓN<br>
         <span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.55)">
-            Planta de Agua Potable · Diviso & Caldas
+            Planta de Tratamiento Agua Potable · Diviso & Caldas
         </span>
     </div>
     <div class="header-badge">PTAP · {planta_badge}</div>
