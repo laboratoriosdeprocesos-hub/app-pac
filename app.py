@@ -667,344 +667,251 @@ def generar_tanque_svg(
     hora_actual_str,
     hora_rebose_str,
     hora_minimo_str,
-    tendencia,           # "subiendo" | "bajando" | "estable"
+    tendencia,
     Q_neto_Ls,
 ):
-    """
-    Devuelve el HTML completo con el tanque SVG animado y la leyenda lateral.
-    El nivel de agua dentro del tanque se anima en CSS.
-    """
- 
-    # Porcentajes sobre la altura total del tanque (0–100%)
-    pct_actual  = max(0.0, min(1.0, h_actual  / h_lleno)) * 100
-    pct_rebose  = max(0.0, min(1.0, h_rebose  / h_lleno)) * 100
-    pct_minima  = max(0.0, min(1.0, h_minima  / h_lleno)) * 100
- 
-    # Coordenadas SVG del cuerpo del tanque
-    # Tanque: x=60, y=30, ancho=200, alto=320 (parte cilíndrica)
-    TK_X, TK_Y, TK_W, TK_H = 60, 40, 200, 300
-    TK_BOTTOM = TK_Y + TK_H  # y inferior
- 
-    # y del nivel de agua actual (SVG: y crece hacia abajo)
+    pct_actual = max(0.0, min(1.0, h_actual / h_lleno)) * 100
+    pct_rebose = max(0.0, min(1.0, h_rebose / h_lleno)) * 100
+    pct_minima = max(0.0, min(1.0, h_minima / h_lleno)) * 100
+
+    TK_X, TK_Y, TK_W, TK_H = 70, 40, 170, 270
+    TK_BOTTOM = TK_Y + TK_H
+
     y_agua = TK_BOTTOM - (pct_actual / 100) * TK_H
     y_rebose = TK_BOTTOM - (pct_rebose / 100) * TK_H
     y_minima = TK_BOTTOM - (pct_minima / 100) * TK_H
- 
-    # Color del agua según nivel
+
     if pct_actual > 85:
         agua_color1, agua_color2 = "#e63946", "#ff6b7a"
-        agua_wave   = "rgba(230,57,70,0.4)"
         estado_color = "#e63946"
         estado_texto = "⚠️ NIVEL ALTO"
     elif pct_actual < 20:
         agua_color1, agua_color2 = "#f4a261", "#ffd166"
-        agua_wave   = "rgba(244,162,97,0.4)"
         estado_color = "#f4a261"
         estado_texto = "⚠️ NIVEL BAJO"
     else:
         agua_color1, agua_color2 = "#1a6fff", "#00c8ff"
-        agua_wave   = "rgba(26,111,255,0.3)"
         estado_color = "#2a9d8f"
         estado_texto = "✅ NIVEL NORMAL"
- 
-    # Animación: si sube la ola se desplaza hacia arriba (transform), si baja hacia abajo
+
     anim_dir = "subiendo" if tendencia == "subiendo" else ("bajando" if tendencia == "bajando" else "estable")
- 
     flecha_icono = "🔼" if tendencia == "subiendo" else ("🔽" if tendencia == "bajando" else "➡️")
     signo_neto = "+" if Q_neto_Ls >= 0 else ""
- 
-    # Textos de proyección
-    txt_rebose = hora_rebose_str if hora_rebose_str else "—"
-    txt_minimo = hora_minimo_str if hora_minimo_str else "—"
- 
-    html = f"""
-<style>
-  @keyframes wave-move {{
-    0%   {{ transform: translateX(0); }}
-    100% {{ transform: translateX(-50%); }}
-  }}
-  @keyframes nivel-subir {{
-    0%  {{ transform: translateY(4px); }}
-    50% {{ transform: translateY(-4px); }}
-    100%{{ transform: translateY(4px); }}
-  }}
-  @keyframes nivel-bajar {{
-    0%  {{ transform: translateY(-4px); }}
-    50% {{ transform: translateY(4px); }}
-    100%{{ transform: translateY(-4px); }}
-  }}
-  @keyframes nivel-estable {{
-    0%  {{ transform: translateY(0px); }}
-    50% {{ transform: translateY(1px); }}
-    100%{{ transform: translateY(0px); }}
-  }}
-  @keyframes burbuja {{
-    0%   {{ cy: 330px; opacity: 0.7; r: 3px; }}
-    100% {{ cy: 60px;  opacity: 0;   r: 1px; }}
-  }}
-  .nivel-anim-subiendo  {{ animation: nivel-subir   3s ease-in-out infinite; }}
-  .nivel-anim-bajando   {{ animation: nivel-bajar    3s ease-in-out infinite; }}
-  .nivel-anim-estable   {{ animation: nivel-estable  4s ease-in-out infinite; }}
- 
-  .tanque-card {{
-    background: linear-gradient(160deg, #f0f8ff 0%, #e4f1fc 100%);
-    border: 1.5px solid #c5ddf0;
-    border-radius: 20px;
-    padding: 1.2rem 1rem 1rem 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-shadow: 0 8px 32px rgba(10,30,60,0.10);
-    font-family: 'Inter', sans-serif;
-  }}
-  .tanque-titulo {{
-    font-size: 0.85rem; font-weight: 800; color: #0b4f6c;
-    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem;
-  }}
-  .tanque-layout {{
-    display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;
-    justify-content: center; flex-wrap: wrap;
-  }}
-  .tanque-svg-wrap {{
-    position: relative;
-    flex-shrink: 0;
-  }}
-  .tanque-info {{
-    display: flex; flex-direction: column; gap: 0.7rem; min-width: 200px;
-  }}
-  .info-badge {{
-    background: white;
-    border: 1px solid #dce9f7;
-    border-radius: 14px;
-    padding: 0.7rem 1rem;
-    font-size: 0.82rem;
-    color: #0a1628;
-    box-shadow: 0 2px 8px rgba(10,22,40,0.06);
-  }}
-  .info-badge .ib-label {{
-    font-size: 0.68rem; font-weight: 700; color: #5a7899;
-    text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;
-  }}
-  .info-badge .ib-valor {{
-    font-size: 1.05rem; font-weight: 800; color: #0d2347;
-  }}
-  .info-badge .ib-sub {{
-    font-size: 0.72rem; color: #8aabca; margin-top: 1px;
-  }}
-  .estado-pill {{
-    display: inline-block;
-    background: {estado_color}22;
-    border: 1.5px solid {estado_color};
-    color: {estado_color};
-    font-weight: 800; font-size: 0.78rem;
-    padding: 0.3rem 0.9rem; border-radius: 999px;
-    text-align: center; letter-spacing: 0.5px;
-    margin-bottom: 0.3rem;
-  }}
-</style>
- 
-<div class="tanque-card">
-  <div class="tanque-titulo">🏗️ Estado del Tanque — {hora_actual_str}</div>
-  <div class="estado-pill">{estado_texto}</div>
- 
-  <div class="tanque-layout">
- 
-    <!-- SVG TANQUE -->
-    <div class="tanque-svg-wrap">
-      <svg width="320" height="400" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <!-- Gradiente agua -->
-          <linearGradient id="gradAgua" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stop-color="{agua_color2}" stop-opacity="0.95"/>
-            <stop offset="100%" stop-color="{agua_color1}" stop-opacity="1"/>
-          </linearGradient>
-          <!-- Gradiente cuerpo tanque -->
-          <linearGradient id="gradTanque" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#d0e8f5"/>
-            <stop offset="30%"  stop-color="#eaf4fc"/>
-            <stop offset="70%"  stop-color="#eaf4fc"/>
-            <stop offset="100%" stop-color="#b8d4e8"/>
-          </linearGradient>
-          <!-- Sombra reflejo interior -->
-          <linearGradient id="gradReflejo" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="rgba(255,255,255,0)" />
-            <stop offset="20%"  stop-color="rgba(255,255,255,0.35)" />
-            <stop offset="40%"  stop-color="rgba(255,255,255,0)" />
-          </linearGradient>
-          <!-- Clip para el agua dentro del tanque -->
-          <clipPath id="clipTanque">
-            <rect x="{TK_X+3}" y="{TK_Y}" width="{TK_W-6}" height="{TK_H}"/>
-          </clipPath>
-          <!-- Filtro sombra suave -->
-          <filter id="sombra" x="-5%" y="-5%" width="110%" height="110%">
-            <feDropShadow dx="3" dy="6" stdDeviation="6" flood-color="#0a1628" flood-opacity="0.18"/>
-          </filter>
-        </defs>
- 
-        <!-- ── CUERPO TANQUE ── -->
-        <!-- Sombra externa -->
-        <rect x="{TK_X+6}" y="{TK_Y+6}" width="{TK_W}" height="{TK_H+20}"
-              rx="12" ry="12" fill="rgba(10,30,60,0.12)"/>
- 
-        <!-- Pared exterior -->
-        <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H+20}"
-              rx="12" ry="12" fill="url(#gradTanque)"
-              stroke="#8ab4cc" stroke-width="2.5" filter="url(#sombra)"/>
- 
-        <!-- ── AGUA (con clip) ── -->
-        <g clip-path="url(#clipTanque)" class="nivel-anim-{anim_dir}">
-          <!-- Bloque sólido de agua -->
-          <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
-                height="{TK_BOTTOM - y_agua:.1f}"
-                fill="url(#gradAgua)" opacity="0.92"/>
- 
-          <!-- Ola animada superior -->
-          <g style="animation: wave-move 2.8s linear infinite;">
-            <path d="
-              M {TK_X+3},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.125},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*0.25},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.375},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*0.5},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.625},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*0.75},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.875},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.0},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.125},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.25},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.375},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.5},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.625},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.75},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.875},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*2.0},{y_agua:.1f}
-              L {TK_X+3 + (TK_W-6)*2.0},{TK_BOTTOM}
-              L {TK_X+3},{TK_BOTTOM} Z"
-              fill="{agua_color2}" opacity="0.55"/>
-          </g>
- 
-          <!-- Reflejo brillante -->
-          <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
-                height="{TK_BOTTOM - y_agua:.1f}"
-                fill="url(#gradReflejo)" opacity="0.6"/>
- 
-          <!-- Burbujas (si está subiendo o estable) -->
-          {"" if tendencia == "bajando" else f'''
-          <circle cx="{TK_X + TK_W*0.3:.0f}" cy="{TK_BOTTOM - 20}" r="3"
-                  fill="rgba(255,255,255,0.6)"
-                  style="animation: burbuja 3.5s ease-in infinite 0s;"/>
-          <circle cx="{TK_X + TK_W*0.6:.0f}" cy="{TK_BOTTOM - 10}" r="2"
-                  fill="rgba(255,255,255,0.5)"
-                  style="animation: burbuja 4.2s ease-in infinite 1s;"/>
-          <circle cx="{TK_X + TK_W*0.45:.0f}" cy="{TK_BOTTOM - 30}" r="2.5"
-                  fill="rgba(255,255,255,0.55)"
-                  style="animation: burbuja 5s ease-in infinite 2s;"/>
-          '''}
-        </g>
- 
-        <!-- ── LÍNEAS DE REFERENCIA ── -->
-        <!-- Línea rebose -->
-        <line x1="{TK_X - 15}" y1="{y_rebose:.1f}" x2="{TK_X + TK_W + 15}" y2="{y_rebose:.1f}"
-              stroke="#e63946" stroke-width="1.8" stroke-dasharray="6,4" opacity="0.9"/>
-        <text x="{TK_X + TK_W + 18}" y="{y_rebose + 4:.1f}"
-              font-size="9" font-family="Inter,sans-serif" fill="#e63946" font-weight="700">
-          REBOSE {h_rebose:.2f}m
-        </text>
- 
-        <!-- Línea mínima -->
-        <line x1="{TK_X - 15}" y1="{y_minima:.1f}" x2="{TK_X + TK_W + 15}" y2="{y_minima:.1f}"
-              stroke="#f4a261" stroke-width="1.8" stroke-dasharray="6,4" opacity="0.9"/>
-        <text x="{TK_X + TK_W + 18}" y="{y_minima + 4:.1f}"
-              font-size="9" font-family="Inter,sans-serif" fill="#f4a261" font-weight="700">
-          MÍN {h_minima:.2f}m
-        </text>
- 
-        <!-- Etiqueta nivel actual flotante -->
-        <rect x="{TK_X + TK_W//2 - 36:.0f}" y="{y_agua - 28:.1f}" width="72" height="22"
-              rx="11" fill="{agua_color1}" opacity="0.92"/>
-        <text x="{TK_X + TK_W//2:.0f}" y="{y_agua - 13:.1f}"
-              text-anchor="middle" font-size="10" font-family="Inter,sans-serif"
-              fill="white" font-weight="800">
-          {h_actual:.3f} m
-        </text>
- 
-        <!-- ── TAPA SUPERIOR ── -->
-        <rect x="{TK_X - 8}" y="{TK_Y - 10}" width="{TK_W + 16}" height="14"
-              rx="7" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
-        <!-- Tornillos tapa -->
-        <circle cx="{TK_X - 2}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
-        <circle cx="{TK_X + TK_W + 2}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
-        <circle cx="{TK_X + TK_W//2:.0f}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
- 
-        <!-- ── BASE / PIE ── -->
-        <rect x="{TK_X - 12}" y="{TK_BOTTOM + 20}" width="{TK_W + 24}" height="14"
-              rx="7" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
-        <!-- Patas -->
-        <rect x="{TK_X + 10}" y="{TK_BOTTOM + 34}" width="14" height="28" rx="4"
-              fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
-        <rect x="{TK_X + TK_W - 24}" y="{TK_BOTTOM + 34}" width="14" height="28" rx="4"
-              fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
- 
-        <!-- ── ESCALA LATERAL IZQUIERDA ── -->
-        <line x1="{TK_X - 25}" y1="{TK_Y}" x2="{TK_X - 25}" y2="{TK_BOTTOM}"
-              stroke="#b8d0e4" stroke-width="1.5"/>
-        <!-- Marcas de escala cada 25% -->
-        {"".join([
-            f'<line x1="{TK_X-30}" y1="{TK_Y + i*TK_H//4}" x2="{TK_X-20}" y2="{TK_Y + i*TK_H//4}" stroke="#8ab0c8" stroke-width="1.2"/>'
-            f'<text x="{TK_X-34}" y="{TK_Y + i*TK_H//4 + 4}" text-anchor="end" font-size="8" font-family="Inter,sans-serif" fill="#5a7899">'
-            f'{h_lleno * (1 - i/4):.1f}</text>'
-            for i in range(5)
-        ])}
- 
-        <!-- ── FLECHA TENDENCIA ── -->
-        <text x="{TK_X + TK_W//2:.0f}" y="{TK_BOTTOM + 18}" text-anchor="middle"
-              font-size="13" font-family="Inter,sans-serif" fill="{estado_color}" font-weight="700">
-          {"▲ Subiendo" if tendencia == "subiendo" else ("▼ Bajando" if tendencia == "bajando" else "→ Estable")}
-        </text>
- 
-      </svg>
+
+    txt_rebose = hora_rebose_str if hora_rebose_str else "No aplica"
+    txt_minimo = hora_minimo_str if hora_minimo_str else "No aplica"
+
+    return f"""
+    <style>
+      .tanque-card {{
+        background: linear-gradient(160deg, #f0f8ff 0%, #e4f1fc 100%);
+        border: 1.5px solid #c5ddf0;
+        border-radius: 20px;
+        padding: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }}
+      .tanque-layout {{
+        display: grid;
+        grid-template-columns: minmax(260px, 380px) minmax(220px, 1fr);
+        gap: 1rem;
+        align-items: start;
+      }}
+      .tanque-svg-wrap {{
+        width: 100%;
+      }}
+      .tanque-svg-wrap svg {{
+        width: 100%;
+        height: auto;
+        display: block;
+      }}
+      .tanque-info {{
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+      }}
+      .info-badge {{
+        background: white;
+        border: 1px solid #dce9f7;
+        border-radius: 14px;
+        padding: 0.75rem 0.9rem;
+        font-size: 0.82rem;
+        color: #0a1628;
+        box-shadow: 0 2px 8px rgba(10,22,40,0.06);
+      }}
+      .ib-label {{
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #5a7899;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 2px;
+      }}
+      .ib-valor {{
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0d2347;
+      }}
+      .ib-sub {{
+        font-size: 0.72rem;
+        color: #8aabca;
+        margin-top: 2px;
+      }}
+      .estado-pill {{
+        display: inline-block;
+        background: {estado_color}22;
+        border: 1.5px solid {estado_color};
+        color: {estado_color};
+        font-weight: 800;
+        font-size: 0.78rem;
+        padding: 0.3rem 0.9rem;
+        border-radius: 999px;
+        margin-bottom: 0.8rem;
+      }}
+
+      @keyframes wave-move {{
+        0%   {{ transform: translateX(0); }}
+        100% {{ transform: translateX(-50%); }}
+      }}
+      @keyframes nivel-subir {{
+        0%  {{ transform: translateY(4px); }}
+        50% {{ transform: translateY(-4px); }}
+        100%{{ transform: translateY(4px); }}
+      }}
+      @keyframes nivel-bajar {{
+        0%  {{ transform: translateY(-4px); }}
+        50% {{ transform: translateY(4px); }}
+        100%{{ transform: translateY(-4px); }}
+      }}
+      @keyframes nivel-estable {{
+        0%  {{ transform: translateY(0px); }}
+        50% {{ transform: translateY(1px); }}
+        100%{{ transform: translateY(0px); }}
+      }}
+
+      .nivel-anim-subiendo  {{ animation: nivel-subir 3s ease-in-out infinite; }}
+      .nivel-anim-bajando   {{ animation: nivel-bajar 3s ease-in-out infinite; }}
+      .nivel-anim-estable   {{ animation: nivel-estable 4s ease-in-out infinite; }}
+
+      @media (max-width: 900px) {{
+        .tanque-layout {{
+          grid-template-columns: 1fr;
+        }}
+      }}
+    </style>
+
+    <div class="tanque-card">
+      <div style="font-size:0.85rem;font-weight:800;color:#0b4f6c;margin-bottom:0.35rem;">
+        🏗️ Estado del Tanque — {hora_actual_str}
+      </div>
+
+      <div class="estado-pill">{estado_texto}</div>
+
+      <div class="tanque-layout">
+        <div class="tanque-svg-wrap">
+          <svg viewBox="0 0 320 390" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gradAgua" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="{agua_color2}" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="{agua_color1}" stop-opacity="1"/>
+              </linearGradient>
+              <linearGradient id="gradTanque" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#d0e8f5"/>
+                <stop offset="30%" stop-color="#eaf4fc"/>
+                <stop offset="70%" stop-color="#eaf4fc"/>
+                <stop offset="100%" stop-color="#b8d4e8"/>
+              </linearGradient>
+              <clipPath id="clipTanque">
+                <rect x="{TK_X+3}" y="{TK_Y}" width="{TK_W-6}" height="{TK_H}"/>
+              </clipPath>
+            </defs>
+
+            <rect x="{TK_X+6}" y="{TK_Y+6}" width="{TK_W}" height="{TK_H+20}"
+                  rx="12" ry="12" fill="rgba(10,30,60,0.10)"/>
+
+            <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H+20}"
+                  rx="12" ry="12" fill="url(#gradTanque)"
+                  stroke="#8ab4cc" stroke-width="2.5"/>
+
+            <g clip-path="url(#clipTanque)" class="nivel-anim-{anim_dir}">
+              <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
+                    height="{TK_BOTTOM - y_agua:.1f}"
+                    fill="url(#gradAgua)" opacity="0.92"/>
+
+              <g style="animation: wave-move 2.8s linear infinite;">
+                <path d="
+                  M {TK_X+3},{y_agua:.1f}
+                  Q {TK_X+40},{y_agua - 6:.1f} {TK_X+80},{y_agua:.1f}
+                  Q {TK_X+120},{y_agua + 6:.1f} {TK_X+160},{y_agua:.1f}
+                  Q {TK_X+200},{y_agua - 6:.1f} {TK_X+240},{y_agua:.1f}
+                  L {TK_X+240},{TK_BOTTOM}
+                  L {TK_X+3},{TK_BOTTOM} Z"
+                  fill="{agua_color2}" opacity="0.50"/>
+              </g>
+            </g>
+
+            <line x1="{TK_X - 10}" y1="{y_rebose:.1f}" x2="{TK_X + TK_W + 10}" y2="{y_rebose:.1f}"
+                  stroke="#e63946" stroke-width="1.8" stroke-dasharray="6,4"/>
+            <text x="{TK_X + TK_W + 14}" y="{y_rebose + 4:.1f}" font-size="9" fill="#e63946" font-weight="700">
+              REBOSE
+            </text>
+
+            <line x1="{TK_X - 10}" y1="{y_minima:.1f}" x2="{TK_X + TK_W + 10}" y2="{y_minima:.1f}"
+                  stroke="#f4a261" stroke-width="1.8" stroke-dasharray="6,4"/>
+            <text x="{TK_X + TK_W + 14}" y="{y_minima + 4:.1f}" font-size="9" fill="#f4a261" font-weight="700">
+              MÍNIMO
+            </text>
+
+            <rect x="{TK_X + 50}" y="{y_agua - 28:.1f}" width="74" height="22" rx="11"
+                  fill="{agua_color1}" opacity="0.92"/>
+            <text x="{TK_X + 87}" y="{y_agua - 13:.1f}" text-anchor="middle"
+                  font-size="10" fill="white" font-weight="800">
+              {h_actual:.3f} m
+            </text>
+
+            <text x="{TK_X + TK_W/2:.0f}" y="{TK_BOTTOM + 52}" text-anchor="middle"
+                  font-size="13" fill="{estado_color}" font-weight="700">
+              {"▲ Subiendo" if tendencia == "subiendo" else ("▼ Bajando" if tendencia == "bajando" else "→ Estable")}
+            </text>
+          </svg>
+        </div>
+
+        <div class="tanque-info">
+          <div class="info-badge">
+            <span class="ib-label">Hora actual</span>
+            <div class="ib-valor">{hora_actual_str}</div>
+            <div class="ib-sub">Lectura más reciente</div>
+          </div>
+
+          <div class="info-badge">
+            <span class="ib-label">Nivel actual</span>
+            <div class="ib-valor">{h_actual:.3f} m</div>
+            <div class="ib-sub">{pct_actual:.1f}% del nivel lleno</div>
+          </div>
+
+          <div class="info-badge">
+            <span class="ib-label">Caudal neto</span>
+            <div class="ib-valor">{signo_neto}{Q_neto_Ls:.2f} L/s</div>
+            <div class="ib-sub">{flecha_icono} tendencia del nivel</div>
+          </div>
+
+          <div class="info-badge" style="border-left:4px solid #e63946;">
+            <span class="ib-label">Hora estimada de rebose</span>
+            <div class="ib-valor" style="color:#e63946;">{txt_rebose}</div>
+            <div class="ib-sub">Límite: {h_rebose:.2f} m</div>
+          </div>
+
+          <div class="info-badge" style="border-left:4px solid #f4a261;">
+            <span class="ib-label">Hora estimada de mínimo</span>
+            <div class="ib-valor" style="color:#f4a261;">{txt_minimo}</div>
+            <div class="ib-sub">Límite: {h_minima:.2f} m</div>
+          </div>
+        </div>
+      </div>
     </div>
- 
-    <!-- ── PANEL INFO ── -->
-    <div class="tanque-info">
- 
-      <div class="info-badge">
-        <span class="ib-label">Hora actual</span>
-        <span class="ib-valor">{hora_actual_str}</span>
-        <div class="ib-sub">Lectura más reciente</div>
-      </div>
- 
-      <div class="info-badge">
-        <span class="ib-label">Nivel actual</span>
-        <span class="ib-valor" style="color:{estado_color}">{h_actual:.3f} m</span>
-        <div class="ib-sub">{pct_actual:.1f}% del volumen lleno</div>
-      </div>
- 
-      <div class="info-badge">
-        <span class="ib-label">Caudal neto</span>
-        <span class="ib-valor">{signo_neto}{Q_neto_Ls:.2f} L/s</span>
-        <div class="ib-sub">{flecha_icono} {"nivel subiendo" if tendencia == "subiendo" else ("nivel bajando" if tendencia == "bajando" else "nivel estable")}</div>
-      </div>
- 
-      <div class="info-badge" style="border-left: 4px solid #e63946;">
-        <span class="ib-label">⏱ Hora estimada de rebose</span>
-        <span class="ib-valor" style="color:#e63946">{txt_rebose}</span>
-        <div class="ib-sub">Límite: {h_rebose:.2f} m</div>
-      </div>
- 
-      <div class="info-badge" style="border-left: 4px solid #f4a261;">
-        <span class="ib-label">⏱ Hora estimada de mínimo</span>
-        <span class="ib-valor" style="color:#f4a261">{txt_minimo}</span>
-        <div class="ib-sub">Límite: {h_minima:.2f} m</div>
-      </div>
- 
-    </div>
-  </div>
-</div>
-"""
-    return html
- 
- 
+    """
 # =========================================
 # CALCULADORA DE CONSUMO PAC
 # =========================================
