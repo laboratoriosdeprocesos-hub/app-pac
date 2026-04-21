@@ -859,327 +859,298 @@ def mostrar_calculadora_pac():
 # =========================================
 def mostrar_calculadora_tanque():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown("<div class='etiqueta'>🏗️ Calculadora de Tanque de Agua</div>", unsafe_allow_html=True)
- 
+    st.markdown("<div class='etiqueta'>🚰 Calculadora de tanque</div>", unsafe_allow_html=True)
+
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
-    Ingresa los datos del tanque y dos lecturas de nivel separadas por un intervalo de tiempo conocido.
-    El sistema calculará el <b>caudal de entrada</b>, el <b>caudal neto</b>, y el
-    <b>tiempo estimado</b> para llegar al límite de rebose o al mínimo operativo.
+    Calcula el caudal de entrada del tanque a partir de dos lecturas de nivel y sus horas.
+    También estima si el tanque se está llenando o vaciando, cuánto falta para llegar al
+    rebose o al nivel mínimo, y la hora aproximada en que alcanzará ese límite.
     </p>
     """, unsafe_allow_html=True)
- 
-    col_iz, col_der = st.columns([1, 1.4], gap="large")
- 
-    with col_iz:
-        st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-mini'>📐 Geometría del tanque</div>", unsafe_allow_html=True)
- 
-        volumen_total = st.number_input(
-            "Volumen total del tanque (m³)",
-            min_value=1.0, value=1350.0, step=10.0, format="%.2f",
-            key="tanq_vol_total"
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        volumen_tanque = st.number_input(
+            "Volumen del tanque lleno (m³)",
+            min_value=0.01,
+            value=1350.0,
+            step=1.0
         )
-        altura_lleno = st.number_input(
-            "Altura cuando el tanque está lleno (m)",
-            min_value=0.01, value=2.85, step=0.01, format="%.2f",
-            key="tanq_altura_lleno"
-        )
- 
-        # Área superficial equivalente
-        area_equiv = volumen_total / altura_lleno if altura_lleno > 0 else 0.0
- 
-        st.markdown(f"""
-        <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
-             padding:0.7rem 1.1rem;font-size:0.87rem;color:#0d2347;margin:0.6rem 0 0.9rem 0">
-            <span style="font-weight:700;font-size:0.72rem;color:#5a7899;
-                  text-transform:uppercase;display:block;margin-bottom:3px">
-                Área superficial equivalente</span>
-            <b>{area_equiv:.4f} m²</b>
-            <span style="color:#5a7899;font-size:0.8rem"> = {volumen_total:.1f} m³ ÷ {altura_lleno:.2f} m</span>
-        </div>
-        """, unsafe_allow_html=True)
- 
-        st.markdown("<div class='titulo-mini'>⚙️ Límites operativos</div>", unsafe_allow_html=True)
- 
+
         altura_rebose = st.number_input(
             "Altura límite de rebose (m)",
-            min_value=0.01, value=2.85, step=0.01, format="%.2f",
-            key="tanq_altura_rebose"
+            min_value=0.01,
+            value=2.85,
+            step=0.01,
+            format="%.2f"
         )
+
         altura_minima = st.number_input(
             "Altura mínima operativa (m)",
-            min_value=0.0, value=1.00, step=0.01, format="%.2f",
-            key="tanq_altura_minima"
+            min_value=0.0,
+            value=1.00,
+            step=0.01,
+            format="%.2f"
         )
- 
-        st.markdown("</div>", unsafe_allow_html=True)
- 
-        st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-mini'>📏 Lecturas de nivel</div>", unsafe_allow_html=True)
- 
-        altura_antes = st.number_input(
-            "Altura inicial — lectura anterior (m)",
-            min_value=0.0, value=1.50, step=0.01, format="%.2f",
-            key="tanq_altura_antes"
-        )
-        altura_actual = st.number_input(
-            "Altura actual — lectura reciente (m)",
-            min_value=0.0, value=1.70, step=0.01, format="%.2f",
-            key="tanq_altura_actual"
-        )
-        delta_t_min = st.number_input(
-            "Tiempo entre lecturas (min)",
-            min_value=1.0, value=60.0, step=1.0, format="%.1f",
-            key="tanq_delta_t"
-        )
- 
-        st.markdown("</div>", unsafe_allow_html=True)
- 
-        st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-mini'>🚰 Caudal de salida</div>", unsafe_allow_html=True)
- 
-        caudal_salida_ls = st.number_input(
+
+        salidas_ls = st.number_input(
             "Caudal de salida (L/s)",
-            min_value=0.0, value=30.0, step=0.5, format="%.2f",
-            key="tanq_caudal_salida"
+            min_value=0.0,
+            value=120.0,
+            step=0.1,
+            format="%.2f"
         )
+
+    with col2:
+        altura_anterior = st.number_input(
+            "Altura anterior (m)",
+            min_value=0.0,
+            value=1.50,
+            step=0.01,
+            format="%.2f"
+        )
+
+        altura_actual = st.number_input(
+            "Altura actual (m)",
+            min_value=0.0,
+            value=1.70,
+            step=0.01,
+            format="%.2f"
+        )
+
+        hora_anterior = st.text_input(
+            "Hora anterior",
+            value="07:00",
+            help="Ejemplo: 07:00, 13:30 o 23:45"
+        )
+
+        hora_actual = st.text_input(
+            "Hora actual",
+            value="08:00",
+            help="Ejemplo: 08:00, 14:10 o 00:15"
+        )
+
+    def normalizar_hora(valor):
+        if valor is None:
+            return None
+
+        texto = str(valor).strip()
+
+        if texto == "":
+            return None
+
+        if ":" not in texto:
+            if texto.isdigit():
+                h = int(texto)
+                if 0 <= h <= 23:
+                    return f"{h:02d}:00"
+            return None
+
+        partes = texto.split(":")
+        if len(partes) != 2:
+            return None
+
+        h_txt, m_txt = partes[0].strip(), partes[1].strip()
+
+        if not h_txt.isdigit() or not m_txt.isdigit():
+            return None
+
+        h = int(h_txt)
+        m = int(m_txt)
+
+        if 0 <= h <= 23 and 0 <= m <= 59:
+            return f"{h:02d}:{m:02d}"
+
+        return None
+
+    def hora_a_minutos(hora_str):
+        hora_ok = normalizar_hora(hora_str)
+        if hora_ok is None:
+            return None
+        h, m = hora_ok.split(":")
+        return int(h) * 60 + int(m)
+
+    def minutos_a_hhmm(minutos_totales):
+        minutos_totales = int(round(minutos_totales)) % (24 * 60)
+        h = minutos_totales // 60
+        m = minutos_totales % 60
+        return f"{h:02d}:{m:02d}"
+
+    hora_anterior_ok = normalizar_hora(hora_anterior)
+    hora_actual_ok = normalizar_hora(hora_actual)
+
+    if altura_rebose <= 0:
+        st.error("La altura de rebose debe ser mayor que cero.")
         st.markdown("</div>", unsafe_allow_html=True)
- 
-    with col_der:
-        st.markdown("<div class='subtitulo-panel'>Resultados del análisis</div>", unsafe_allow_html=True)
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
-        # ── Validaciones básicas ──────────────────────────────────────────────
-        errores = []
-        if altura_lleno <= 0:
-            errores.append("La altura del tanque lleno debe ser mayor que cero.")
-        if altura_rebose > altura_lleno:
-            errores.append("La altura de rebose no puede superar la altura cuando el tanque está lleno.")
-        if altura_minima >= altura_rebose:
-            errores.append("La altura mínima debe ser menor que la altura de rebose.")
-        if delta_t_min <= 0:
-            errores.append("El tiempo entre lecturas debe ser mayor que cero.")
- 
-        if errores:
-            for e in errores:
-                st.error(e)
-            st.markdown("</div>", unsafe_allow_html=True)
-            return
- 
-        # ── Conversiones ─────────────────────────────────────────────────────
-        delta_t_s   = delta_t_min * 60            # segundos
-        delta_h     = altura_actual - altura_antes # m  (+ sube, - baja)
- 
-        # Caudal neto = A × Δh / Δt  [m³/s]
-        Q_neto_m3s  = area_equiv * delta_h / delta_t_s
-        Q_neto_Ls   = Q_neto_m3s * 1000           # L/s
- 
-        # Caudal de entrada = Q_salida + Q_neto
-        Q_entrada_Ls  = caudal_salida_ls + Q_neto_Ls
-        Q_entrada_m3h = Q_entrada_Ls * 3.6
- 
-        # Caudal de salida en m³/h
-        Q_salida_m3h = caudal_salida_ls * 3.6
- 
-        # ── Métricas principales ──────────────────────────────────────────────
-        tendencia = "🔼 Subiendo" if delta_h > 0 else ("🔽 Bajando" if delta_h < 0 else "➡️ Estable")
- 
-        m1, m2 = st.columns(2)
-        m1.metric("Variación de nivel",    f"{delta_h:+.4f} m")
-        m2.metric("Tendencia",             tendencia)
- 
-        m3, m4 = st.columns(2)
-        m3.metric("Caudal neto",           f"{Q_neto_Ls:+.2f} L/s")
-        m4.metric("Caudal de entrada calc.", f"{Q_entrada_Ls:.2f} L/s")
- 
-        m5, m6 = st.columns(2)
-        m5.metric("Caudal entrada (m³/h)", f"{Q_entrada_m3h:.2f}")
-        m6.metric("Caudal salida (m³/h)",  f"{Q_salida_m3h:.2f}")
- 
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
-        # ── Tiempo hasta límites ─────────────────────────────────────────────
-        st.markdown("<div class='titulo-seccion-resultado'>⏱️ Tiempos estimados</div>", unsafe_allow_html=True)
- 
-        h_actual = altura_actual
- 
-        # Tiempo hasta rebose
-        if Q_neto_Ls > 0:
-            delta_h_rebose   = altura_rebose - h_actual
-            t_rebose_s       = (area_equiv * delta_h_rebose) / Q_neto_m3s if Q_neto_m3s > 0 else None
+        return
+
+    if altura_minima >= altura_rebose:
+        st.error("La altura mínima debe ser menor que la altura de rebose.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    if altura_anterior > altura_rebose or altura_actual > altura_rebose:
+        st.warning("Alguna altura supera la altura de rebose.")
+
+    if hora_anterior_ok is None or hora_actual_ok is None:
+        st.error("Revisa las horas. Usa formato como 07:00 o 13:30.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    min_anterior = hora_a_minutos(hora_anterior_ok)
+    min_actual = hora_a_minutos(hora_actual_ok)
+
+    if min_actual >= min_anterior:
+        tiempo_min = min_actual - min_anterior
+    else:
+        tiempo_min = (24 * 60 - min_anterior) + min_actual
+
+    if tiempo_min <= 0:
+        st.error("La diferencia entre horas debe ser mayor que cero.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    # Área equivalente
+    area_equivalente = volumen_tanque / altura_rebose
+
+    # Caudal salida
+    q_salida_m3h = salidas_ls * 3.6
+
+    # Cambio de nivel
+    delta_h = altura_actual - altura_anterior
+    tiempo_h = tiempo_min / 60.0
+
+    # Caudal neto y de entrada
+    q_neto_m3h = area_equivalente * (delta_h / tiempo_h)
+    q_entrada_m3h = q_salida_m3h + q_neto_m3h
+    q_entrada_ls = q_entrada_m3h / 3.6
+
+    volumen_actual = area_equivalente * altura_actual
+    volumen_minimo = area_equivalente * altura_minima
+    volumen_rebose = area_equivalente * altura_rebose
+
+    if abs(q_neto_m3h) < 1e-9:
+        estado = "Estable"
+    elif q_neto_m3h > 0:
+        estado = "Llenando"
+    else:
+        estado = "Vaciando"
+
+    tiempo_hasta_rebose_h = None
+    tiempo_hasta_minimo_h = None
+    hora_llegada_rebose = None
+    hora_llegada_minimo = None
+
+    if q_neto_m3h > 0:
+        delta_h_rebose = altura_rebose - altura_actual
+        if delta_h_rebose > 0:
+            tiempo_hasta_rebose_h = (area_equivalente * delta_h_rebose) / q_neto_m3h
+            hora_llegada_rebose = minutos_a_hhmm(min_actual + tiempo_hasta_rebose_h * 60)
+
+    if q_neto_m3h < 0:
+        delta_h_min = altura_actual - altura_minima
+        if delta_h_min > 0:
+            tiempo_hasta_minimo_h = (area_equivalente * delta_h_min) / abs(q_neto_m3h)
+            hora_llegada_minimo = minutos_a_hhmm(min_actual + tiempo_hasta_minimo_h * 60)
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Área equivalente (m²)", f"{area_equivalente:.2f}")
+    m2.metric("Tiempo entre lecturas (min)", f"{tiempo_min:.0f}")
+    m3.metric("Caudal entrada (m³/h)", f"{q_entrada_m3h:.2f}")
+    m4.metric("Caudal entrada (L/s)", f"{q_entrada_ls:.2f}")
+
+    st.markdown(f"""
+    <div class="caja-rango">
+        <b>Estado del tanque:</b> {estado}<br>
+        <b>Hora anterior:</b> {hora_anterior_ok}<br>
+        <b>Hora actual:</b> {hora_actual_ok}<br>
+        <b>Caudal neto:</b> {q_neto_m3h:.2f} m³/h<br>
+        <b>Volumen actual estimado:</b> {volumen_actual:.2f} m³<br>
+        <b>Volumen al mínimo operativo:</b> {volumen_minimo:.2f} m³<br>
+        <b>Volumen al rebose:</b> {volumen_rebose:.2f} m³
+    </div>
+    """, unsafe_allow_html=True)
+
+    if estado == "Llenando":
+        if tiempo_hasta_rebose_h is not None:
+            st.success(
+                f"Tiempo estimado para llegar al rebose ({altura_rebose:.2f} m): "
+                f"{tiempo_hasta_rebose_h:.2f} horas ({tiempo_hasta_rebose_h * 60:.0f} min)"
+            )
+            st.info(f"Hora estimada de llegada al rebose: {hora_llegada_rebose}")
         else:
-            t_rebose_s = None  # nivel no sube, no hay rebose
- 
-        # Tiempo hasta mínimo
-        if Q_neto_Ls < 0:
-            delta_h_minimo   = h_actual - altura_minima
-            t_minimo_s       = (area_equiv * delta_h_minimo) / abs(Q_neto_m3s) if Q_neto_m3s != 0 else None
+            st.info("El tanque ya está en el rebose o por encima de ese nivel.")
+
+    elif estado == "Vaciando":
+        if tiempo_hasta_minimo_h is not None:
+            st.warning(
+                f"Tiempo estimado para llegar al mínimo operativo ({altura_minima:.2f} m): "
+                f"{tiempo_hasta_minimo_h:.2f} horas ({tiempo_hasta_minimo_h * 60:.0f} min)"
+            )
+            st.info(f"Hora estimada de llegada al mínimo: {hora_llegada_minimo}")
         else:
-            t_minimo_s = None  # nivel no baja, no hay vaciado
- 
-        def fmt_tiempo(seg):
-            if seg is None or seg < 0:
-                return None
-            h  = int(seg // 3600)
-            m  = int((seg % 3600) // 60)
-            s  = int(seg % 60)
-            partes = []
-            if h > 0:
-                partes.append(f"{h} h")
-            if m > 0 or h > 0:
-                partes.append(f"{m} min")
-            partes.append(f"{s} s")
-            return " ".join(partes)
- 
-        t1, t2 = st.columns(2)
- 
-        with t1:
-            if t_rebose_s is not None and t_rebose_s >= 0:
-                t_txt = fmt_tiempo(t_rebose_s)
-                t_min = t_rebose_s / 60
-                color_rebose = "#e63946" if t_min < 60 else ("#f4a261" if t_min < 180 else "#2a9d8f")
-                st.markdown(f"""
-                <div style="background:linear-gradient(135deg,#fff5f5,#ffe8e8);
-                     border-left:5px solid {color_rebose};border-radius:14px;
-                     padding:1rem 1.2rem;margin-bottom:0.6rem">
-                    <div style="font-size:0.72rem;font-weight:700;color:#888;
-                         text-transform:uppercase;margin-bottom:4px">
-                        Tiempo hasta rebose ({altura_rebose:.2f} m)
-                    </div>
-                    <div style="font-size:1.4rem;font-weight:800;color:{color_rebose}">{t_txt}</div>
-                    <div style="font-size:0.8rem;color:#888;margin-top:3px">
-                        Nivel actual: {h_actual:.2f} m → {altura_rebose:.2f} m
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
-                     border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
-                    <div style="font-size:0.72rem;font-weight:700;color:#888;
-                         text-transform:uppercase;margin-bottom:4px">Tiempo hasta rebose</div>
-                    <div style="font-size:1rem;color:#5a7899">No aplica — el nivel está bajando o estable</div>
-                </div>
-                """, unsafe_allow_html=True)
- 
-        with t2:
-            if t_minimo_s is not None and t_minimo_s >= 0:
-                t_txt = fmt_tiempo(t_minimo_s)
-                t_min = t_minimo_s / 60
-                color_min = "#e63946" if t_min < 60 else ("#f4a261" if t_min < 180 else "#2a9d8f")
-                st.markdown(f"""
-                <div style="background:linear-gradient(135deg,#fff8f0,#ffedd8);
-                     border-left:5px solid {color_min};border-radius:14px;
-                     padding:1rem 1.2rem;margin-bottom:0.6rem">
-                    <div style="font-size:0.72rem;font-weight:700;color:#888;
-                         text-transform:uppercase;margin-bottom:4px">
-                        Tiempo hasta mínimo ({altura_minima:.2f} m)
-                    </div>
-                    <div style="font-size:1.4rem;font-weight:800;color:{color_min}">{t_txt}</div>
-                    <div style="font-size:0.8rem;color:#888;margin-top:3px">
-                        Nivel actual: {h_actual:.2f} m → {altura_minima:.2f} m
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
-                     border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
-                    <div style="font-size:0.72rem;font-weight:700;color:#888;
-                         text-transform:uppercase;margin-bottom:4px">Tiempo hasta mínimo</div>
-                    <div style="font-size:1rem;color:#5a7899">No aplica — el nivel está subiendo o estable</div>
-                </div>
-                """, unsafe_allow_html=True)
- 
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
-        # ── Gráfica de proyección ─────────────────────────────────────────────
-        st.markdown("<div class='titulo-seccion-resultado'>📈 Proyección del nivel</div>", unsafe_allow_html=True)
- 
-        # Proyectar 6 horas hacia adelante en pasos de 10 min
-        pasos_min = list(range(0, 361, 10))
-        niveles_proj = []
-        for p in pasos_min:
-            h_proj = h_actual + Q_neto_m3s * (p * 60) / area_equiv
-            h_proj = max(0.0, h_proj)
-            niveles_proj.append(round(h_proj, 4))
- 
-        fig_tanq = go.Figure()
- 
-        # Banda rebose
-        fig_tanq.add_hrect(
-            y0=altura_rebose, y1=max(altura_rebose * 1.05, altura_rebose + 0.1),
-            fillcolor="rgba(230,57,70,0.10)", line_width=0,
-            annotation_text="Rebose", annotation_position="right"
-        )
-        # Banda mínimo
-        fig_tanq.add_hrect(
-            y0=0, y1=altura_minima,
-            fillcolor="rgba(244,162,97,0.10)", line_width=0,
-            annotation_text="Mínimo", annotation_position="right"
-        )
-        # Línea de rebose
-        fig_tanq.add_hline(y=altura_rebose, line_dash="dash", line_color="#e63946",
-                           line_width=1.5, annotation_text=f"Rebose {altura_rebose:.2f} m")
-        # Línea mínima
-        fig_tanq.add_hline(y=altura_minima, line_dash="dash", line_color="#f4a261",
-                           line_width=1.5, annotation_text=f"Mínimo {altura_minima:.2f} m")
- 
-        # Proyección
-        fig_tanq.add_trace(go.Scatter(
-            x=pasos_min, y=niveles_proj,
-            mode="lines",
-            name="Nivel proyectado",
-            line=dict(color="#1a6fff", width=2.5, shape="spline"),
-            fill="tozeroy", fillcolor="rgba(26,111,255,0.06)"
-        ))
-        # Punto actual
-        fig_tanq.add_trace(go.Scatter(
-            x=[0], y=[h_actual],
-            mode="markers", name="Nivel actual",
-            marker=dict(size=12, color="#00e5c0", line=dict(color="#0a1628", width=2), symbol="circle")
-        ))
- 
-        fig_tanq.update_layout(
-            title="Proyección del nivel — próximas 6 horas",
-            plot_bgcolor="white", paper_bgcolor="white",
-            font=dict(family="Inter", color="#0a1628", size=12),
-            xaxis=dict(title="Tiempo (min)", gridcolor="#e8f0fe", linecolor="#dce9f7"),
-            yaxis=dict(title="Altura (m)", gridcolor="#e8f0fe", linecolor="#dce9f7",
-                       range=[0, max(altura_rebose * 1.08, max(niveles_proj) * 1.08)]),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=20, r=60, t=50, b=20), height=360
-        )
-        st.plotly_chart(fig_tanq, use_container_width=True)
- 
-        # ── Resumen texto ─────────────────────────────────────────────────────
-        signo_neto = "+" if Q_neto_Ls >= 0 else ""
-        st.markdown(f"""
-        <div class="caja-rango">
-            <b>Resumen del balance</b><br>
-            Área equivalente: {area_equiv:.2f} m² ·
-            Δh = {delta_h:+.4f} m en {delta_t_min:.0f} min ·
-            Q neto = {signo_neto}{Q_neto_Ls:.2f} L/s<br>
-            Q entrada estimado = <b>{Q_entrada_Ls:.2f} L/s ({Q_entrada_m3h:.1f} m³/h)</b> ·
-            Q salida = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)
-        </div>
-        """, unsafe_allow_html=True)
- 
-        st.markdown("""
-        <div class="caja-rango" style="border-left-color:#00c8ff">
-            <b>Fórmulas aplicadas</b><br>
-            <span style="color:#3a5270">
-            Área equiv. (m²) = Volumen total (m³) ÷ Altura lleno (m)<br>
-            Q neto (m³/s) = Área × Δh ÷ Δt &nbsp;|&nbsp; Q entrada = Q salida + Q neto<br>
-            t rebose (s) = Área × (h_rebose − h_actual) ÷ Q_neto &nbsp;(solo si Q_neto &gt; 0)<br>
-            t mínimo (s) = Área × (h_actual − h_min) ÷ |Q_neto| &nbsp;(solo si Q_neto &lt; 0)
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
- 
+            st.info("El tanque ya está en el mínimo operativo o por debajo de ese nivel.")
+
+    else:
+        st.info("El nivel está estable; no se detecta llenado ni vaciado neto.")
+
+    st.subheader("Resumen técnico")
+
+    resumen_df = pd.DataFrame({
+        "Concepto": [
+            "Volumen tanque lleno (m³)",
+            "Altura rebose (m)",
+            "Altura mínima (m)",
+            "Altura anterior (m)",
+            "Altura actual (m)",
+            "Hora anterior",
+            "Hora actual",
+            "Tiempo entre lecturas (min)",
+            "Caudal salida (L/s)",
+            "Caudal salida (m³/h)",
+            "Área equivalente (m²)",
+            "Cambio de altura (m)",
+            "Caudal neto (m³/h)",
+            "Caudal entrada (m³/h)",
+            "Caudal entrada (L/s)",
+        ],
+        "Valor": [
+            volumen_tanque,
+            altura_rebose,
+            altura_minima,
+            altura_anterior,
+            altura_actual,
+            hora_anterior_ok,
+            hora_actual_ok,
+            tiempo_min,
+            salidas_ls,
+            q_salida_m3h,
+            area_equivalente,
+            delta_h,
+            q_neto_m3h,
+            q_entrada_m3h,
+            q_entrada_ls,
+        ]
+    })
+
+    st.dataframe(use_container_width=True, data=resumen_df)
+
+    st.markdown("""
+    <div class="caja-rango" style="border-left-color:#00c8ff">
+        <b>Fórmulas usadas</b><br>
+        Área equivalente = Volumen tanque lleno / Altura de rebose<br>
+        Tiempo entre lecturas = Hora actual - Hora anterior<br>
+        Si Hora actual &lt; Hora anterior, se asume cruce de medianoche<br>
+        Caudal neto = Área × (Δh / Δt)<br>
+        Caudal de entrada = Caudal de salida + Caudal neto<br>
+        Tiempo a rebose = Área × (h_rebose - h_actual) / Q_neto &nbsp;&nbsp;(si Q_neto &gt; 0)<br>
+        Tiempo a mínimo = Área × (h_actual - h_mínima) / |Q_neto| &nbsp;&nbsp;(si Q_neto &lt; 0)
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("</div>", unsafe_allow_html=True)
- 
  
 # =========================================
 # FLUJO DE ACCESO
@@ -1215,7 +1186,7 @@ st.markdown(f"""
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
  
 with st.expander("🧭 Menú principal", expanded=False):
-    m1, m2, m3, m4 = st.columns([1, 1, 1, 0.75])
+    m1, m2, m3, m4 = st.columns([1.1, 1.1, 1.1, 0.85])
  
     with m1:
         st.markdown("""
@@ -1497,7 +1468,7 @@ with col_result:
         ))
         fig.update_layout(
             title=dict(text="Caudal PAC vs Turbiedad - Registros similares",
-                       font=dict(family="Syne", size=14, color="#0a1628")),
+                       font=dict(family="Inter", size=14, color="#0a1628")),
             plot_bgcolor="white", paper_bgcolor="white",
             font=dict(family="DM Sans", color="#0a1628", size=12),
             xaxis=dict(title="Caudal PAC (mL/min)", gridcolor="#e8f0fe", linecolor="#dce9f7"),
