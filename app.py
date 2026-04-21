@@ -667,251 +667,344 @@ def generar_tanque_svg(
     hora_actual_str,
     hora_rebose_str,
     hora_minimo_str,
-    tendencia,
+    tendencia,           # "subiendo" | "bajando" | "estable"
     Q_neto_Ls,
 ):
-    pct_actual = max(0.0, min(1.0, h_actual / h_lleno)) * 100
-    pct_rebose = max(0.0, min(1.0, h_rebose / h_lleno)) * 100
-    pct_minima = max(0.0, min(1.0, h_minima / h_lleno)) * 100
-
-    TK_X, TK_Y, TK_W, TK_H = 70, 40, 170, 270
-    TK_BOTTOM = TK_Y + TK_H
-
+    """
+    Devuelve el HTML completo con el tanque SVG animado y la leyenda lateral.
+    El nivel de agua dentro del tanque se anima en CSS.
+    """
+ 
+    # Porcentajes sobre la altura total del tanque (0–100%)
+    pct_actual  = max(0.0, min(1.0, h_actual  / h_lleno)) * 100
+    pct_rebose  = max(0.0, min(1.0, h_rebose  / h_lleno)) * 100
+    pct_minima  = max(0.0, min(1.0, h_minima  / h_lleno)) * 100
+ 
+    # Coordenadas SVG del cuerpo del tanque
+    # Tanque: x=60, y=30, ancho=200, alto=320 (parte cilíndrica)
+    TK_X, TK_Y, TK_W, TK_H = 60, 40, 200, 300
+    TK_BOTTOM = TK_Y + TK_H  # y inferior
+ 
+    # y del nivel de agua actual (SVG: y crece hacia abajo)
     y_agua = TK_BOTTOM - (pct_actual / 100) * TK_H
     y_rebose = TK_BOTTOM - (pct_rebose / 100) * TK_H
     y_minima = TK_BOTTOM - (pct_minima / 100) * TK_H
-
+ 
+    # Color del agua según nivel
     if pct_actual > 85:
         agua_color1, agua_color2 = "#e63946", "#ff6b7a"
+        agua_wave   = "rgba(230,57,70,0.4)"
         estado_color = "#e63946"
         estado_texto = "⚠️ NIVEL ALTO"
     elif pct_actual < 20:
         agua_color1, agua_color2 = "#f4a261", "#ffd166"
+        agua_wave   = "rgba(244,162,97,0.4)"
         estado_color = "#f4a261"
         estado_texto = "⚠️ NIVEL BAJO"
     else:
         agua_color1, agua_color2 = "#1a6fff", "#00c8ff"
+        agua_wave   = "rgba(26,111,255,0.3)"
         estado_color = "#2a9d8f"
         estado_texto = "✅ NIVEL NORMAL"
-
+ 
+    # Animación: si sube la ola se desplaza hacia arriba (transform), si baja hacia abajo
     anim_dir = "subiendo" if tendencia == "subiendo" else ("bajando" if tendencia == "bajando" else "estable")
+ 
     flecha_icono = "🔼" if tendencia == "subiendo" else ("🔽" if tendencia == "bajando" else "➡️")
     signo_neto = "+" if Q_neto_Ls >= 0 else ""
-
-    txt_rebose = hora_rebose_str if hora_rebose_str else "No aplica"
-    txt_minimo = hora_minimo_str if hora_minimo_str else "No aplica"
-
-    return f"""
-    <style>
-      .tanque-card {{
-        background: linear-gradient(160deg, #f0f8ff 0%, #e4f1fc 100%);
-        border: 1.5px solid #c5ddf0;
-        border-radius: 20px;
-        padding: 1rem;
-        width: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-      }}
-      .tanque-layout {{
-        display: grid;
-        grid-template-columns: minmax(260px, 380px) minmax(220px, 1fr);
-        gap: 1rem;
-        align-items: start;
-      }}
-      .tanque-svg-wrap {{
-        width: 100%;
-      }}
-      .tanque-svg-wrap svg {{
-        width: 100%;
-        height: auto;
-        display: block;
-      }}
-      .tanque-info {{
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
-      }}
-      .info-badge {{
-        background: white;
-        border: 1px solid #dce9f7;
-        border-radius: 14px;
-        padding: 0.75rem 0.9rem;
-        font-size: 0.82rem;
-        color: #0a1628;
-        box-shadow: 0 2px 8px rgba(10,22,40,0.06);
-      }}
-      .ib-label {{
-        font-size: 0.68rem;
-        font-weight: 700;
-        color: #5a7899;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: block;
-        margin-bottom: 2px;
-      }}
-      .ib-valor {{
-        font-size: 1rem;
-        font-weight: 800;
-        color: #0d2347;
-      }}
-      .ib-sub {{
-        font-size: 0.72rem;
-        color: #8aabca;
-        margin-top: 2px;
-      }}
-      .estado-pill {{
-        display: inline-block;
-        background: {estado_color}22;
-        border: 1.5px solid {estado_color};
-        color: {estado_color};
-        font-weight: 800;
-        font-size: 0.78rem;
-        padding: 0.3rem 0.9rem;
-        border-radius: 999px;
-        margin-bottom: 0.8rem;
-      }}
-
-      @keyframes wave-move {{
-        0%   {{ transform: translateX(0); }}
-        100% {{ transform: translateX(-50%); }}
-      }}
-      @keyframes nivel-subir {{
-        0%  {{ transform: translateY(4px); }}
-        50% {{ transform: translateY(-4px); }}
-        100%{{ transform: translateY(4px); }}
-      }}
-      @keyframes nivel-bajar {{
-        0%  {{ transform: translateY(-4px); }}
-        50% {{ transform: translateY(4px); }}
-        100%{{ transform: translateY(-4px); }}
-      }}
-      @keyframes nivel-estable {{
-        0%  {{ transform: translateY(0px); }}
-        50% {{ transform: translateY(1px); }}
-        100%{{ transform: translateY(0px); }}
-      }}
-
-      .nivel-anim-subiendo  {{ animation: nivel-subir 3s ease-in-out infinite; }}
-      .nivel-anim-bajando   {{ animation: nivel-bajar 3s ease-in-out infinite; }}
-      .nivel-anim-estable   {{ animation: nivel-estable 4s ease-in-out infinite; }}
-
-      @media (max-width: 900px) {{
-        .tanque-layout {{
-          grid-template-columns: 1fr;
-        }}
-      }}
-    </style>
-
-    <div class="tanque-card">
-      <div style="font-size:0.85rem;font-weight:800;color:#0b4f6c;margin-bottom:0.35rem;">
-        🏗️ Estado del Tanque — {hora_actual_str}
-      </div>
-
-      <div class="estado-pill">{estado_texto}</div>
-
-      <div class="tanque-layout">
-        <div class="tanque-svg-wrap">
-          <svg viewBox="0 0 320 390" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="gradAgua" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="{agua_color2}" stop-opacity="0.95"/>
-                <stop offset="100%" stop-color="{agua_color1}" stop-opacity="1"/>
-              </linearGradient>
-              <linearGradient id="gradTanque" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#d0e8f5"/>
-                <stop offset="30%" stop-color="#eaf4fc"/>
-                <stop offset="70%" stop-color="#eaf4fc"/>
-                <stop offset="100%" stop-color="#b8d4e8"/>
-              </linearGradient>
-              <clipPath id="clipTanque">
-                <rect x="{TK_X+3}" y="{TK_Y}" width="{TK_W-6}" height="{TK_H}"/>
-              </clipPath>
-            </defs>
-
-            <rect x="{TK_X+6}" y="{TK_Y+6}" width="{TK_W}" height="{TK_H+20}"
-                  rx="12" ry="12" fill="rgba(10,30,60,0.10)"/>
-
-            <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H+20}"
-                  rx="12" ry="12" fill="url(#gradTanque)"
-                  stroke="#8ab4cc" stroke-width="2.5"/>
-
-            <g clip-path="url(#clipTanque)" class="nivel-anim-{anim_dir}">
-              <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
-                    height="{TK_BOTTOM - y_agua:.1f}"
-                    fill="url(#gradAgua)" opacity="0.92"/>
-
-              <g style="animation: wave-move 2.8s linear infinite;">
-                <path d="
-                  M {TK_X+3},{y_agua:.1f}
-                  Q {TK_X+40},{y_agua - 6:.1f} {TK_X+80},{y_agua:.1f}
-                  Q {TK_X+120},{y_agua + 6:.1f} {TK_X+160},{y_agua:.1f}
-                  Q {TK_X+200},{y_agua - 6:.1f} {TK_X+240},{y_agua:.1f}
-                  L {TK_X+240},{TK_BOTTOM}
-                  L {TK_X+3},{TK_BOTTOM} Z"
-                  fill="{agua_color2}" opacity="0.50"/>
-              </g>
-            </g>
-
-            <line x1="{TK_X - 10}" y1="{y_rebose:.1f}" x2="{TK_X + TK_W + 10}" y2="{y_rebose:.1f}"
-                  stroke="#e63946" stroke-width="1.8" stroke-dasharray="6,4"/>
-            <text x="{TK_X + TK_W + 14}" y="{y_rebose + 4:.1f}" font-size="9" fill="#e63946" font-weight="700">
-              REBOSE
-            </text>
-
-            <line x1="{TK_X - 10}" y1="{y_minima:.1f}" x2="{TK_X + TK_W + 10}" y2="{y_minima:.1f}"
-                  stroke="#f4a261" stroke-width="1.8" stroke-dasharray="6,4"/>
-            <text x="{TK_X + TK_W + 14}" y="{y_minima + 4:.1f}" font-size="9" fill="#f4a261" font-weight="700">
-              MÍNIMO
-            </text>
-
-            <rect x="{TK_X + 50}" y="{y_agua - 28:.1f}" width="74" height="22" rx="11"
-                  fill="{agua_color1}" opacity="0.92"/>
-            <text x="{TK_X + 87}" y="{y_agua - 13:.1f}" text-anchor="middle"
-                  font-size="10" fill="white" font-weight="800">
-              {h_actual:.3f} m
-            </text>
-
-            <text x="{TK_X + TK_W/2:.0f}" y="{TK_BOTTOM + 52}" text-anchor="middle"
-                  font-size="13" fill="{estado_color}" font-weight="700">
-              {"▲ Subiendo" if tendencia == "subiendo" else ("▼ Bajando" if tendencia == "bajando" else "→ Estable")}
-            </text>
-          </svg>
-        </div>
-
-        <div class="tanque-info">
-          <div class="info-badge">
-            <span class="ib-label">Hora actual</span>
-            <div class="ib-valor">{hora_actual_str}</div>
-            <div class="ib-sub">Lectura más reciente</div>
-          </div>
-
-          <div class="info-badge">
-            <span class="ib-label">Nivel actual</span>
-            <div class="ib-valor">{h_actual:.3f} m</div>
-            <div class="ib-sub">{pct_actual:.1f}% del nivel lleno</div>
-          </div>
-
-          <div class="info-badge">
-            <span class="ib-label">Caudal neto</span>
-            <div class="ib-valor">{signo_neto}{Q_neto_Ls:.2f} L/s</div>
-            <div class="ib-sub">{flecha_icono} tendencia del nivel</div>
-          </div>
-
-          <div class="info-badge" style="border-left:4px solid #e63946;">
-            <span class="ib-label">Hora estimada de rebose</span>
-            <div class="ib-valor" style="color:#e63946;">{txt_rebose}</div>
-            <div class="ib-sub">Límite: {h_rebose:.2f} m</div>
-          </div>
-
-          <div class="info-badge" style="border-left:4px solid #f4a261;">
-            <span class="ib-label">Hora estimada de mínimo</span>
-            <div class="ib-valor" style="color:#f4a261;">{txt_minimo}</div>
-            <div class="ib-sub">Límite: {h_minima:.2f} m</div>
-          </div>
-        </div>
-      </div>
+ 
+    # Textos de proyección
+    txt_rebose = hora_rebose_str if hora_rebose_str else "—"
+    txt_minimo = hora_minimo_str if hora_minimo_str else "—"
+ 
+    html = f"""
+<style>
+  @keyframes wave-move {{
+    0%   {{ transform: translateX(0); }}
+    100% {{ transform: translateX(-50%); }}
+  }}
+  @keyframes nivel-subir {{
+    0%  {{ transform: translateY(4px); }}
+    50% {{ transform: translateY(-4px); }}
+    100%{{ transform: translateY(4px); }}
+  }}
+  @keyframes nivel-bajar {{
+    0%  {{ transform: translateY(-4px); }}
+    50% {{ transform: translateY(4px); }}
+    100%{{ transform: translateY(-4px); }}
+  }}
+  @keyframes nivel-estable {{
+    0%  {{ transform: translateY(0px); }}
+    50% {{ transform: translateY(1px); }}
+    100%{{ transform: translateY(0px); }}
+  }}
+  @keyframes burbuja {{
+    0%   {{ cy: 330px; opacity: 0.7; r: 3px; }}
+    100% {{ cy: 60px;  opacity: 0;   r: 1px; }}
+  }}
+  .nivel-anim-subiendo  {{ animation: nivel-subir   3s ease-in-out infinite; }}
+  .nivel-anim-bajando   {{ animation: nivel-bajar    3s ease-in-out infinite; }}
+  .nivel-anim-estable   {{ animation: nivel-estable  4s ease-in-out infinite; }}
+ 
+  .tanque-card {{
+    background: linear-gradient(160deg, #f0f8ff 0%, #e4f1fc 100%);
+    border: 1.5px solid #c5ddf0;
+    border-radius: 20px;
+    padding: 1.2rem 1rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 8px 32px rgba(10,30,60,0.10);
+    font-family: 'Inter', sans-serif;
+  }}
+  .tanque-titulo {{
+    font-size: 0.85rem; font-weight: 800; color: #0b4f6c;
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem;
+  }}
+  .tanque-layout {{
+    display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;
+    justify-content: center; flex-wrap: wrap;
+  }}
+  .tanque-svg-wrap {{
+    position: relative;
+    flex-shrink: 0;
+  }}
+  .tanque-info {{
+    display: flex; flex-direction: column; gap: 0.7rem; min-width: 200px;
+  }}
+  .info-badge {{
+    background: white;
+    border: 1px solid #dce9f7;
+    border-radius: 14px;
+    padding: 0.7rem 1rem;
+    font-size: 0.82rem;
+    color: #0a1628;
+    box-shadow: 0 2px 8px rgba(10,22,40,0.06);
+  }}
+  .info-badge .ib-label {{
+    font-size: 0.68rem; font-weight: 700; color: #5a7899;
+    text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;
+  }}
+  .info-badge .ib-valor {{
+    font-size: 1.05rem; font-weight: 800; color: #0d2347;
+  }}
+  .info-badge .ib-sub {{
+    font-size: 0.72rem; color: #8aabca; margin-top: 1px;
+  }}
+  .estado-pill {{
+    display: inline-block;
+    background: {estado_color}22;
+    border: 1.5px solid {estado_color};
+    color: {estado_color};
+    font-weight: 800; font-size: 0.78rem;
+    padding: 0.3rem 0.9rem; border-radius: 999px;
+    text-align: center; letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+  }}
+</style>
+ 
+<div class="tanque-card">
+  <div class="tanque-titulo">🏗️ Estado del Tanque — {hora_actual_str}</div>
+  <div class="estado-pill">{estado_texto}</div>
+ 
+  <div class="tanque-layout">
+ 
+    <!-- SVG TANQUE -->
+    <div class="tanque-svg-wrap">
+      <svg width="320" height="400" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Gradiente agua -->
+          <linearGradient id="gradAgua" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="{agua_color2}" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="{agua_color1}" stop-opacity="1"/>
+          </linearGradient>
+          <!-- Gradiente cuerpo tanque -->
+          <linearGradient id="gradTanque" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#d0e8f5"/>
+            <stop offset="30%"  stop-color="#eaf4fc"/>
+            <stop offset="70%"  stop-color="#eaf4fc"/>
+            <stop offset="100%" stop-color="#b8d4e8"/>
+          </linearGradient>
+          <!-- Sombra reflejo interior -->
+          <linearGradient id="gradReflejo" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0)" />
+            <stop offset="20%"  stop-color="rgba(255,255,255,0.35)" />
+            <stop offset="40%"  stop-color="rgba(255,255,255,0)" />
+          </linearGradient>
+          <!-- Clip para el agua dentro del tanque -->
+          <clipPath id="clipTanque">
+            <rect x="{TK_X+3}" y="{TK_Y}" width="{TK_W-6}" height="{TK_H}"/>
+          </clipPath>
+          <!-- Filtro sombra suave -->
+          <filter id="sombra" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="3" dy="6" stdDeviation="6" flood-color="#0a1628" flood-opacity="0.18"/>
+          </filter>
+        </defs>
+ 
+        <!-- ── CUERPO TANQUE ── -->
+        <!-- Sombra externa -->
+        <rect x="{TK_X+6}" y="{TK_Y+6}" width="{TK_W}" height="{TK_H+20}"
+              rx="12" ry="12" fill="rgba(10,30,60,0.12)"/>
+ 
+        <!-- Pared exterior -->
+        <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H+20}"
+              rx="12" ry="12" fill="url(#gradTanque)"
+              stroke="#8ab4cc" stroke-width="2.5" filter="url(#sombra)"/>
+ 
+        <!-- ── AGUA (con clip) ── -->
+        <g clip-path="url(#clipTanque)" class="nivel-anim-{anim_dir}">
+          <!-- Bloque sólido de agua -->
+          <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
+                height="{TK_BOTTOM - y_agua:.1f}"
+                fill="url(#gradAgua)" opacity="0.92"/>
+ 
+          <!-- Ola animada superior -->
+          <g style="animation: wave-move 2.8s linear infinite;">
+            <path d="
+              M {TK_X+3},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*0.125},{y_agua - 7:.1f}
+                {TK_X+3 + (TK_W-6)*0.25},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*0.375},{y_agua + 7:.1f}
+                {TK_X+3 + (TK_W-6)*0.5},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*0.625},{y_agua - 7:.1f}
+                {TK_X+3 + (TK_W-6)*0.75},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*0.875},{y_agua + 7:.1f}
+                {TK_X+3 + (TK_W-6)*1.0},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*1.125},{y_agua - 7:.1f}
+                {TK_X+3 + (TK_W-6)*1.25},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*1.375},{y_agua + 7:.1f}
+                {TK_X+3 + (TK_W-6)*1.5},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*1.625},{y_agua - 7:.1f}
+                {TK_X+3 + (TK_W-6)*1.75},{y_agua:.1f}
+              Q {TK_X+3 + (TK_W-6)*1.875},{y_agua + 7:.1f}
+                {TK_X+3 + (TK_W-6)*2.0},{y_agua:.1f}
+              L {TK_X+3 + (TK_W-6)*2.0},{TK_BOTTOM}
+              L {TK_X+3},{TK_BOTTOM} Z"
+              fill="{agua_color2}" opacity="0.55"/>
+          </g>
+ 
+          <!-- Reflejo brillante -->
+          <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
+                height="{TK_BOTTOM - y_agua:.1f}"
+                fill="url(#gradReflejo)" opacity="0.6"/>
+ 
+          <!-- Burbujas (si está subiendo o estable) -->
+          {"" if tendencia == "bajando" else f'''
+          <circle cx="{TK_X + TK_W*0.3:.0f}" cy="{TK_BOTTOM - 20}" r="3"
+                  fill="rgba(255,255,255,0.6)"
+                  style="animation: burbuja 3.5s ease-in infinite 0s;"/>
+          <circle cx="{TK_X + TK_W*0.6:.0f}" cy="{TK_BOTTOM - 10}" r="2"
+                  fill="rgba(255,255,255,0.5)"
+                  style="animation: burbuja 4.2s ease-in infinite 1s;"/>
+          <circle cx="{TK_X + TK_W*0.45:.0f}" cy="{TK_BOTTOM - 30}" r="2.5"
+                  fill="rgba(255,255,255,0.55)"
+                  style="animation: burbuja 5s ease-in infinite 2s;"/>
+          '''}
+        </g>
+ 
+        <!-- ── LÍNEAS DE REFERENCIA ── -->
+        <!-- Línea rebose -->
+        <line x1="{TK_X - 15}" y1="{y_rebose:.1f}" x2="{TK_X + TK_W + 15}" y2="{y_rebose:.1f}"
+              stroke="#e63946" stroke-width="1.8" stroke-dasharray="6,4" opacity="0.9"/>
+        <text x="{TK_X + TK_W + 18}" y="{y_rebose + 4:.1f}"
+              font-size="9" font-family="Inter,sans-serif" fill="#e63946" font-weight="700">
+          REBOSE {h_rebose:.2f}m
+        </text>
+ 
+        <!-- Línea mínima -->
+        <line x1="{TK_X - 15}" y1="{y_minima:.1f}" x2="{TK_X + TK_W + 15}" y2="{y_minima:.1f}"
+              stroke="#f4a261" stroke-width="1.8" stroke-dasharray="6,4" opacity="0.9"/>
+        <text x="{TK_X + TK_W + 18}" y="{y_minima + 4:.1f}"
+              font-size="9" font-family="Inter,sans-serif" fill="#f4a261" font-weight="700">
+          MÍN {h_minima:.2f}m
+        </text>
+ 
+        <!-- Etiqueta nivel actual flotante -->
+        <rect x="{TK_X + TK_W//2 - 36:.0f}" y="{y_agua - 28:.1f}" width="72" height="22"
+              rx="11" fill="{agua_color1}" opacity="0.92"/>
+        <text x="{TK_X + TK_W//2:.0f}" y="{y_agua - 13:.1f}"
+              text-anchor="middle" font-size="10" font-family="Inter,sans-serif"
+              fill="white" font-weight="800">
+          {h_actual:.3f} m
+        </text>
+ 
+        <!-- ── TAPA SUPERIOR ── -->
+        <rect x="{TK_X - 8}" y="{TK_Y - 10}" width="{TK_W + 16}" height="14"
+              rx="7" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+        <!-- Tornillos tapa -->
+        <circle cx="{TK_X - 2}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
+        <circle cx="{TK_X + TK_W + 2}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
+        <circle cx="{TK_X + TK_W//2:.0f}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
+ 
+        <!-- ── BASE / PIE ── -->
+        <rect x="{TK_X - 12}" y="{TK_BOTTOM + 20}" width="{TK_W + 24}" height="14"
+              rx="7" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+        <!-- Patas -->
+        <rect x="{TK_X + 10}" y="{TK_BOTTOM + 34}" width="14" height="28" rx="4"
+              fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
+        <rect x="{TK_X + TK_W - 24}" y="{TK_BOTTOM + 34}" width="14" height="28" rx="4"
+              fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
+ 
+        <!-- ── ESCALA LATERAL IZQUIERDA ── -->
+        <line x1="{TK_X - 25}" y1="{TK_Y}" x2="{TK_X - 25}" y2="{TK_BOTTOM}"
+              stroke="#b8d0e4" stroke-width="1.5"/>
+        <!-- Marcas de escala cada 25% -->
+        {"".join([
+            f'<line x1="{TK_X-30}" y1="{TK_Y + i*TK_H//4}" x2="{TK_X-20}" y2="{TK_Y + i*TK_H//4}" stroke="#8ab0c8" stroke-width="1.2"/>'
+            f'<text x="{TK_X-34}" y="{TK_Y + i*TK_H//4 + 4}" text-anchor="end" font-size="8" font-family="Inter,sans-serif" fill="#5a7899">'
+            f'{h_lleno * (1 - i/4):.1f}</text>'
+            for i in range(5)
+        ])}
+ 
+        <!-- ── FLECHA TENDENCIA ── -->
+        <text x="{TK_X + TK_W//2:.0f}" y="{TK_BOTTOM + 18}" text-anchor="middle"
+              font-size="13" font-family="Inter,sans-serif" fill="{estado_color}" font-weight="700">
+          {"▲ Subiendo" if tendencia == "subiendo" else ("▼ Bajando" if tendencia == "bajando" else "→ Estable")}
+        </text>
+ 
+      </svg>
     </div>
-    """
+ 
+    <!-- ── PANEL INFO ── -->
+    <div class="tanque-info">
+ 
+      <div class="info-badge">
+        <span class="ib-label">Hora actual</span>
+        <span class="ib-valor">{hora_actual_str}</span>
+        <div class="ib-sub">Lectura más reciente</div>
+      </div>
+ 
+      <div class="info-badge">
+        <span class="ib-label">Nivel actual</span>
+        <span class="ib-valor" style="color:{estado_color}">{h_actual:.3f} m</span>
+        <div class="ib-sub">{pct_actual:.1f}% del volumen lleno</div>
+      </div>
+ 
+      <div class="info-badge">
+        <span class="ib-label">Caudal neto</span>
+        <span class="ib-valor">{signo_neto}{Q_neto_Ls:.2f} L/s</span>
+        <div class="ib-sub">{flecha_icono} {"nivel subiendo" if tendencia == "subiendo" else ("nivel bajando" if tendencia == "bajando" else "nivel estable")}</div>
+      </div>
+ 
+      <div class="info-badge" style="border-left: 4px solid #e63946;">
+        <span class="ib-label">⏱ Hora estimada de rebose</span>
+        <span class="ib-valor" style="color:#e63946">{txt_rebose}</span>
+        <div class="ib-sub">Límite: {h_rebose:.2f} m</div>
+      </div>
+ 
+      <div class="info-badge" style="border-left: 4px solid #f4a261;">
+        <span class="ib-label">⏱ Hora estimada de mínimo</span>
+        <span class="ib-valor" style="color:#f4a261">{txt_minimo}</span>
+        <div class="ib-sub">Límite: {h_minima:.2f} m</div>
+      </div>
+ 
+    </div>
+  </div>
+</div>
+"""
+    return html
+ 
+ 
 # =========================================
 # CALCULADORA DE CONSUMO PAC
 # =========================================
@@ -1158,21 +1251,21 @@ def mostrar_calculadora_pac():
 def mostrar_calculadora_tanque():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>🏗️ Calculadora de Tanque de Agua</div>", unsafe_allow_html=True)
-
+ 
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
-    Ingresa los datos del tanque y dos lecturas de nivel con su <b>hora exacta</b>.
+    Ingresa los datos del tanque y dos lecturas de nivel con su <b>hora exacta</b> (formato 24 h, ej. <code>08:30</code>).
     El sistema calculará el <b>caudal de entrada</b>, el <b>balance hídrico</b> y la
     <b>hora estimada</b> en que el tanque llegará al rebose o al mínimo operativo.
     </p>
     """, unsafe_allow_html=True)
-
-    col_iz, col_der = st.columns([0.95, 1.35], gap="medium")
-
+ 
+    col_iz, col_der = st.columns([1, 1.6], gap="large")
+ 
     with col_iz:
         st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-mini'>📐 Geometría del tanque</div>", unsafe_allow_html=True)
-
+ 
         volumen_total = st.number_input(
             "Volumen total del tanque (m³)",
             min_value=1.0, value=1350.0, step=10.0, format="%.2f",
@@ -1183,20 +1276,22 @@ def mostrar_calculadora_tanque():
             min_value=0.01, value=2.85, step=0.01, format="%.2f",
             key="tanq_altura_lleno"
         )
-
+ 
         area_equiv = volumen_total / altura_lleno if altura_lleno > 0 else 0.0
-
+ 
         st.markdown(f"""
         <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
-             padding:0.7rem 1rem;font-size:0.87rem;color:#0d2347;margin-top:0.5rem;">
-            <b>Área superficial equivalente:</b> {area_equiv:.4f} m²
+             padding:0.7rem 1.1rem;font-size:0.87rem;color:#0d2347;margin:0.6rem 0 0.9rem 0">
+            <span style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                  text-transform:uppercase;display:block;margin-bottom:3px">
+                Área superficial equivalente</span>
+            <b>{area_equiv:.4f} m²</b>
+            <span style="color:#5a7899;font-size:0.8rem"> = {volumen_total:.1f} m³ ÷ {altura_lleno:.2f} m</span>
         </div>
         """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
+ 
         st.markdown("<div class='titulo-mini'>⚙️ Límites operativos</div>", unsafe_allow_html=True)
-
+ 
         altura_rebose = st.number_input(
             "Altura límite de rebose (m)",
             min_value=0.01, value=2.85, step=0.01, format="%.2f",
@@ -1207,286 +1302,323 @@ def mostrar_calculadora_tanque():
             min_value=0.0, value=1.00, step=0.01, format="%.2f",
             key="tanq_altura_minima"
         )
+ 
         st.markdown("</div>", unsafe_allow_html=True)
-
+ 
+        # ── Lecturas con hora en vez de intervalo de minutos ──────────────
         st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-mini'>🕐 Lecturas de nivel</div>", unsafe_allow_html=True)
-
-        hora_antes_txt = st.text_input(
-            "Hora de la lectura anterior",
-            value="07:00",
-            key="tanq_hora_antes"
-        )
-        altura_antes = st.number_input(
-            "Altura en la lectura anterior (m)",
-            min_value=0.0, value=1.50, step=0.01, format="%.2f",
-            key="tanq_altura_antes"
-        )
-
-        hora_actual_txt = st.text_input(
-            "Hora de la lectura actual",
-            value="08:00",
-            key="tanq_hora_actual"
-        )
-        altura_actual = st.number_input(
-            "Altura en la lectura actual (m)",
-            min_value=0.0, value=1.70, step=0.01, format="%.2f",
-            key="tanq_altura_actual"
-        )
+        st.markdown("<div class='titulo-mini'>🕐 Lecturas de nivel (hora formato 24 h)</div>", unsafe_allow_html=True)
+ 
+        st.markdown("""
+        <p style="color:#5a7899;font-size:0.82rem;margin-bottom:0.7rem">
+        Ingresa la hora de cada lectura en formato <b>HH:MM</b> (ej. <code>07:00</code>, <code>14:30</code>).
+        Si la lectura actual es del día siguiente, el sistema lo maneja automáticamente.
+        </p>
+        """, unsafe_allow_html=True)
+ 
+        hora_antes_txt  = st.text_input("Hora de la lectura anterior",  value="07:00", key="tanq_hora_antes",
+                                         help="Formato 24 h — ej. 07:00 ó 14:30")
+        altura_antes    = st.number_input("Altura en la lectura anterior (m)",
+                                           min_value=0.0, value=1.50, step=0.01, format="%.2f",
+                                           key="tanq_altura_antes")
+ 
+        hora_actual_txt = st.text_input("Hora de la lectura actual",  value="08:00", key="tanq_hora_actual",
+                                         help="Formato 24 h — ej. 08:00 ó 15:00")
+        altura_actual   = st.number_input("Altura en la lectura actual (m)",
+                                           min_value=0.0, value=1.70, step=0.01, format="%.2f",
+                                           key="tanq_altura_actual")
+ 
         st.markdown("</div>", unsafe_allow_html=True)
-
+ 
         st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-mini'>🚰 Condición hidráulica</div>", unsafe_allow_html=True)
-
-        no_entra_agua = st.checkbox(
-            "No está entrando agua al tanque",
-            value=False,
-            key="tanq_no_entrada"
-        )
-
+        st.markdown("<div class='titulo-mini'>🚰 Caudal de salida</div>", unsafe_allow_html=True)
+ 
         caudal_salida_ls = st.number_input(
             "Caudal de salida (L/s)",
             min_value=0.0, value=30.0, step=0.5, format="%.2f",
             key="tanq_caudal_salida"
         )
-
         st.markdown("</div>", unsafe_allow_html=True)
-
+ 
     with col_der:
-        st.markdown("<div class='panel-derecho'>", unsafe_allow_html=True)
-        st.markdown("<div class='subtitulo-panel'>Resultado del análisis del tanque</div>", unsafe_allow_html=True)
-        st.markdown("<div class='texto-panel'>Resultado en tiempo real con horas estimadas y visualización del nivel.</div>", unsafe_allow_html=True)
-
+        st.markdown("<div class='subtitulo-panel'>Resultados del análisis</div>", unsafe_allow_html=True)
+        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+ 
+        # ── Validaciones ──────────────────────────────────────────────────
         errores = []
-
         if altura_lleno <= 0:
             errores.append("La altura del tanque lleno debe ser mayor que cero.")
         if altura_rebose > altura_lleno:
-            errores.append("La altura de rebose no puede ser mayor que la altura de lleno.")
+            errores.append("La altura de rebose no puede superar la altura cuando el tanque está lleno.")
         if altura_minima >= altura_rebose:
             errores.append("La altura mínima debe ser menor que la altura de rebose.")
-        if altura_actual > altura_lleno:
-            errores.append("La altura actual no puede ser mayor que la altura llena.")
-        if altura_antes > altura_lleno:
-            errores.append("La altura anterior no puede ser mayor que la altura llena.")
-
-        min_antes = parse_hora(hora_antes_txt)
+ 
+        # Parsear horas
+        min_antes  = parse_hora(hora_antes_txt)
         min_actual = parse_hora(hora_actual_txt)
-
+ 
         if min_antes is None:
-            errores.append("La hora anterior es inválida. Usa formato HH:MM.")
+            errores.append(f"Hora anterior inválida: '{hora_antes_txt}'. Usa formato HH:MM (ej. 07:00).")
         if min_actual is None:
-            errores.append("La hora actual es inválida. Usa formato HH:MM.")
-
+            errores.append(f"Hora actual inválida: '{hora_actual_txt}'. Usa formato HH:MM (ej. 08:30).")
+ 
         if errores:
-            for err in errores:
-                st.error(err)
-            st.markdown("</div>", unsafe_allow_html=True)
+            for e in errores:
+                st.error(e)
             st.markdown("</div>", unsafe_allow_html=True)
             return
-
+ 
+        # Calcular delta_t en minutos (si la hora actual < hora anterior → cruce de medianoche)
         if min_actual >= min_antes:
             delta_t_min = min_actual - min_antes
         else:
             delta_t_min = (1440 - min_antes) + min_actual
-
+ 
         if delta_t_min == 0:
-            st.error("Las horas no pueden ser iguales.")
-            st.markdown("</div>", unsafe_allow_html=True)
+            st.error("Las dos horas son iguales. Ingresa horas distintas.")
             st.markdown("</div>", unsafe_allow_html=True)
             return
-
-        hora_antes_str = minutos_a_hora_str(min_antes)
+ 
+        hora_antes_str  = minutos_a_hora_str(min_antes)
         hora_actual_str = minutos_a_hora_str(min_actual)
-
-        delta_t_s = delta_t_min * 60
-        delta_h = altura_actual - altura_antes
-
-        # Caso normal: se estima con lecturas
-        Q_neto_m3s = area_equiv * delta_h / delta_t_s
-        Q_neto_Ls = Q_neto_m3s * 1000
-
-        # Caso daño / sin entrada
-        if no_entra_agua:
-            Q_entrada_Ls = 0.0
-            Q_neto_Ls = -caudal_salida_ls
-            Q_neto_m3s = Q_neto_Ls / 1000
-        else:
-            Q_entrada_Ls = caudal_salida_ls + Q_neto_Ls
-
+ 
+        # ── Cálculos ──────────────────────────────────────────────────────
+        delta_t_s    = delta_t_min * 60
+        delta_h      = altura_actual - altura_antes
+        Q_neto_m3s   = area_equiv * delta_h / delta_t_s
+        Q_neto_Ls    = Q_neto_m3s * 1000
+        Q_entrada_Ls = caudal_salida_ls + Q_neto_Ls
         Q_entrada_m3h = Q_entrada_Ls * 3.6
-        Q_salida_m3h = caudal_salida_ls * 3.6
-
-        tendencia = "subiendo" if Q_neto_Ls > 0 else ("bajando" if Q_neto_Ls < 0 else "estable")
-        tendencia_txt = "🔼 Subiendo" if Q_neto_Ls > 0 else ("🔽 Bajando" if Q_neto_Ls < 0 else "➡️ Estable")
-
+        Q_salida_m3h  = caudal_salida_ls * 3.6
+ 
+        tendencia = "subiendo" if delta_h > 0 else ("bajando" if delta_h < 0 else "estable")
+        tendencia_txt = "🔼 Subiendo" if delta_h > 0 else ("🔽 Bajando" if delta_h < 0 else "➡️ Estable")
+ 
+        # ── Hora de llegada a límites ─────────────────────────────────────
         def minutos_a_hora_futura(min_base, delta_min):
+            """Suma delta_min (puede ser float) al minuto base y devuelve 'HH:MM'."""
             total = (min_base + int(round(delta_min))) % 1440
             return minutos_a_hora_str(total)
-
+ 
+        hora_rebose_str = None
+        hora_minimo_str = None
+        t_rebose_min    = None
+        t_minimo_min    = None
+ 
+        if Q_neto_Ls > 0:
+            dh_rebose    = altura_rebose - altura_actual
+            t_rebose_s   = (area_equiv * dh_rebose) / Q_neto_m3s if Q_neto_m3s > 0 else None
+            if t_rebose_s is not None and t_rebose_s >= 0:
+                t_rebose_min   = t_rebose_s / 60
+                hora_rebose_str = minutos_a_hora_futura(min_actual, t_rebose_min)
+ 
+        if Q_neto_Ls < 0:
+            dh_minimo    = altura_actual - altura_minima
+            t_minimo_s   = (area_equiv * dh_minimo) / abs(Q_neto_m3s) if Q_neto_m3s != 0 else None
+            if t_minimo_s is not None and t_minimo_s >= 0:
+                t_minimo_min   = t_minimo_s / 60
+                hora_minimo_str = minutos_a_hora_futura(min_actual, t_minimo_min)
+ 
+        # ── Métricas ──────────────────────────────────────────────────────
+        m1, m2 = st.columns(2)
+        m1.metric("Intervalo entre lecturas", f"{delta_t_min:.0f} min")
+        m2.metric("Tendencia", tendencia_txt)
+ 
+        m3, m4 = st.columns(2)
+        m3.metric("Variación de nivel", f"{delta_h:+.4f} m")
+        m4.metric("Caudal neto", f"{Q_neto_Ls:+.2f} L/s")
+ 
+        m5, m6 = st.columns(2)
+        m5.metric("Caudal entrada est. (L/s)", f"{Q_entrada_Ls:.2f}")
+        m6.metric("Caudal entrada (m³/h)",     f"{Q_entrada_m3h:.2f}")
+ 
+        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+ 
+        # ── Horas estimadas ───────────────────────────────────────────────
+        st.markdown("<div class='titulo-seccion-resultado'>⏱️ Horas estimadas de llegada a límites</div>",
+                    unsafe_allow_html=True)
+ 
         def fmt_tiempo_hm(min_float):
             if min_float is None:
-                return "No aplica"
+                return None
             total_min = int(round(min_float))
             h = total_min // 60
             m = total_min % 60
+            partes = []
             if h > 0:
-                return f"{h} h {m} min"
-            return f"{m} min"
-
-        hora_rebose_str = None
-        hora_minimo_str = None
-        t_rebose_min = None
-        t_minimo_min = None
-
-        if Q_neto_Ls > 0:
-            dh_rebose = altura_rebose - altura_actual
-            if dh_rebose >= 0:
-                t_rebose_s = (area_equiv * dh_rebose) / Q_neto_m3s if Q_neto_m3s > 0 else None
-                if t_rebose_s is not None:
-                    t_rebose_min = t_rebose_s / 60
-                    hora_rebose_str = minutos_a_hora_futura(min_actual, t_rebose_min)
-
-        if Q_neto_Ls < 0:
-            dh_minimo = altura_actual - altura_minima
-            if dh_minimo >= 0:
-                t_minimo_s = (area_equiv * dh_minimo) / abs(Q_neto_m3s) if Q_neto_m3s != 0 else None
-                if t_minimo_s is not None:
-                    t_minimo_min = t_minimo_s / 60
-                    hora_minimo_str = minutos_a_hora_futura(min_actual, t_minimo_min)
-
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Intervalo entre lecturas", f"{delta_t_min:.0f} min")
-        m2.metric("Variación de nivel", f"{delta_h:+.4f} m")
-        m3.metric("Tendencia", tendencia_txt)
-
-        m4, m5, m6 = st.columns(3)
-        m4.metric("Caudal neto", f"{Q_neto_Ls:+.2f} L/s")
-        m5.metric("Caudal entrada (L/s)", f"{Q_entrada_Ls:.2f}")
-        m6.metric("Caudal entrada (m³/h)", f"{Q_entrada_m3h:.2f}")
-
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-            if hora_rebose_str:
+                partes.append(f"{h} h")
+            partes.append(f"{m} min")
+            return " ".join(partes)
+ 
+        t1, t2 = st.columns(2)
+ 
+        with t1:
+            if hora_rebose_str is not None:
+                t_min_val = t_rebose_min if t_rebose_min else 0
+                color_r = "#e63946" if t_min_val < 60 else ("#f4a261" if t_min_val < 180 else "#2a9d8f")
                 st.markdown(f"""
-                <div class="caja-rango" style="border-left-color:#e63946;">
-                    <b>Hora estimada de rebose</b><br>
-                    🕐 <b>{hora_rebose_str}</b><br>
-                    En {fmt_tiempo_hm(t_rebose_min)} desde {hora_actual_str}
+                <div style="background:linear-gradient(135deg,#fff5f5,#ffe8e8);
+                     border-left:5px solid {color_r};border-radius:14px;
+                     padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Llegada a rebose ({altura_rebose:.2f} m)
+                    </div>
+                    <div style="font-size:1.6rem;font-weight:800;color:{color_r}">
+                        🕐 {hora_rebose_str}
+                    </div>
+                    <div style="font-size:0.8rem;color:#888;margin-top:3px">
+                        En {fmt_tiempo_hm(t_rebose_min)} · desde {hora_actual_str}
+                    </div>
+                    <div style="font-size:0.78rem;color:#aaa;margin-top:2px">
+                        Nivel actual → {altura_actual:.2f} m → {altura_rebose:.2f} m
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                st.info("Rebose: no aplica con la condición actual.")
-
-        with c2:
-            if hora_minimo_str:
+                st.markdown("""
+                <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
+                     border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">Llegada a rebose</div>
+                    <div style="font-size:1rem;color:#5a7899">No aplica — el nivel está bajando o estable</div>
+                </div>
+                """, unsafe_allow_html=True)
+ 
+        with t2:
+            if hora_minimo_str is not None:
+                t_min_val = t_minimo_min if t_minimo_min else 0
+                color_m = "#e63946" if t_min_val < 60 else ("#f4a261" if t_min_val < 180 else "#2a9d8f")
                 st.markdown(f"""
-                <div class="caja-rango" style="border-left-color:#f4a261;">
-                    <b>Hora estimada de mínimo</b><br>
-                    🕐 <b>{hora_minimo_str}</b><br>
-                    En {fmt_tiempo_hm(t_minimo_min)} desde {hora_actual_str}
+                <div style="background:linear-gradient(135deg,#fff8f0,#ffedd8);
+                     border-left:5px solid {color_m};border-radius:14px;
+                     padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Llegada a mínimo ({altura_minima:.2f} m)
+                    </div>
+                    <div style="font-size:1.6rem;font-weight:800;color:{color_m}">
+                        🕐 {hora_minimo_str}
+                    </div>
+                    <div style="font-size:0.8rem;color:#888;margin-top:3px">
+                        En {fmt_tiempo_hm(t_minimo_min)} · desde {hora_actual_str}
+                    </div>
+                    <div style="font-size:0.78rem;color:#aaa;margin-top:2px">
+                        Nivel actual → {altura_actual:.2f} m → {altura_minima:.2f} m
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                st.info("Mínimo: no aplica con la condición actual.")
-
+                st.markdown("""
+                <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
+                     border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">Llegada a mínimo</div>
+                    <div style="font-size:1rem;color:#5a7899">No aplica — el nivel está subiendo o estable</div>
+                </div>
+                """, unsafe_allow_html=True)
+ 
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
-        st.markdown(generar_tanque_svg(
-            h_actual=altura_actual,
-            h_rebose=altura_rebose,
-            h_minima=altura_minima,
-            h_lleno=altura_lleno,
-            hora_actual_str=hora_actual_str,
-            hora_rebose_str=hora_rebose_str,
-            hora_minimo_str=hora_minimo_str,
-            tendencia=tendencia,
-            Q_neto_Ls=Q_neto_Ls
-        ), unsafe_allow_html=True)
-
+ 
+        # ── TANQUE SVG ANIMADO ─────────────────────────────────────────────
+        st.markdown("<div class='titulo-seccion-resultado'>🏗️ Visualización del Tanque</div>",
+                    unsafe_allow_html=True)
+ 
+        tanque_html = generar_tanque_svg(
+            h_actual        = altura_actual,
+            h_rebose        = altura_rebose,
+            h_minima        = altura_minima,
+            h_lleno         = altura_lleno,
+            hora_actual_str = hora_actual_str,
+            hora_rebose_str = hora_rebose_str,
+            hora_minimo_str = hora_minimo_str,
+            tendencia       = tendencia,
+            Q_neto_Ls       = Q_neto_Ls,
+        )
+        st.markdown(tanque_html, unsafe_allow_html=True)
+ 
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
+ 
+        # ── Gráfica proyección en horas reales ────────────────────────────
+        st.markdown("<div class='titulo-seccion-resultado'>📈 Proyección del nivel — próximas 6 horas</div>",
+                    unsafe_allow_html=True)
+ 
+        # Proyectar en pasos de 10 min (36 pasos = 6 horas)
         pasos_min = list(range(0, 361, 10))
         horas_proj = []
         niveles_proj = []
-
         for p in pasos_min:
-            h_proj = altura_actual + (Q_neto_m3s * p * 60) / area_equiv
+            h_proj = altura_actual + Q_neto_m3s * (p * 60) / area_equiv
             h_proj = max(0.0, h_proj)
             niveles_proj.append(round(h_proj, 4))
             horas_proj.append(minutos_a_hora_futura(min_actual, p))
-
+ 
         fig_tanq = go.Figure()
-
+ 
+        # Banda rebose
         fig_tanq.add_hrect(
-            y0=altura_rebose,
-            y1=max(altura_rebose * 1.06, altura_rebose + 0.15),
-            fillcolor="rgba(230,57,70,0.10)",
-            line_width=0
+            y0=altura_rebose, y1=max(altura_rebose * 1.06, altura_rebose + 0.15),
+            fillcolor="rgba(230,57,70,0.10)", line_width=0,
+            annotation_text="Zona rebose", annotation_position="right"
         )
+        # Banda mínimo
         fig_tanq.add_hrect(
-            y0=0,
-            y1=altura_minima,
-            fillcolor="rgba(244,162,97,0.10)",
-            line_width=0
+            y0=0, y1=altura_minima,
+            fillcolor="rgba(244,162,97,0.10)", line_width=0,
+            annotation_text="Zona mínima", annotation_position="right"
         )
-
-        fig_tanq.add_hline(y=altura_rebose, line_dash="dash", line_color="#e63946", line_width=1.5)
-        fig_tanq.add_hline(y=altura_minima, line_dash="dash", line_color="#f4a261", line_width=1.5)
-
+        fig_tanq.add_hline(y=altura_rebose, line_dash="dash", line_color="#e63946",
+                           line_width=1.5,
+                           annotation_text=f"Rebose {altura_rebose:.2f} m")
+        fig_tanq.add_hline(y=altura_minima, line_dash="dash", line_color="#f4a261",
+                           line_width=1.5,
+                           annotation_text=f"Mínimo {altura_minima:.2f} m")
+ 
+        # Línea de proyección
         fig_tanq.add_trace(go.Scatter(
-            x=horas_proj,
-            y=niveles_proj,
+            x=horas_proj, y=niveles_proj,
             mode="lines",
             name="Nivel proyectado",
             line=dict(color="#1a6fff", width=2.5, shape="spline"),
-            fill="tozeroy",
-            fillcolor="rgba(26,111,255,0.06)"
+            fill="tozeroy", fillcolor="rgba(26,111,255,0.06)"
         ))
-
+        # Punto actual
         fig_tanq.add_trace(go.Scatter(
-            x=[hora_actual_str],
-            y=[altura_actual],
-            mode="markers",
-            name="Nivel actual",
-            marker=dict(size=12, color="#00e5c0", line=dict(color="#0a1628", width=2))
+            x=[hora_actual_str], y=[altura_actual],
+            mode="markers", name="Nivel actual",
+            marker=dict(size=13, color="#00e5c0", line=dict(color="#0a1628", width=2), symbol="circle")
         ))
-
-        if hora_rebose_str:
+ 
+        # Punto de rebose estimado
+        if hora_rebose_str is not None:
             fig_tanq.add_trace(go.Scatter(
-                x=[hora_rebose_str],
-                y=[altura_rebose],
-                mode="markers+text",
-                text=[hora_rebose_str],
+                x=[hora_rebose_str], y=[altura_rebose],
+                mode="markers+text", name="Hora rebose",
+                text=[f"⚠️ {hora_rebose_str}"],
                 textposition="top center",
-                name="Hora rebose",
-                marker=dict(size=11, color="#e63946")
+                marker=dict(size=12, color="#e63946", line=dict(color="white", width=2), symbol="x")
             ))
-
-        if hora_minimo_str:
+ 
+        # Punto de mínimo estimado
+        if hora_minimo_str is not None:
             fig_tanq.add_trace(go.Scatter(
-                x=[hora_minimo_str],
-                y=[altura_minima],
-                mode="markers+text",
-                text=[hora_minimo_str],
+                x=[hora_minimo_str], y=[altura_minima],
+                mode="markers+text", name="Hora mínimo",
+                text=[f"⚠️ {hora_minimo_str}"],
                 textposition="bottom center",
-                name="Hora mínimo",
-                marker=dict(size=11, color="#f4a261")
+                marker=dict(size=12, color="#f4a261", line=dict(color="white", width=2), symbol="x")
             ))
-
+ 
         fig_tanq.update_layout(
-            plot_bgcolor="white",
-            paper_bgcolor="white",
+            plot_bgcolor="white", paper_bgcolor="white",
             font=dict(family="Inter", color="#0a1628", size=12),
             xaxis=dict(
                 title="Hora del día",
                 gridcolor="#e8f0fe",
                 linecolor="#dce9f7",
-                tickangle=-35,
-                tickvals=[horas_proj[i] for i in range(0, len(horas_proj), 6)]
+                tickangle=-45,
+                # Mostrar solo cada hora (cada 6 pasos de 10 min)
+                tickvals=[horas_proj[i] for i in range(0, len(horas_proj), 6)],
             ),
             yaxis=dict(
                 title="Altura (m)",
@@ -1495,30 +1627,42 @@ def mostrar_calculadora_tanque():
                 range=[0, max(altura_rebose * 1.1, max(niveles_proj) * 1.1)]
             ),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=20, r=20, t=25, b=50),
-            height=360
+            margin=dict(l=20, r=70, t=30, b=60),
+            height=380
         )
         st.plotly_chart(fig_tanq, use_container_width=True)
-
+ 
+        # ── Resumen texto ─────────────────────────────────────────────────
         signo_neto = "+" if Q_neto_Ls >= 0 else ""
-        texto_modo = "Sin entrada de agua (forzado a 0 L/s)." if no_entra_agua else "Entrada estimada a partir de las lecturas."
-
         st.markdown(f"""
         <div class="caja-rango">
             <b>Resumen del balance</b><br>
-            Lectura anterior: {hora_antes_str} · {altura_antes:.2f} m<br>
-            Lectura actual: {hora_actual_str} · {altura_actual:.2f} m<br>
-            Δh = {delta_h:+.4f} m · Intervalo = {delta_t_min:.0f} min<br>
+            Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → {hora_actual_str} ({altura_actual:.2f} m) ·
+            Intervalo: {delta_t_min:.0f} min ·
+            Δh = {delta_h:+.4f} m ·
             Q neto = {signo_neto}{Q_neto_Ls:.2f} L/s<br>
-            Q salida = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)<br>
-            Q entrada = <b>{Q_entrada_Ls:.2f} L/s</b> ({Q_entrada_m3h:.1f} m³/h)<br>
-            <span style="color:#5a7899;">{texto_modo}</span>
+            Q entrada estimado = <b>{Q_entrada_Ls:.2f} L/s ({Q_entrada_m3h:.1f} m³/h)</b> ·
+            Q salida = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)
         </div>
         """, unsafe_allow_html=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
+ 
+        st.markdown("""
+        <div class="caja-rango" style="border-left-color:#00c8ff">
+            <b>Fórmulas aplicadas</b><br>
+            <span style="color:#3a5270">
+            Δt (min) = Hora actual − Hora anterior &nbsp;(cruce de medianoche si necesario)<br>
+            Área equiv. (m²) = Volumen total (m³) ÷ Altura lleno (m)<br>
+            Q neto (m³/s) = Área × Δh ÷ Δt(s) &nbsp;|&nbsp; Q entrada = Q salida + Q neto<br>
+            t rebose (s) = Área × (h_rebose − h_actual) ÷ Q_neto &nbsp;(si Q_neto > 0)<br>
+            t mínimo (s) = Área × (h_actual − h_min) ÷ |Q_neto| &nbsp;(si Q_neto &lt; 0)<br>
+            Hora estimada = Hora actual + tiempo calculado (formato 24 h)
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+ 
     st.markdown("</div>", unsafe_allow_html=True)
+ 
+ 
 # =========================================
 # FLUJO DE ACCESO
 # =========================================
@@ -1846,4 +1990,3 @@ with col_result:
         st.plotly_chart(fig, use_container_width=True)
  
     st.markdown("</div>", unsafe_allow_html=True)
- 
