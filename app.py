@@ -1606,7 +1606,7 @@ def mostrar_calculadora_tanque():
             Q_neto_Ls=Q_neto_Ls,
         )
         # ► components.html renderiza en iframe aislado → SVG y animaciones funcionan
-        components.html(tanque_html, height=620, scrolling=False)
+        components.html(tanque_html, height=780, scrolling=False)
  
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
  
