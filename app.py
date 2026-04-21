@@ -15,7 +15,8 @@ from sklearn.neighbors import NearestNeighbors
 st.set_page_config(
     page_title="PTAP - DIVISO & CALDAS",
     page_icon="💧",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
  
 BASE_DIR = Path(__file__).resolve().parent
@@ -60,17 +61,29 @@ ESTILOS_GLOBALES = """
 html, body, .stApp {
     font-family: 'Inter', sans-serif;
     background: #f0f6ff !important;
+    width:100%;
+    min-width: 100%;
+    overflow-x: hidden !important;
 }
- 
-header { visibility: hidden !important; }
-footer { visibility: hidden !important; }
- 
+[data-testid="stAppViewContainer"] {
+    overflow-x: hidden !important;
+}
+
+[data-testid="stMain"] {
+    width: 100% !important;
+    max-width: 100vw !important;
+}
+
 .block-container {
-    padding: 0.6rem 1.2rem 2rem 1.2rem !important;
+    padding: 0.35rem 0.8rem 1.4rem 0.8rem !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+.main > div {
+    padding-top: 0 !important;
     max-width: 100% !important;
 }
- 
-.main > div { padding-top: 0 !important; }
  
 .app-header {
     background: linear-gradient(135deg, #0a1628 0%, #0d2347 55%, #0f3060 100%);
@@ -79,6 +92,8 @@ footer { visibility: hidden !important; }
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.8rem;
     margin-bottom: 1.2rem;
     box-shadow: 0 12px 40px rgba(10,22,40,0.22);
     position: relative;
@@ -283,7 +298,35 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
 }
 </style>
 """
- 
+.header-logo,
+.header-title,
+.header-badge {
+    min-width: 0;
+}
+
+[data-testid="stPlotlyChart"],
+[data-testid="stDataFrame"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+}
+
+@media (max-width: 1100px) {
+    .app-header {
+        padding: 1rem 1.2rem;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header-title {
+        text-align: center;
+    }
+
+    .panel-izquierdo {
+        position: relative;
+        top: 0;
+    }
+}
 # =========================================
 # LOGIN
 # =========================================
