@@ -7,35 +7,34 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
- 
- 
+
+
 # =========================================
 # CONFIGURACION GENERAL
 # =========================================
 st.set_page_config(
     page_title="PTAP - DIVISO & CALDAS",
     page_icon="💧",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
- 
+
 BASE_DIR = Path(__file__).resolve().parent
- 
+
 USUARIOS = {
     "diviso": {"clave": "diviso123", "planta": "Diviso"},
     "caldas": {"clave": "caldas123", "planta": "Caldas"},
 }
- 
+
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
- 
+
 if "vista" not in st.session_state:
     st.session_state.vista = "menu"
- 
+
 if "planta_usuario" not in st.session_state:
     st.session_state.planta_usuario = None
- 
- 
+
+
 # =========================================
 # ESTILOS GLOBALES
 # =========================================
@@ -61,33 +60,17 @@ ESTILOS_GLOBALES = """
 html, body, .stApp {
     font-family: 'Inter', sans-serif;
     background: #f0f6ff !important;
-    width: 100%;
-    min-width: 100%;
-    overflow-x: hidden !important;
-}
-
-[data-testid="stAppViewContainer"] {
-    overflow-x: hidden !important;
-}
-
-[data-testid="stMain"] {
-    width: 100% !important;
-    max-width: 100vw !important;
 }
 
 header { visibility: hidden !important; }
 footer { visibility: hidden !important; }
 
 .block-container {
-    padding: 0.35rem 0.8rem 1.4rem 0.8rem !important;
+    padding: 0.6rem 1.2rem 2rem 1.2rem !important;
     max-width: 100% !important;
-    width: 100% !important;
 }
 
-.main > div {
-    padding-top: 0 !important;
-    max-width: 100% !important;
-}
+.main > div { padding-top: 0 !important; }
 
 .app-header {
     background: linear-gradient(135deg, #0a1628 0%, #0d2347 55%, #0f3060 100%);
@@ -96,8 +79,6 @@ footer { visibility: hidden !important; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.8rem;
     margin-bottom: 1.2rem;
     box-shadow: 0 12px 40px rgba(10,22,40,0.22);
     position: relative;
@@ -291,35 +272,7 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
 ::-webkit-scrollbar-thumb { background: #b8d0e8; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #1a6fff; }
 
-.header-logo,
-.header-title,
-.header-badge {
-    min-width: 0;
-}
-
-[data-testid="stPlotlyChart"],
-[data-testid="stDataFrame"] {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-}
-
-@media (max-width: 1100px) {
-    .panel-izquierdo { 
-        position: relative; 
-        top: 0; 
-    }
-
-    .app-header {
-        padding: 1rem 1.2rem;
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .header-title {
-        text-align: center;
-    }
-}
+@media (max-width: 1100px) { .panel-izquierdo { position: relative; top: 0; } }
 
 @media (max-width: 768px) {
     .block-container { padding: 0.4rem 0.6rem 1.5rem !important; }
@@ -328,8 +281,26 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
     .header-title { font-size: 1.1rem; }
     div[data-testid="stMetricValue"] > div { font-size: 1.35rem !important; }
 }
+
+/* ── FIX CORTE SVG: el contenedor del tanque nunca debe recortar su contenido ── */
+.tanque-card {
+    overflow: visible !important;
+    width: 100% !important;
+}
+.tanque-layout {
+    overflow: visible !important;
+    width: 100% !important;
+}
+.tanque-svg-wrap {
+    overflow: visible !important;
+}
+/* Asegura que el iframe de Streamlit no corte el HTML personalizado */
+[data-testid="stMarkdownContainer"] {
+    overflow: visible !important;
+}
 </style>
 """
+
 # =========================================
 # LOGIN
 # =========================================
@@ -374,17 +345,17 @@ ESTILOS_LOGIN = """
 .login-bottom-note span { color: #1a6fff; font-weight: 600; }
 </style>
 """
- 
- 
+
+
 def mostrar_login():
     st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
     st.markdown(ESTILOS_LOGIN, unsafe_allow_html=True)
- 
+
     col_l, col_c, col_r = st.columns([0.4, 2.6, 0.4])
- 
+
     with col_c:
         left, right = st.columns([1.1, 1], gap="medium")
- 
+
         with left:
             st.markdown("""
             <div class="login-left">
@@ -399,7 +370,7 @@ def mostrar_login():
                 <div class="login-footer-left">Dirección de Producción y Tratamiento</div>
             </div>
             """, unsafe_allow_html=True)
- 
+
         with right:
             st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
             st.markdown("<div class='login-title-r'>Iniciar sesión</div>", unsafe_allow_html=True)
@@ -407,12 +378,12 @@ def mostrar_login():
                 "<div class='login-sub-r'>Accede con tus credenciales institucionales para continuar.</div>",
                 unsafe_allow_html=True
             )
- 
+
             usuario = st.text_input("Usuario", placeholder="Ingresa tu usuario", key="login_usuario")
             clave   = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_clave")
- 
+
             st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
- 
+
             if st.button("INGRESAR AL SISTEMA", key="btn_login"):
                 u = usuario.strip().lower()
                 if u in USUARIOS and clave == USUARIOS[u]["clave"]:
@@ -422,15 +393,15 @@ def mostrar_login():
                     st.rerun()
                 else:
                     st.error("Usuario o contraseña incorrectos")
- 
+
             st.markdown("""
             <div class="login-bottom-note">
                 <span style="color:#8a9db0">Acceso institucional</span>
                 <span>PTAP DIVISO · CALDAS</span>
             </div>
             """, unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
 # CONFIGURACIONES POR PLANTA
 # =========================================
@@ -451,8 +422,8 @@ CONFIGS = {
         "usa_alcalinidad_encalada": True
     }
 }
- 
- 
+
+
 # =========================================
 # FUNCIONES AUXILIARES
 # =========================================
@@ -464,25 +435,25 @@ def limpiar_columna_numerica(serie):
         .str.replace(",", ".", regex=False),
         errors="coerce"
     )
- 
- 
+
+
 def obtener_nombre_columna(df, candidatos):
     for col in candidatos:
         if col in df.columns:
             return col
     raise ValueError(f"No encontré ninguna de estas columnas: {candidatos}")
- 
- 
+
+
 @st.cache_data(ttl=60)
 def cargar_y_limpiar_excel(archivo_excel, config_key):
     config = CONFIGS[config_key]
- 
+
     if isinstance(archivo_excel, str):
         ruta = BASE_DIR / archivo_excel
         df = pd.read_excel(ruta)
     else:
         df = pd.read_excel(archivo_excel)
- 
+
     if config_key == "Caldas":
         col_caudal            = obtener_nombre_columna(df, ["Caudal A tratar (L/s)"])
         col_turbiedad         = obtener_nombre_columna(df, ["Turbiedad de agua cruda (UNT)"])
@@ -516,31 +487,31 @@ def cargar_y_limpiar_excel(archivo_excel, config_key):
                 "Caudal de dosificación del PAC módulo 150 (mL/min)",
                 "Caudal de dosificacion del PAC modulo 150 (mL/min)"
             ])
- 
+
         col_turbiedad         = obtener_nombre_columna(df, ["Turbiedad de agua cruda (UNT)", "Turbiedad de agua cruda (UNT).1"])
         col_ph                = obtener_nombre_columna(df, ["pH de agua cruda (Unid)", "pH de agua cruda"])
         col_alcalinidad_cruda = obtener_nombre_columna(df, ["Alcalinidad de agua cruda (mg/L)"])
         col_alcalinidad_enc   = obtener_nombre_columna(df, ["Alcalinidad de agua encalada (mg/L)", "Alcalinidad de agua encalda (mg/L)"])
- 
+
         rename_map = {
             col_caudal: "caudal", col_turbiedad: "turbiedad", col_ph: "ph",
             col_alcalinidad_cruda: "alcalinidad_cruda",
             col_alcalinidad_enc: "alcalinidad_encalada", col_pac: "pac_ml_min",
         }
- 
+
     df = df.rename(columns=rename_map)
- 
+
     columnas_numericas = ["caudal", "turbiedad", "ph", "alcalinidad_cruda", "pac_ml_min"]
     if config["usa_alcalinidad_encalada"]:
         columnas_numericas.append("alcalinidad_encalada")
- 
+
     for col in columnas_numericas:
         df[col] = limpiar_columna_numerica(df[col])
- 
+
     df = df.dropna(subset=columnas_numericas).copy()
     return df
- 
- 
+
+
 def obtener_tolerancias(config_key):
     if config_key == "Caldas":
         return [
@@ -554,23 +525,23 @@ def obtener_tolerancias(config_key):
         {"caudal": 60, "turb": 20, "ph": 0.45, "alc": 15, "alc_enc": 15},
         {"caudal": 90, "turb": 30, "ph": 0.60, "alc": 20, "alc_enc": 20},
     ]
- 
- 
+
+
 def calcular_rango_pac(df, config_key, caudal, turbiedad, ph,
                        alcalinidad_cruda, densidad_pac, vecinos_deseados,
                        alcalinidad_encalada=None):
     config = CONFIGS[config_key]
     variables  = ["caudal", "turbiedad", "ph", "alcalinidad_cruda"]
     nuevo_dict = {"caudal": caudal, "turbiedad": turbiedad, "ph": ph, "alcalinidad_cruda": alcalinidad_cruda}
- 
+
     if config["usa_alcalinidad_encalada"]:
         variables.append("alcalinidad_encalada")
         nuevo_dict["alcalinidad_encalada"] = alcalinidad_encalada
- 
+
     nuevo = pd.DataFrame([nuevo_dict])
     df_base = pd.DataFrame()
     tolerancia_usada = None
- 
+
     for tol in obtener_tolerancias(config_key):
         filtro = (
             df["caudal"].between(caudal - tol["caudal"], caudal + tol["caudal"]) &
@@ -586,26 +557,26 @@ def calcular_rango_pac(df, config_key, caudal, turbiedad, ph,
         if len(df_base) >= 5:
             tolerancia_usada = tol
             break
- 
+
     if len(df_base) < 5:
         return {"ok": False, "mensaje": "Muy pocos datos después del prefiltro, incluso ampliando tolerancias."}
- 
+
     scaler = StandardScaler()
     X_hist = scaler.fit_transform(df_base[variables])
     X_new  = scaler.transform(nuevo[variables])
     pesos  = np.array([3, 4, 3, 2, 2] if config["usa_alcalinidad_encalada"] else [3, 4, 3, 2], dtype=float)
     X_hist *= pesos
     X_new  *= pesos
- 
+
     n_neighbors = min(vecinos_deseados, len(df_base))
     knn = NearestNeighbors(n_neighbors=n_neighbors)
     knn.fit(X_hist)
     distancias, indices = knn.kneighbors(X_new)
- 
+
     similares = df_base.iloc[indices[0]].copy()
     similares["distancia"] = distancias[0]
     similares = similares.sort_values("distancia")
- 
+
     q1  = similares["pac_ml_min"].quantile(0.25)
     q3  = similares["pac_ml_min"].quantile(0.75)
     iqr = q3 - q1
@@ -614,41 +585,41 @@ def calcular_rango_pac(df, config_key, caudal, turbiedad, ph,
     ].copy()
     if len(similares_filtrados) < 3:
         similares_filtrados = similares.copy()
- 
+
     pac_min      = float(similares_filtrados["pac_ml_min"].min())
     pac_max      = float(similares_filtrados["pac_ml_min"].max())
     pac_promedio = float(similares_filtrados["pac_ml_min"].mean())
     std          = float(similares_filtrados["pac_ml_min"].std()) if len(similares_filtrados) > 1 else 0.0
     n            = int(len(similares_filtrados))
- 
+
     jarras_recomendadas = np.round(np.linspace(pac_min, pac_max, 6), 1)
     dosis_mgL = np.round((jarras_recomendadas * densidad_pac * 1000) / (60 * caudal), 2)
- 
+
     tabla_jarras = pd.DataFrame({
         "Jarra": [1,2,3,4,5,6],
         "Caudal PAC recomendado (mL/min)": jarras_recomendadas,
         "Dosis PAC recomendada (mg/L)": dosis_mgL
     })
- 
+
     columnas_mostrar = ["caudal", "turbiedad", "ph", "alcalinidad_cruda"]
     if config["usa_alcalinidad_encalada"]:
         columnas_mostrar.append("alcalinidad_encalada")
     columnas_mostrar += ["pac_ml_min", "distancia"]
- 
+
     similares_filtrados = similares_filtrados[columnas_mostrar].rename(columns={
         "caudal": "Caudal a tratar (L/s)", "turbiedad": "Turbiedad de agua cruda (UNT)",
         "ph": "pH de agua cruda", "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
         "alcalinidad_encalada": "Alcalinidad de agua encalada (mg/L)",
         "pac_ml_min": "Caudal PAC (mL/min)", "distancia": "Distancia"
     })
- 
+
     return {
         "ok": True, "similares_filtrados": similares_filtrados,
         "pac_min": pac_min, "pac_max": pac_max, "pac_promedio": pac_promedio,
         "std": std, "n": n, "tabla_jarras": tabla_jarras, "tolerancia_usada": tolerancia_usada
     }
- 
- 
+
+
 def valores_por_defecto(config_key):
     if config_key == "Caldas":
         return {"caudal": 170.0, "turbiedad": 50.0, "ph": 7.35,
@@ -658,13 +629,12 @@ def valores_por_defecto(config_key):
                 "alcalinidad_cruda": 11.0, "alcalinidad_encalada": 16.0, "densidad_pac": 1.33}
     return {"caudal": 160.0, "turbiedad": 10.0, "ph": 7.20,
             "alcalinidad_cruda": 11.0, "alcalinidad_encalada": 16.0, "densidad_pac": 1.33}
- 
- 
+
+
 # =========================================
 # HELPERS HORA
 # =========================================
 def parse_hora(texto):
-    """Convierte texto 'HH:MM' o 'H' a minutos desde medianoche. Retorna None si inválido."""
     if not texto or str(texto).strip() == "":
         return None
     texto = str(texto).strip()
@@ -683,381 +653,359 @@ def parse_hora(texto):
     if 0 <= h <= 23 and 0 <= m <= 59:
         return h * 60 + m
     return None
- 
- 
+
+
 def minutos_a_hora_str(minutos):
-    """Convierte minutos desde medianoche a 'HH:MM'."""
     minutos = int(minutos) % 1440
     h = minutos // 60
     m = minutos % 60
     return f"{h:02d}:{m:02d}"
- 
- 
-def agregar_minutos_a_hora(hora_str, delta_min):
-    """Suma delta_min a una hora 'HH:MM' y devuelve 'HH:MM' (con cruce de día)."""
-    base_min = parse_hora(hora_str)
-    if base_min is None:
-        return None
-    resultado = (base_min + int(delta_min)) % 1440
-    return minutos_a_hora_str(resultado)
- 
- 
+
+
+def minutos_a_hora_futura(min_base, delta_min):
+    total = (min_base + int(round(delta_min))) % 1440
+    return minutos_a_hora_str(total)
+
+
 # =========================================
-# TANQUE SVG ANIMADO
+# TANQUE SVG ANIMADO  ── CORREGIDO
+# El SVG usa viewBox + width=100% para ser responsivo.
+# El layout es vertical (SVG arriba, info abajo) para evitar
+# que el contenido se corte en pantallas estrechas.
 # =========================================
 def generar_tanque_svg(
-    h_actual,
-    h_rebose,
-    h_minima,
-    h_lleno,
-    hora_actual_str,
-    hora_rebose_str,
-    hora_minimo_str,
-    tendencia,           # "subiendo" | "bajando" | "estable"
-    Q_neto_Ls,
+    h_actual, h_rebose, h_minima, h_lleno,
+    hora_actual_str, hora_rebose_str, hora_minimo_str,
+    tendencia, Q_neto_Ls,
 ):
-    """
-    Devuelve el HTML completo con el tanque SVG animado y la leyenda lateral.
-    El nivel de agua dentro del tanque se anima en CSS.
-    """
- 
-    # Porcentajes sobre la altura total del tanque (0–100%)
-    pct_actual  = max(0.0, min(1.0, h_actual  / h_lleno)) * 100
-    pct_rebose  = max(0.0, min(1.0, h_rebose  / h_lleno)) * 100
-    pct_minima  = max(0.0, min(1.0, h_minima  / h_lleno)) * 100
- 
-    # Coordenadas SVG del cuerpo del tanque
-    # Tanque: x=60, y=30, ancho=200, alto=320 (parte cilíndrica)
-    TK_X, TK_Y, TK_W, TK_H = 60, 40, 200, 300
-    TK_BOTTOM = TK_Y + TK_H  # y inferior
- 
-    # y del nivel de agua actual (SVG: y crece hacia abajo)
-    y_agua = TK_BOTTOM - (pct_actual / 100) * TK_H
+    pct_actual = max(0.0, min(1.0, h_actual / h_lleno)) * 100
+    pct_rebose = max(0.0, min(1.0, h_rebose / h_lleno)) * 100
+    pct_minima = max(0.0, min(1.0, h_minima / h_lleno)) * 100
+
+    # Coordenadas SVG — tanque centrado, espacio para etiquetas a la derecha
+    TK_X, TK_Y, TK_W, TK_H = 55, 40, 160, 280
+    TK_BOTTOM = TK_Y + TK_H
+    # viewBox total: 340 × 420
+    VB_W, VB_H = 340, 420
+
+    y_agua   = TK_BOTTOM - (pct_actual / 100) * TK_H
     y_rebose = TK_BOTTOM - (pct_rebose / 100) * TK_H
     y_minima = TK_BOTTOM - (pct_minima / 100) * TK_H
- 
-    # Color del agua según nivel
+
     if pct_actual > 85:
-        agua_color1, agua_color2 = "#e63946", "#ff6b7a"
-        agua_wave   = "rgba(230,57,70,0.4)"
-        estado_color = "#e63946"
-        estado_texto = "⚠️ NIVEL ALTO"
+        c1, c2 = "#e63946", "#ff6b7a"
+        estado_color, estado_txt = "#e63946", "⚠️ NIVEL ALTO"
     elif pct_actual < 20:
-        agua_color1, agua_color2 = "#f4a261", "#ffd166"
-        agua_wave   = "rgba(244,162,97,0.4)"
-        estado_color = "#f4a261"
-        estado_texto = "⚠️ NIVEL BAJO"
+        c1, c2 = "#f4a261", "#ffd166"
+        estado_color, estado_txt = "#f4a261", "⚠️ NIVEL BAJO"
     else:
-        agua_color1, agua_color2 = "#1a6fff", "#00c8ff"
-        agua_wave   = "rgba(26,111,255,0.3)"
-        estado_color = "#2a9d8f"
-        estado_texto = "✅ NIVEL NORMAL"
- 
-    # Animación: si sube la ola se desplaza hacia arriba (transform), si baja hacia abajo
-    anim_dir = "subiendo" if tendencia == "subiendo" else ("bajando" if tendencia == "bajando" else "estable")
- 
-    flecha_icono = "🔼" if tendencia == "subiendo" else ("🔽" if tendencia == "bajando" else "➡️")
-    signo_neto = "+" if Q_neto_Ls >= 0 else ""
- 
-    # Textos de proyección
+        c1, c2 = "#1a6fff", "#00c8ff"
+        estado_color, estado_txt = "#2a9d8f", "✅ NIVEL NORMAL"
+
+    flecha = "▲ Subiendo" if tendencia == "subiendo" else ("▼ Bajando" if tendencia == "bajando" else "→ Estable")
+    signo  = "+" if Q_neto_Ls >= 0 else ""
     txt_rebose = hora_rebose_str if hora_rebose_str else "—"
     txt_minimo = hora_minimo_str if hora_minimo_str else "—"
- 
+
+    # Marcas de escala
+    escala_lines = ""
+    for i in range(5):
+        yy = TK_Y + i * TK_H // 4
+        val = h_lleno * (1 - i / 4)
+        escala_lines += (
+            f'<line x1="{TK_X-18}" y1="{yy}" x2="{TK_X-8}" y2="{yy}" stroke="#8ab0c8" stroke-width="1.2"/>'
+            f'<text x="{TK_X-20}" y="{yy+4}" text-anchor="end" font-size="8" '
+            f'font-family="Inter,sans-serif" fill="#5a7899">{val:.1f}</text>'
+        )
+
+    burbujas = ""
+    if tendencia != "bajando":
+        burbujas = (
+            f'<circle cx="{TK_X + int(TK_W*0.3)}" cy="{TK_BOTTOM-20}" r="3" '
+            f'fill="rgba(255,255,255,0.6)" style="animation:burbuja 3.5s ease-in infinite 0s;"/>'
+            f'<circle cx="{TK_X + int(TK_W*0.6)}" cy="{TK_BOTTOM-10}" r="2" '
+            f'fill="rgba(255,255,255,0.5)" style="animation:burbuja 4.2s ease-in infinite 1s;"/>'
+            f'<circle cx="{TK_X + int(TK_W*0.45)}" cy="{TK_BOTTOM-30}" r="2.5" '
+            f'fill="rgba(255,255,255,0.55)" style="animation:burbuja 5s ease-in infinite 2s;"/>'
+        )
+
+    # Ola doble anchura para la animación de traslación
+    cx = TK_X + 3
+    cw = TK_W - 6
+    wave_d = (
+        f"M {cx},{y_agua:.1f} "
+        + "".join([
+            f"Q {cx + cw*(k+0.5)/8:.1f},{y_agua + (-7 if k%2==0 else 7):.1f} "
+            f"{cx + cw*(k+1)/8:.1f},{y_agua:.1f} "
+            for k in range(8)
+        ])
+        + "".join([
+            f"Q {cx + cw*(k+8.5)/8:.1f},{y_agua + (-7 if k%2==0 else 7):.1f} "
+            f"{cx + cw*(k+9)/8:.1f},{y_agua:.1f} "
+            for k in range(8)
+        ])
+        + f"L {cx + cw*2},{TK_BOTTOM} L {cx},{TK_BOTTOM} Z"
+    )
+
     html = f"""
 <style>
-  @keyframes wave-move {{
-    0%   {{ transform: translateX(0); }}
-    100% {{ transform: translateX(-50%); }}
-  }}
-  @keyframes nivel-subir {{
-    0%  {{ transform: translateY(4px); }}
-    50% {{ transform: translateY(-4px); }}
-    100%{{ transform: translateY(4px); }}
-  }}
-  @keyframes nivel-bajar {{
-    0%  {{ transform: translateY(-4px); }}
-    50% {{ transform: translateY(4px); }}
-    100%{{ transform: translateY(-4px); }}
-  }}
-  @keyframes nivel-estable {{
-    0%  {{ transform: translateY(0px); }}
-    50% {{ transform: translateY(1px); }}
-    100%{{ transform: translateY(0px); }}
-  }}
-  @keyframes burbuja {{
-    0%   {{ cy: 330px; opacity: 0.7; r: 3px; }}
-    100% {{ cy: 60px;  opacity: 0;   r: 1px; }}
-  }}
-  .nivel-anim-subiendo  {{ animation: nivel-subir   3s ease-in-out infinite; }}
-  .nivel-anim-bajando   {{ animation: nivel-bajar    3s ease-in-out infinite; }}
-  .nivel-anim-estable   {{ animation: nivel-estable  4s ease-in-out infinite; }}
- 
-  .tanque-card {{
-    background: linear-gradient(160deg, #f0f8ff 0%, #e4f1fc 100%);
-    border: 1.5px solid #c5ddf0;
-    border-radius: 20px;
-    padding: 1.2rem 1rem 1rem 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-shadow: 0 8px 32px rgba(10,30,60,0.10);
-    font-family: 'Inter', sans-serif;
-  }}
-  .tanque-titulo {{
-    font-size: 0.85rem; font-weight: 800; color: #0b4f6c;
-    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem;
-  }}
-  .tanque-layout {{
-    display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;
-    justify-content: center; flex-wrap: wrap;
-  }}
-  .tanque-svg-wrap {{
-    position: relative;
-    flex-shrink: 0;
-  }}
-  .tanque-info {{
-    display: flex; flex-direction: column; gap: 0.7rem; min-width: 200px;
-  }}
-  .info-badge {{
-    background: white;
-    border: 1px solid #dce9f7;
-    border-radius: 14px;
-    padding: 0.7rem 1rem;
-    font-size: 0.82rem;
-    color: #0a1628;
-    box-shadow: 0 2px 8px rgba(10,22,40,0.06);
-  }}
-  .info-badge .ib-label {{
-    font-size: 0.68rem; font-weight: 700; color: #5a7899;
-    text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;
-  }}
-  .info-badge .ib-valor {{
-    font-size: 1.05rem; font-weight: 800; color: #0d2347;
-  }}
-  .info-badge .ib-sub {{
-    font-size: 0.72rem; color: #8aabca; margin-top: 1px;
-  }}
-  .estado-pill {{
-    display: inline-block;
-    background: {estado_color}22;
-    border: 1.5px solid {estado_color};
-    color: {estado_color};
-    font-weight: 800; font-size: 0.78rem;
-    padding: 0.3rem 0.9rem; border-radius: 999px;
-    text-align: center; letter-spacing: 0.5px;
-    margin-bottom: 0.3rem;
-  }}
+@keyframes wave-move {{
+  0%   {{ transform: translateX(0); }}
+  100% {{ transform: translateX(-50%); }}
+}}
+@keyframes nivel-subir {{
+  0%  {{ transform: translateY(4px); }}
+  50% {{ transform: translateY(-4px); }}
+  100%{{ transform: translateY(4px); }}
+}}
+@keyframes nivel-bajar {{
+  0%  {{ transform: translateY(-4px); }}
+  50% {{ transform: translateY(4px); }}
+  100%{{ transform: translateY(-4px); }}
+}}
+@keyframes nivel-estable {{
+  0%  {{ transform: translateY(0); }}
+  50% {{ transform: translateY(1px); }}
+  100%{{ transform: translateY(0); }}
+}}
+@keyframes burbuja {{
+  0%   {{ cy:{TK_BOTTOM}px; opacity:0.7; r:3px; }}
+  100% {{ cy:{TK_Y}px;       opacity:0;   r:1px; }}
+}}
+
+/* ── Contenedor principal: bloque completo, sin overflow hidden ── */
+.tk-wrap {{
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(160deg, #f0f8ff 0%, #e4f1fc 100%);
+  border: 1.5px solid #c5ddf0;
+  border-radius: 20px;
+  padding: 1.2rem 1.2rem 1.4rem 1.2rem;
+  box-shadow: 0 8px 32px rgba(10,30,60,0.10);
+  width: 100%;
+  overflow: visible;         /* ← nunca recortar */
+  box-sizing: border-box;
+}}
+
+.tk-titulo {{
+  font-size: 0.85rem; font-weight: 800; color: #0b4f6c;
+  letter-spacing: 1px; text-transform: uppercase;
+  text-align: center; margin-bottom: 0.4rem;
+}}
+
+.tk-estado {{
+  display: inline-block;
+  background: {estado_color}22;
+  border: 1.5px solid {estado_color};
+  color: {estado_color};
+  font-weight: 800; font-size: 0.78rem;
+  padding: 0.25rem 0.9rem; border-radius: 999px;
+  text-align: center; letter-spacing: 0.5px;
+  margin: 0 auto 0.9rem auto;
+  display: block; width: fit-content;
+}}
+
+/* SVG completamente responsivo */
+.tk-svg-wrap {{
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  overflow: visible;
+}}
+.tk-svg-wrap svg {{
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}}
+
+/* Grid de info debajo del SVG, fluye naturalmente */
+.tk-info-grid {{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+  width: 100%;
+}}
+
+.tk-badge {{
+  background: white;
+  border: 1px solid #dce9f7;
+  border-radius: 14px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  color: #0a1628;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.06);
+  min-width: 0;
+}}
+.tk-badge .lbl {{
+  font-size: 0.67rem; font-weight: 700; color: #5a7899;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  display: block; margin-bottom: 2px;
+}}
+.tk-badge .val {{
+  font-size: 1.0rem; font-weight: 800; color: #0d2347;
+  word-break: break-word;
+}}
+.tk-badge .sub {{
+  font-size: 0.71rem; color: #8aabca; margin-top: 1px;
+}}
 </style>
- 
-<div class="tanque-card">
-  <div class="tanque-titulo">🏗️ Estado del Tanque — {hora_actual_str}</div>
-  <div class="estado-pill">{estado_texto}</div>
- 
-  <div class="tanque-layout">
- 
-    <!-- SVG TANQUE -->
-    <div class="tanque-svg-wrap">
-      <svg width="320" height="400" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <!-- Gradiente agua -->
-          <linearGradient id="gradAgua" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stop-color="{agua_color2}" stop-opacity="0.95"/>
-            <stop offset="100%" stop-color="{agua_color1}" stop-opacity="1"/>
-          </linearGradient>
-          <!-- Gradiente cuerpo tanque -->
-          <linearGradient id="gradTanque" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#d0e8f5"/>
-            <stop offset="30%"  stop-color="#eaf4fc"/>
-            <stop offset="70%"  stop-color="#eaf4fc"/>
-            <stop offset="100%" stop-color="#b8d4e8"/>
-          </linearGradient>
-          <!-- Sombra reflejo interior -->
-          <linearGradient id="gradReflejo" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="rgba(255,255,255,0)" />
-            <stop offset="20%"  stop-color="rgba(255,255,255,0.35)" />
-            <stop offset="40%"  stop-color="rgba(255,255,255,0)" />
-          </linearGradient>
-          <!-- Clip para el agua dentro del tanque -->
-          <clipPath id="clipTanque">
-            <rect x="{TK_X+3}" y="{TK_Y}" width="{TK_W-6}" height="{TK_H}"/>
-          </clipPath>
-          <!-- Filtro sombra suave -->
-          <filter id="sombra" x="-5%" y="-5%" width="110%" height="110%">
-            <feDropShadow dx="3" dy="6" stdDeviation="6" flood-color="#0a1628" flood-opacity="0.18"/>
-          </filter>
-        </defs>
- 
-        <!-- ── CUERPO TANQUE ── -->
-        <!-- Sombra externa -->
-        <rect x="{TK_X+6}" y="{TK_Y+6}" width="{TK_W}" height="{TK_H+20}"
-              rx="12" ry="12" fill="rgba(10,30,60,0.12)"/>
- 
-        <!-- Pared exterior -->
-        <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H+20}"
-              rx="12" ry="12" fill="url(#gradTanque)"
-              stroke="#8ab4cc" stroke-width="2.5" filter="url(#sombra)"/>
- 
-        <!-- ── AGUA (con clip) ── -->
-        <g clip-path="url(#clipTanque)" class="nivel-anim-{anim_dir}">
-          <!-- Bloque sólido de agua -->
-          <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
-                height="{TK_BOTTOM - y_agua:.1f}"
-                fill="url(#gradAgua)" opacity="0.92"/>
- 
-          <!-- Ola animada superior -->
-          <g style="animation: wave-move 2.8s linear infinite;">
-            <path d="
-              M {TK_X+3},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.125},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*0.25},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.375},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*0.5},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.625},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*0.75},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*0.875},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.0},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.125},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.25},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.375},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.5},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.625},{y_agua - 7:.1f}
-                {TK_X+3 + (TK_W-6)*1.75},{y_agua:.1f}
-              Q {TK_X+3 + (TK_W-6)*1.875},{y_agua + 7:.1f}
-                {TK_X+3 + (TK_W-6)*2.0},{y_agua:.1f}
-              L {TK_X+3 + (TK_W-6)*2.0},{TK_BOTTOM}
-              L {TK_X+3},{TK_BOTTOM} Z"
-              fill="{agua_color2}" opacity="0.55"/>
-          </g>
- 
-          <!-- Reflejo brillante -->
-          <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
-                height="{TK_BOTTOM - y_agua:.1f}"
-                fill="url(#gradReflejo)" opacity="0.6"/>
- 
-          <!-- Burbujas (si está subiendo o estable) -->
-          {"" if tendencia == "bajando" else f'''
-          <circle cx="{TK_X + TK_W*0.3:.0f}" cy="{TK_BOTTOM - 20}" r="3"
-                  fill="rgba(255,255,255,0.6)"
-                  style="animation: burbuja 3.5s ease-in infinite 0s;"/>
-          <circle cx="{TK_X + TK_W*0.6:.0f}" cy="{TK_BOTTOM - 10}" r="2"
-                  fill="rgba(255,255,255,0.5)"
-                  style="animation: burbuja 4.2s ease-in infinite 1s;"/>
-          <circle cx="{TK_X + TK_W*0.45:.0f}" cy="{TK_BOTTOM - 30}" r="2.5"
-                  fill="rgba(255,255,255,0.55)"
-                  style="animation: burbuja 5s ease-in infinite 2s;"/>
-          '''}
+
+<div class="tk-wrap">
+  <div class="tk-titulo">🏗️ Estado del Tanque — {hora_actual_str}</div>
+  <div class="tk-estado">{estado_txt}</div>
+
+  <!-- SVG responsivo -->
+  <div class="tk-svg-wrap">
+    <svg viewBox="0 0 {VB_W} {VB_H}" xmlns="http://www.w3.org/2000/svg"
+         style="overflow:visible;">
+      <defs>
+        <linearGradient id="gAgua" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="{c2}" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="{c1}" stop-opacity="1"/>
+        </linearGradient>
+        <linearGradient id="gTanque" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#d0e8f5"/>
+          <stop offset="35%"  stop-color="#eaf4fc"/>
+          <stop offset="65%"  stop-color="#eaf4fc"/>
+          <stop offset="100%" stop-color="#b8d4e8"/>
+        </linearGradient>
+        <linearGradient id="gReflejo" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stop-color="rgba(255,255,255,0)"/>
+          <stop offset="25%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="50%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <clipPath id="clipTk">
+          <rect x="{TK_X+3}" y="{TK_Y}" width="{TK_W-6}" height="{TK_H}"/>
+        </clipPath>
+      </defs>
+
+      <!-- Sombra cuerpo -->
+      <rect x="{TK_X+6}" y="{TK_Y+6}" width="{TK_W}" height="{TK_H+20}"
+            rx="10" fill="rgba(10,30,60,0.12)"/>
+
+      <!-- Cuerpo tanque -->
+      <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H+20}"
+            rx="10" fill="url(#gTanque)" stroke="#8ab4cc" stroke-width="2.5"/>
+
+      <!-- Agua -->
+      <g clip-path="url(#clipTk)"
+         class="nivel-anim-{"subiendo" if tendencia=="subiendo" else ("bajando" if tendencia=="bajando" else "estable")}">
+
+        <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
+              height="{TK_BOTTOM - y_agua:.1f}"
+              fill="url(#gAgua)" opacity="0.92"/>
+
+        <!-- Ola animada -->
+        <g style="animation:wave-move 2.8s linear infinite;">
+          <path d="{wave_d}" fill="{c2}" opacity="0.5"/>
         </g>
- 
-        <!-- ── LÍNEAS DE REFERENCIA ── -->
-        <!-- Línea rebose -->
-        <line x1="{TK_X - 15}" y1="{y_rebose:.1f}" x2="{TK_X + TK_W + 15}" y2="{y_rebose:.1f}"
-              stroke="#e63946" stroke-width="1.8" stroke-dasharray="6,4" opacity="0.9"/>
-        <text x="{TK_X + TK_W + 18}" y="{y_rebose + 4:.1f}"
-              font-size="9" font-family="Inter,sans-serif" fill="#e63946" font-weight="700">
-          REBOSE {h_rebose:.2f}m
-        </text>
- 
-        <!-- Línea mínima -->
-        <line x1="{TK_X - 15}" y1="{y_minima:.1f}" x2="{TK_X + TK_W + 15}" y2="{y_minima:.1f}"
-              stroke="#f4a261" stroke-width="1.8" stroke-dasharray="6,4" opacity="0.9"/>
-        <text x="{TK_X + TK_W + 18}" y="{y_minima + 4:.1f}"
-              font-size="9" font-family="Inter,sans-serif" fill="#f4a261" font-weight="700">
-          MÍN {h_minima:.2f}m
-        </text>
- 
-        <!-- Etiqueta nivel actual flotante -->
-        <rect x="{TK_X + TK_W//2 - 36:.0f}" y="{y_agua - 28:.1f}" width="72" height="22"
-              rx="11" fill="{agua_color1}" opacity="0.92"/>
-        <text x="{TK_X + TK_W//2:.0f}" y="{y_agua - 13:.1f}"
-              text-anchor="middle" font-size="10" font-family="Inter,sans-serif"
-              fill="white" font-weight="800">
-          {h_actual:.3f} m
-        </text>
- 
-        <!-- ── TAPA SUPERIOR ── -->
-        <rect x="{TK_X - 8}" y="{TK_Y - 10}" width="{TK_W + 16}" height="14"
-              rx="7" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
-        <!-- Tornillos tapa -->
-        <circle cx="{TK_X - 2}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
-        <circle cx="{TK_X + TK_W + 2}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
-        <circle cx="{TK_X + TK_W//2:.0f}" cy="{TK_Y - 3}" r="3" fill="#5a8aa8" stroke="#4a7898" stroke-width="1"/>
- 
-        <!-- ── BASE / PIE ── -->
-        <rect x="{TK_X - 12}" y="{TK_BOTTOM + 20}" width="{TK_W + 24}" height="14"
-              rx="7" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
-        <!-- Patas -->
-        <rect x="{TK_X + 10}" y="{TK_BOTTOM + 34}" width="14" height="28" rx="4"
-              fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
-        <rect x="{TK_X + TK_W - 24}" y="{TK_BOTTOM + 34}" width="14" height="28" rx="4"
-              fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
- 
-        <!-- ── ESCALA LATERAL IZQUIERDA ── -->
-        <line x1="{TK_X - 25}" y1="{TK_Y}" x2="{TK_X - 25}" y2="{TK_BOTTOM}"
-              stroke="#b8d0e4" stroke-width="1.5"/>
-        <!-- Marcas de escala cada 25% -->
-        {"".join([
-            f'<line x1="{TK_X-30}" y1="{TK_Y + i*TK_H//4}" x2="{TK_X-20}" y2="{TK_Y + i*TK_H//4}" stroke="#8ab0c8" stroke-width="1.2"/>'
-            f'<text x="{TK_X-34}" y="{TK_Y + i*TK_H//4 + 4}" text-anchor="end" font-size="8" font-family="Inter,sans-serif" fill="#5a7899">'
-            f'{h_lleno * (1 - i/4):.1f}</text>'
-            for i in range(5)
-        ])}
- 
-        <!-- ── FLECHA TENDENCIA ── -->
-        <text x="{TK_X + TK_W//2:.0f}" y="{TK_BOTTOM + 18}" text-anchor="middle"
-              font-size="13" font-family="Inter,sans-serif" fill="{estado_color}" font-weight="700">
-          {"▲ Subiendo" if tendencia == "subiendo" else ("▼ Bajando" if tendencia == "bajando" else "→ Estable")}
-        </text>
- 
-      </svg>
+
+        <!-- Reflejo -->
+        <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}"
+              height="{TK_BOTTOM - y_agua:.1f}"
+              fill="url(#gReflejo)" opacity="0.55"/>
+
+        {burbujas}
+      </g>
+
+      <!-- Línea rebose -->
+      <line x1="{TK_X-8}" y1="{y_rebose:.1f}" x2="{TK_X+TK_W+8}" y2="{y_rebose:.1f}"
+            stroke="#e63946" stroke-width="1.8" stroke-dasharray="5,3" opacity="0.9"/>
+      <text x="{TK_X+TK_W+12}" y="{y_rebose+4:.1f}"
+            font-size="8.5" font-family="Inter,sans-serif" fill="#e63946" font-weight="700">
+        REBOSE {h_rebose:.2f}m
+      </text>
+
+      <!-- Línea mínima -->
+      <line x1="{TK_X-8}" y1="{y_minima:.1f}" x2="{TK_X+TK_W+8}" y2="{y_minima:.1f}"
+            stroke="#f4a261" stroke-width="1.8" stroke-dasharray="5,3" opacity="0.9"/>
+      <text x="{TK_X+TK_W+12}" y="{y_minima+4:.1f}"
+            font-size="8.5" font-family="Inter,sans-serif" fill="#f4a261" font-weight="700">
+        MÍN {h_minima:.2f}m
+      </text>
+
+      <!-- Etiqueta nivel flotante -->
+      <rect x="{TK_X + TK_W//2 - 32:.0f}" y="{y_agua-26:.1f}" width="64" height="20"
+            rx="10" fill="{c1}" opacity="0.9"/>
+      <text x="{TK_X + TK_W//2:.0f}" y="{y_agua-13:.1f}"
+            text-anchor="middle" font-size="9.5" font-family="Inter,sans-serif"
+            fill="white" font-weight="800">{h_actual:.3f} m</text>
+
+      <!-- Tapa superior -->
+      <rect x="{TK_X-8}" y="{TK_Y-10}" width="{TK_W+16}" height="13"
+            rx="6" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+      <circle cx="{TK_X-1}" cy="{TK_Y-4}" r="2.5" fill="#5a8aa8"/>
+      <circle cx="{TK_X+TK_W+1}" cy="{TK_Y-4}" r="2.5" fill="#5a8aa8"/>
+      <circle cx="{TK_X+TK_W//2}" cy="{TK_Y-4}" r="2.5" fill="#5a8aa8"/>
+
+      <!-- Base -->
+      <rect x="{TK_X-10}" y="{TK_BOTTOM+20}" width="{TK_W+20}" height="13"
+            rx="6" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+      <rect x="{TK_X+8}"        y="{TK_BOTTOM+33}" width="12" height="26"
+            rx="4" fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
+      <rect x="{TK_X+TK_W-20}"  y="{TK_BOTTOM+33}" width="12" height="26"
+            rx="4" fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
+
+      <!-- Escala izquierda -->
+      <line x1="{TK_X-22}" y1="{TK_Y}" x2="{TK_X-22}" y2="{TK_BOTTOM}"
+            stroke="#b8d0e4" stroke-width="1.5"/>
+      {escala_lines}
+
+      <!-- Tendencia -->
+      <text x="{TK_X + TK_W//2:.0f}" y="{TK_BOTTOM+17}"
+            text-anchor="middle" font-size="11" font-family="Inter,sans-serif"
+            fill="{estado_color}" font-weight="700">{flecha}</text>
+
+    </svg>
+  </div>
+
+  <!-- Badges de info en grid responsivo -->
+  <div class="tk-info-grid">
+
+    <div class="tk-badge">
+      <span class="lbl">Hora actual</span>
+      <span class="val">{hora_actual_str}</span>
+      <div class="sub">Lectura más reciente</div>
     </div>
- 
-    <!-- ── PANEL INFO ── -->
-    <div class="tanque-info">
- 
-      <div class="info-badge">
-        <span class="ib-label">Hora actual</span>
-        <span class="ib-valor">{hora_actual_str}</span>
-        <div class="ib-sub">Lectura más reciente</div>
-      </div>
- 
-      <div class="info-badge">
-        <span class="ib-label">Nivel actual</span>
-        <span class="ib-valor" style="color:{estado_color}">{h_actual:.3f} m</span>
-        <div class="ib-sub">{pct_actual:.1f}% del volumen lleno</div>
-      </div>
- 
-      <div class="info-badge">
-        <span class="ib-label">Caudal neto</span>
-        <span class="ib-valor">{signo_neto}{Q_neto_Ls:.2f} L/s</span>
-        <div class="ib-sub">{flecha_icono} {"nivel subiendo" if tendencia == "subiendo" else ("nivel bajando" if tendencia == "bajando" else "nivel estable")}</div>
-      </div>
- 
-      <div class="info-badge" style="border-left: 4px solid #e63946;">
-        <span class="ib-label">⏱ Hora estimada de rebose</span>
-        <span class="ib-valor" style="color:#e63946">{txt_rebose}</span>
-        <div class="ib-sub">Límite: {h_rebose:.2f} m</div>
-      </div>
- 
-      <div class="info-badge" style="border-left: 4px solid #f4a261;">
-        <span class="ib-label">⏱ Hora estimada de mínimo</span>
-        <span class="ib-valor" style="color:#f4a261">{txt_minimo}</span>
-        <div class="ib-sub">Límite: {h_minima:.2f} m</div>
-      </div>
- 
+
+    <div class="tk-badge">
+      <span class="lbl">Nivel actual</span>
+      <span class="val" style="color:{estado_color}">{h_actual:.3f} m</span>
+      <div class="sub">{pct_actual:.1f}% del volumen</div>
     </div>
+
+    <div class="tk-badge">
+      <span class="lbl">Caudal neto</span>
+      <span class="val">{signo}{Q_neto_Ls:.2f} L/s</span>
+      <div class="sub">{"Nivel subiendo" if tendencia=="subiendo" else ("Nivel bajando" if tendencia=="bajando" else "Nivel estable")}</div>
+    </div>
+
+    <div class="tk-badge" style="border-left:4px solid #e63946;">
+      <span class="lbl">⏱ Hora rebose</span>
+      <span class="val" style="color:#e63946">{txt_rebose}</span>
+      <div class="sub">Límite: {h_rebose:.2f} m</div>
+    </div>
+
+    <div class="tk-badge" style="border-left:4px solid #f4a261;">
+      <span class="lbl">⏱ Hora mínimo</span>
+      <span class="val" style="color:#f4a261">{txt_minimo}</span>
+      <div class="sub">Límite: {h_minima:.2f} m</div>
+    </div>
+
   </div>
 </div>
 """
     return html
- 
- 
+
+
 # =========================================
 # CALCULADORA DE CONSUMO PAC
 # =========================================
 def mostrar_calculadora_pac():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>💧 Calculadora de PAC</div>", unsafe_allow_html=True)
- 
+
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
     Registra uno o varios periodos de consumo para calcular automáticamente el consumo total de PAC,
@@ -1066,17 +1014,17 @@ def mostrar_calculadora_pac():
     Si la hora final es menor que la inicial, se asume cruce a la madrugada del día siguiente.
     </p>
     """, unsafe_allow_html=True)
- 
+
     tanques = {
         "TQ1 - 10000 L": {"area": 2.6267, "radio": 0.9144},
         "TQ2 - 10000 L": {"area": 2.6746, "radio": 0.9227},
         "TQ3 - 15000 L": {"area": 3.8484, "radio": 1.1068}
     }
- 
+
     tanque       = st.selectbox("Selecciona el tanque de PAC", list(tanques.keys()), key="calc_tanque")
     area_tanque  = tanques[tanque]["area"]
     radio_tanque = tanques[tanque]["radio"]
- 
+
     st.markdown(f"""
     <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
         <div style="background:#f0f6ff;border:1px solid #dce9f7;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#0d2347">
@@ -1089,7 +1037,7 @@ def mostrar_calculadora_pac():
         </div>
     </div>
     """, unsafe_allow_html=True)
- 
+
     def normalizar_hora(valor):
         if pd.isna(valor):
             return None
@@ -1114,22 +1062,22 @@ def mostrar_calculadora_pac():
                 return None
             return f"{h:02d}:{m:02d}"
         return None
- 
+
     def hora_a_minutos(hora_str):
         hora_normal = normalizar_hora(hora_str)
         if hora_normal is None:
             return np.nan
         h, m = hora_normal.split(":")
         return int(h) * 60 + int(m)
- 
+
     tabla_inicial = pd.DataFrame({
         "Hora inicio": ["07:00"], "Hora final": ["08:00"],
         "Caudal PAC (mL/min)": [100.0], "Densidad PAC (g/mL)": [1.33]
     })
- 
+
     if "tabla_consumos_pac" not in st.session_state:
         st.session_state.tabla_consumos_pac = tabla_inicial.copy()
- 
+
     c_btn1, c_btn2 = st.columns(2)
     with c_btn1:
         if st.button("+ Agregar fila", use_container_width=True, key="btn_fila_base"):
@@ -1143,14 +1091,15 @@ def mostrar_calculadora_pac():
         if st.button("🗑 Limpiar tabla", use_container_width=True, key="btn_limpiar_tabla"):
             st.session_state.tabla_consumos_pac = tabla_inicial.copy()
             st.rerun()
- 
+
     altura_pasada = st.number_input(
         "Altura actual del tanque (m)", min_value=0.0, value=2.00,
         step=0.01, format="%.2f", key="calc_altura_pasada"
     )
- 
+
     st.markdown("#### Registros de consumo")
- 
+
+    # FIX: no se reasigna session_state tras el data_editor
     tabla_editada = st.data_editor(
         st.session_state.tabla_consumos_pac,
         num_rows="dynamic", use_container_width=True, hide_index=True,
@@ -1162,47 +1111,47 @@ def mostrar_calculadora_pac():
             "Densidad PAC (g/mL)": st.column_config.NumberColumn("Densidad PAC (g/mL)", min_value=0.01, step=0.01, format="%.2f", width="medium"),
         }
     )
- 
+
     df_calc = tabla_editada.copy(deep=True)
- 
+
     if df_calc.empty:
         st.info("Ingresa al menos una fila para ver el cálculo.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
- 
+
     df_calc = df_calc.dropna(how="all").copy()
     if df_calc.empty:
         st.info("Ingresa al menos una fila para ver el cálculo.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
- 
+
     df_calc["Hora inicio"]         = df_calc["Hora inicio"].apply(normalizar_hora)
     df_calc["Hora final"]          = df_calc["Hora final"].apply(normalizar_hora)
     df_calc["Caudal PAC (mL/min)"] = pd.to_numeric(df_calc["Caudal PAC (mL/min)"], errors="coerce")
     df_calc["Densidad PAC (g/mL)"] = pd.to_numeric(df_calc["Densidad PAC (g/mL)"], errors="coerce")
     df_calc["Min inicio"]          = df_calc["Hora inicio"].apply(hora_a_minutos)
     df_calc["Min final"]           = df_calc["Hora final"].apply(hora_a_minutos)
- 
+
     df_validas = df_calc.dropna(subset=[
         "Hora inicio", "Hora final", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)", "Min inicio", "Min final"
     ]).copy()
- 
+
     if df_validas.empty:
         st.info("Completa una fila válida y el cálculo aparecerá automáticamente.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
- 
+
     df_validas = df_validas[
         (df_validas["Min inicio"] >= 0) & (df_validas["Min inicio"] <= 1440) &
         (df_validas["Min final"]  >= 0) & (df_validas["Min final"]  <= 1440) &
         (df_validas["Caudal PAC (mL/min)"] >= 0) & (df_validas["Densidad PAC (g/mL)"] > 0)
     ].copy()
- 
+
     if df_validas.empty:
         st.error("Revisa los datos. La densidad debe ser mayor que cero y las horas deben ser válidas.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
- 
+
     df_validas["Tiempo (min)"] = np.where(
         df_validas["Min final"] >= df_validas["Min inicio"],
         df_validas["Min final"] - df_validas["Min inicio"],
@@ -1213,12 +1162,12 @@ def mostrar_calculadora_pac():
     df_validas["Volumen consumido (m³)"] = df_validas["Consumo (kg)"] / (df_validas["Densidad PAC (g/mL)"] * 1000)
     df_validas["Descenso altura (m)"]    = df_validas["Volumen consumido (m³)"] / area_tanque
     df_validas["Altura estimada (m)"]    = (altura_pasada - df_validas["Descenso altura (m)"].cumsum()).clip(lower=0)
- 
+
     consumo_total_g  = df_validas["Consumo (g)"].sum()
     consumo_total_kg = df_validas["Consumo (kg)"].sum()
     descenso_total_m = df_validas["Descenso altura (m)"].sum()
     altura_actual    = max(altura_pasada - descenso_total_m, 0)
- 
+
     df_mostrar = df_validas.copy()
     df_mostrar.insert(0, "No.", range(1, len(df_mostrar) + 1))
     df_mostrar = df_mostrar[[
@@ -1226,16 +1175,16 @@ def mostrar_calculadora_pac():
         "Caudal PAC (mL/min)", "Densidad PAC (g/mL)",
         "Consumo (g)", "Consumo (kg)", "Descenso altura (m)", "Altura estimada (m)"
     ]]
- 
+
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>📊 Resultados</div>", unsafe_allow_html=True)
- 
+
     r1, r2, r3, r4 = st.columns(4)
     r1.metric("Consumo total (g)",         f"{consumo_total_g:,.2f}")
     r2.metric("Consumo total (kg)",        f"{consumo_total_kg:.4f}")
     r3.metric("Descenso de nivel (m)",     f"{descenso_total_m:.4f}")
     r4.metric("Altura estimada actual (m)", f"{altura_actual:.4f}")
- 
+
     st.subheader("Detalle por registro")
     st.dataframe(
         df_mostrar.style.format({
@@ -1245,7 +1194,7 @@ def mostrar_calculadora_pac():
         }),
         use_container_width=True
     )
- 
+
     if len(df_mostrar) > 1:
         alturas = [altura_pasada] + list(df_mostrar["Altura estimada (m)"])
         labels  = ["Inicio"] + [f"Reg. {i}" for i in range(1, len(df_mostrar) + 1)]
@@ -1265,7 +1214,7 @@ def mostrar_calculadora_pac():
             margin=dict(l=20, r=20, t=40, b=20), height=300
         )
         st.plotly_chart(fig_altura, use_container_width=True)
- 
+
     st.markdown(f"""
     <div class="caja-rango">
         <b>Resumen final</b><br>
@@ -1275,7 +1224,7 @@ def mostrar_calculadora_pac():
         <b>Altura estimada actual: {altura_actual:.4f} m</b>
     </div>
     """, unsafe_allow_html=True)
- 
+
     st.markdown("""
     <div class="caja-rango" style="border-left-color:#00c8ff">
         <b>Fórmulas aplicadas</b><br>
@@ -1287,17 +1236,17 @@ def mostrar_calculadora_pac():
         </span>
     </div>
     """, unsafe_allow_html=True)
- 
+
     st.markdown("</div>", unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
-# CALCULADORA DE TANQUE DE AGUA  (MEJORADA)
+# CALCULADORA DE TANQUE DE AGUA
 # =========================================
 def mostrar_calculadora_tanque():
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown("<div class='etiqueta'>🏗️ Calculadora de Tanque de Agua</div>", unsafe_allow_html=True)
- 
+
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
     Ingresa los datos del tanque y dos lecturas de nivel con su <b>hora exacta</b> (formato 24 h, ej. <code>08:30</code>).
@@ -1305,13 +1254,13 @@ def mostrar_calculadora_tanque():
     <b>hora estimada</b> en que el tanque llegará al rebose o al mínimo operativo.
     </p>
     """, unsafe_allow_html=True)
- 
+
     col_iz, col_der = st.columns([1, 1.6], gap="large")
- 
+
     with col_iz:
         st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-mini'>📐 Geometría del tanque</div>", unsafe_allow_html=True)
- 
+
         volumen_total = st.number_input(
             "Volumen total del tanque (m³)",
             min_value=1.0, value=1350.0, step=10.0, format="%.2f",
@@ -1322,9 +1271,9 @@ def mostrar_calculadora_tanque():
             min_value=0.01, value=2.85, step=0.01, format="%.2f",
             key="tanq_altura_lleno"
         )
- 
+
         area_equiv = volumen_total / altura_lleno if altura_lleno > 0 else 0.0
- 
+
         st.markdown(f"""
         <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
              padding:0.7rem 1.1rem;font-size:0.87rem;color:#0d2347;margin:0.6rem 0 0.9rem 0">
@@ -1335,9 +1284,9 @@ def mostrar_calculadora_tanque():
             <span style="color:#5a7899;font-size:0.8rem"> = {volumen_total:.1f} m³ ÷ {altura_lleno:.2f} m</span>
         </div>
         """, unsafe_allow_html=True)
- 
+
         st.markdown("<div class='titulo-mini'>⚙️ Límites operativos</div>", unsafe_allow_html=True)
- 
+
         altura_rebose = st.number_input(
             "Altura límite de rebose (m)",
             min_value=0.01, value=2.85, step=0.01, format="%.2f",
@@ -1348,49 +1297,47 @@ def mostrar_calculadora_tanque():
             min_value=0.0, value=1.00, step=0.01, format="%.2f",
             key="tanq_altura_minima"
         )
- 
+
         st.markdown("</div>", unsafe_allow_html=True)
- 
-        # ── Lecturas con hora en vez de intervalo de minutos ──────────────
+
         st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-mini'>🕐 Lecturas de nivel (hora formato 24 h)</div>", unsafe_allow_html=True)
- 
+
         st.markdown("""
         <p style="color:#5a7899;font-size:0.82rem;margin-bottom:0.7rem">
         Ingresa la hora de cada lectura en formato <b>HH:MM</b> (ej. <code>07:00</code>, <code>14:30</code>).
         Si la lectura actual es del día siguiente, el sistema lo maneja automáticamente.
         </p>
         """, unsafe_allow_html=True)
- 
-        hora_antes_txt  = st.text_input("Hora de la lectura anterior",  value="07:00", key="tanq_hora_antes",
-                                         help="Formato 24 h — ej. 07:00 ó 14:30")
+
+        hora_antes_txt  = st.text_input("Hora de la lectura anterior", value="07:00",
+                                         key="tanq_hora_antes", help="Formato 24 h — ej. 07:00 ó 14:30")
         altura_antes    = st.number_input("Altura en la lectura anterior (m)",
                                            min_value=0.0, value=1.50, step=0.01, format="%.2f",
                                            key="tanq_altura_antes")
- 
-        hora_actual_txt = st.text_input("Hora de la lectura actual",  value="08:00", key="tanq_hora_actual",
-                                         help="Formato 24 h — ej. 08:00 ó 15:00")
+
+        hora_actual_txt = st.text_input("Hora de la lectura actual", value="08:00",
+                                         key="tanq_hora_actual", help="Formato 24 h — ej. 08:00 ó 15:00")
         altura_actual   = st.number_input("Altura en la lectura actual (m)",
                                            min_value=0.0, value=1.70, step=0.01, format="%.2f",
                                            key="tanq_altura_actual")
- 
+
         st.markdown("</div>", unsafe_allow_html=True)
- 
+
         st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-mini'>🚰 Caudal de salida</div>", unsafe_allow_html=True)
- 
+
         caudal_salida_ls = st.number_input(
             "Caudal de salida (L/s)",
             min_value=0.0, value=30.0, step=0.5, format="%.2f",
             key="tanq_caudal_salida"
         )
         st.markdown("</div>", unsafe_allow_html=True)
- 
+
     with col_der:
         st.markdown("<div class='subtitulo-panel'>Resultados del análisis</div>", unsafe_allow_html=True)
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
-        # ── Validaciones ──────────────────────────────────────────────────
+
         errores = []
         if altura_lleno <= 0:
             errores.append("La altura del tanque lleno debe ser mayor que cero.")
@@ -1398,37 +1345,34 @@ def mostrar_calculadora_tanque():
             errores.append("La altura de rebose no puede superar la altura cuando el tanque está lleno.")
         if altura_minima >= altura_rebose:
             errores.append("La altura mínima debe ser menor que la altura de rebose.")
- 
-        # Parsear horas
+
         min_antes  = parse_hora(hora_antes_txt)
         min_actual = parse_hora(hora_actual_txt)
- 
+
         if min_antes is None:
             errores.append(f"Hora anterior inválida: '{hora_antes_txt}'. Usa formato HH:MM (ej. 07:00).")
         if min_actual is None:
             errores.append(f"Hora actual inválida: '{hora_actual_txt}'. Usa formato HH:MM (ej. 08:30).")
- 
+
         if errores:
             for e in errores:
                 st.error(e)
             st.markdown("</div>", unsafe_allow_html=True)
             return
- 
-        # Calcular delta_t en minutos (si la hora actual < hora anterior → cruce de medianoche)
+
         if min_actual >= min_antes:
             delta_t_min = min_actual - min_antes
         else:
             delta_t_min = (1440 - min_antes) + min_actual
- 
+
         if delta_t_min == 0:
             st.error("Las dos horas son iguales. Ingresa horas distintas.")
             st.markdown("</div>", unsafe_allow_html=True)
             return
- 
+
         hora_antes_str  = minutos_a_hora_str(min_antes)
         hora_actual_str = minutos_a_hora_str(min_actual)
- 
-        # ── Cálculos ──────────────────────────────────────────────────────
+
         delta_t_s    = delta_t_min * 60
         delta_h      = altura_actual - altura_antes
         Q_neto_m3s   = area_equiv * delta_h / delta_t_s
@@ -1436,54 +1380,48 @@ def mostrar_calculadora_tanque():
         Q_entrada_Ls = caudal_salida_ls + Q_neto_Ls
         Q_entrada_m3h = Q_entrada_Ls * 3.6
         Q_salida_m3h  = caudal_salida_ls * 3.6
- 
-        tendencia = "subiendo" if delta_h > 0 else ("bajando" if delta_h < 0 else "estable")
+
+        tendencia     = "subiendo" if delta_h > 0 else ("bajando" if delta_h < 0 else "estable")
         tendencia_txt = "🔼 Subiendo" if delta_h > 0 else ("🔽 Bajando" if delta_h < 0 else "➡️ Estable")
- 
-        # ── Hora de llegada a límites ─────────────────────────────────────
-        def minutos_a_hora_futura(min_base, delta_min):
-            """Suma delta_min (puede ser float) al minuto base y devuelve 'HH:MM'."""
-            total = (min_base + int(round(delta_min))) % 1440
-            return minutos_a_hora_str(total)
- 
+
         hora_rebose_str = None
         hora_minimo_str = None
         t_rebose_min    = None
         t_minimo_min    = None
- 
+
         if Q_neto_Ls > 0:
-            dh_rebose    = altura_rebose - altura_actual
-            t_rebose_s   = (area_equiv * dh_rebose) / Q_neto_m3s if Q_neto_m3s > 0 else None
+            dh_rebose  = altura_rebose - altura_actual
+            t_rebose_s = (area_equiv * dh_rebose) / Q_neto_m3s if Q_neto_m3s > 0 else None
             if t_rebose_s is not None and t_rebose_s >= 0:
-                t_rebose_min   = t_rebose_s / 60
+                t_rebose_min    = t_rebose_s / 60
                 hora_rebose_str = minutos_a_hora_futura(min_actual, t_rebose_min)
- 
+
         if Q_neto_Ls < 0:
-            dh_minimo    = altura_actual - altura_minima
-            t_minimo_s   = (area_equiv * dh_minimo) / abs(Q_neto_m3s) if Q_neto_m3s != 0 else None
+            dh_minimo  = altura_actual - altura_minima
+            t_minimo_s = (area_equiv * dh_minimo) / abs(Q_neto_m3s) if Q_neto_m3s != 0 else None
             if t_minimo_s is not None and t_minimo_s >= 0:
-                t_minimo_min   = t_minimo_s / 60
+                t_minimo_min    = t_minimo_s / 60
                 hora_minimo_str = minutos_a_hora_futura(min_actual, t_minimo_min)
- 
+
         # ── Métricas ──────────────────────────────────────────────────────
         m1, m2 = st.columns(2)
         m1.metric("Intervalo entre lecturas", f"{delta_t_min:.0f} min")
         m2.metric("Tendencia", tendencia_txt)
- 
+
         m3, m4 = st.columns(2)
         m3.metric("Variación de nivel", f"{delta_h:+.4f} m")
-        m4.metric("Caudal neto", f"{Q_neto_Ls:+.2f} L/s")
- 
+        m4.metric("Caudal neto",        f"{Q_neto_Ls:+.2f} L/s")
+
         m5, m6 = st.columns(2)
         m5.metric("Caudal entrada est. (L/s)", f"{Q_entrada_Ls:.2f}")
         m6.metric("Caudal entrada (m³/h)",     f"{Q_entrada_m3h:.2f}")
- 
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
+
         # ── Horas estimadas ───────────────────────────────────────────────
         st.markdown("<div class='titulo-seccion-resultado'>⏱️ Horas estimadas de llegada a límites</div>",
                     unsafe_allow_html=True)
- 
+
         def fmt_tiempo_hm(min_float):
             if min_float is None:
                 return None
@@ -1495,29 +1433,29 @@ def mostrar_calculadora_tanque():
                 partes.append(f"{h} h")
             partes.append(f"{m} min")
             return " ".join(partes)
- 
+
         t1, t2 = st.columns(2)
- 
+
         with t1:
             if hora_rebose_str is not None:
-                t_min_val = t_rebose_min if t_rebose_min else 0
-                color_r = "#e63946" if t_min_val < 60 else ("#f4a261" if t_min_val < 180 else "#2a9d8f")
+                t_val = t_rebose_min if t_rebose_min else 0
+                col_r = "#e63946" if t_val < 60 else ("#f4a261" if t_val < 180 else "#2a9d8f")
                 st.markdown(f"""
                 <div style="background:linear-gradient(135deg,#fff5f5,#ffe8e8);
-                     border-left:5px solid {color_r};border-radius:14px;
+                     border-left:5px solid {col_r};border-radius:14px;
                      padding:1rem 1.2rem;margin-bottom:0.6rem">
                     <div style="font-size:0.72rem;font-weight:700;color:#888;
                          text-transform:uppercase;margin-bottom:4px">
                         Llegada a rebose ({altura_rebose:.2f} m)
                     </div>
-                    <div style="font-size:1.6rem;font-weight:800;color:{color_r}">
+                    <div style="font-size:1.6rem;font-weight:800;color:{col_r}">
                         🕐 {hora_rebose_str}
                     </div>
                     <div style="font-size:0.8rem;color:#888;margin-top:3px">
                         En {fmt_tiempo_hm(t_rebose_min)} · desde {hora_actual_str}
                     </div>
                     <div style="font-size:0.78rem;color:#aaa;margin-top:2px">
-                        Nivel actual → {altura_actual:.2f} m → {altura_rebose:.2f} m
+                        {altura_actual:.2f} m → {altura_rebose:.2f} m
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1527,30 +1465,32 @@ def mostrar_calculadora_tanque():
                      border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
                     <div style="font-size:0.72rem;font-weight:700;color:#888;
                          text-transform:uppercase;margin-bottom:4px">Llegada a rebose</div>
-                    <div style="font-size:1rem;color:#5a7899">No aplica — el nivel está bajando o estable</div>
+                    <div style="font-size:1rem;color:#5a7899">
+                        No aplica — el nivel está bajando o estable
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
- 
+
         with t2:
             if hora_minimo_str is not None:
-                t_min_val = t_minimo_min if t_minimo_min else 0
-                color_m = "#e63946" if t_min_val < 60 else ("#f4a261" if t_min_val < 180 else "#2a9d8f")
+                t_val = t_minimo_min if t_minimo_min else 0
+                col_m = "#e63946" if t_val < 60 else ("#f4a261" if t_val < 180 else "#2a9d8f")
                 st.markdown(f"""
                 <div style="background:linear-gradient(135deg,#fff8f0,#ffedd8);
-                     border-left:5px solid {color_m};border-radius:14px;
+                     border-left:5px solid {col_m};border-radius:14px;
                      padding:1rem 1.2rem;margin-bottom:0.6rem">
                     <div style="font-size:0.72rem;font-weight:700;color:#888;
                          text-transform:uppercase;margin-bottom:4px">
                         Llegada a mínimo ({altura_minima:.2f} m)
                     </div>
-                    <div style="font-size:1.6rem;font-weight:800;color:{color_m}">
+                    <div style="font-size:1.6rem;font-weight:800;color:{col_m}">
                         🕐 {hora_minimo_str}
                     </div>
                     <div style="font-size:0.8rem;color:#888;margin-top:3px">
                         En {fmt_tiempo_hm(t_minimo_min)} · desde {hora_actual_str}
                     </div>
                     <div style="font-size:0.78rem;color:#aaa;margin-top:2px">
-                        Nivel actual → {altura_actual:.2f} m → {altura_minima:.2f} m
+                        {altura_actual:.2f} m → {altura_minima:.2f} m
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1560,165 +1500,144 @@ def mostrar_calculadora_tanque():
                      border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
                     <div style="font-size:0.72rem;font-weight:700;color:#888;
                          text-transform:uppercase;margin-bottom:4px">Llegada a mínimo</div>
-                    <div style="font-size:1rem;color:#5a7899">No aplica — el nivel está subiendo o estable</div>
+                    <div style="font-size:1rem;color:#5a7899">
+                        No aplica — el nivel está subiendo o estable
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
- 
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
-        # ── TANQUE SVG ANIMADO ─────────────────────────────────────────────
+
+        # ── TANQUE SVG ────────────────────────────────────────────────────
         st.markdown("<div class='titulo-seccion-resultado'>🏗️ Visualización del Tanque</div>",
                     unsafe_allow_html=True)
- 
+
         tanque_html = generar_tanque_svg(
-            h_actual        = altura_actual,
-            h_rebose        = altura_rebose,
-            h_minima        = altura_minima,
-            h_lleno         = altura_lleno,
-            hora_actual_str = hora_actual_str,
-            hora_rebose_str = hora_rebose_str,
-            hora_minimo_str = hora_minimo_str,
-            tendencia       = tendencia,
-            Q_neto_Ls       = Q_neto_Ls,
+            h_actual=altura_actual, h_rebose=altura_rebose,
+            h_minima=altura_minima, h_lleno=altura_lleno,
+            hora_actual_str=hora_actual_str,
+            hora_rebose_str=hora_rebose_str,
+            hora_minimo_str=hora_minimo_str,
+            tendencia=tendencia, Q_neto_Ls=Q_neto_Ls,
         )
         st.markdown(tanque_html, unsafe_allow_html=True)
- 
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
-        # ── Gráfica proyección en horas reales ────────────────────────────
+
+        # ── Gráfica proyección ────────────────────────────────────────────
         st.markdown("<div class='titulo-seccion-resultado'>📈 Proyección del nivel — próximas 6 horas</div>",
                     unsafe_allow_html=True)
- 
-        # Proyectar en pasos de 10 min (36 pasos = 6 horas)
-        pasos_min = list(range(0, 361, 10))
-        horas_proj = []
+
+        pasos_min    = list(range(0, 361, 10))
+        horas_proj   = []
         niveles_proj = []
         for p in pasos_min:
             h_proj = altura_actual + Q_neto_m3s * (p * 60) / area_equiv
             h_proj = max(0.0, h_proj)
             niveles_proj.append(round(h_proj, 4))
             horas_proj.append(minutos_a_hora_futura(min_actual, p))
- 
+
         fig_tanq = go.Figure()
- 
-        # Banda rebose
+
         fig_tanq.add_hrect(
             y0=altura_rebose, y1=max(altura_rebose * 1.06, altura_rebose + 0.15),
             fillcolor="rgba(230,57,70,0.10)", line_width=0,
             annotation_text="Zona rebose", annotation_position="right"
         )
-        # Banda mínimo
         fig_tanq.add_hrect(
             y0=0, y1=altura_minima,
             fillcolor="rgba(244,162,97,0.10)", line_width=0,
             annotation_text="Zona mínima", annotation_position="right"
         )
         fig_tanq.add_hline(y=altura_rebose, line_dash="dash", line_color="#e63946",
-                           line_width=1.5,
-                           annotation_text=f"Rebose {altura_rebose:.2f} m")
+                           line_width=1.5, annotation_text=f"Rebose {altura_rebose:.2f} m")
         fig_tanq.add_hline(y=altura_minima, line_dash="dash", line_color="#f4a261",
-                           line_width=1.5,
-                           annotation_text=f"Mínimo {altura_minima:.2f} m")
- 
-        # Línea de proyección
+                           line_width=1.5, annotation_text=f"Mínimo {altura_minima:.2f} m")
+
         fig_tanq.add_trace(go.Scatter(
-            x=horas_proj, y=niveles_proj,
-            mode="lines",
-            name="Nivel proyectado",
+            x=horas_proj, y=niveles_proj, mode="lines", name="Nivel proyectado",
             line=dict(color="#1a6fff", width=2.5, shape="spline"),
             fill="tozeroy", fillcolor="rgba(26,111,255,0.06)"
         ))
-        # Punto actual
         fig_tanq.add_trace(go.Scatter(
             x=[hora_actual_str], y=[altura_actual],
             mode="markers", name="Nivel actual",
             marker=dict(size=13, color="#00e5c0", line=dict(color="#0a1628", width=2), symbol="circle")
         ))
- 
-        # Punto de rebose estimado
+
         if hora_rebose_str is not None:
             fig_tanq.add_trace(go.Scatter(
                 x=[hora_rebose_str], y=[altura_rebose],
                 mode="markers+text", name="Hora rebose",
-                text=[f"⚠️ {hora_rebose_str}"],
-                textposition="top center",
+                text=[f"⚠️ {hora_rebose_str}"], textposition="top center",
                 marker=dict(size=12, color="#e63946", line=dict(color="white", width=2), symbol="x")
             ))
- 
-        # Punto de mínimo estimado
+
         if hora_minimo_str is not None:
             fig_tanq.add_trace(go.Scatter(
                 x=[hora_minimo_str], y=[altura_minima],
                 mode="markers+text", name="Hora mínimo",
-                text=[f"⚠️ {hora_minimo_str}"],
-                textposition="bottom center",
+                text=[f"⚠️ {hora_minimo_str}"], textposition="bottom center",
                 marker=dict(size=12, color="#f4a261", line=dict(color="white", width=2), symbol="x")
             ))
- 
+
         fig_tanq.update_layout(
             plot_bgcolor="white", paper_bgcolor="white",
             font=dict(family="Inter", color="#0a1628", size=12),
             xaxis=dict(
-                title="Hora del día",
-                gridcolor="#e8f0fe",
-                linecolor="#dce9f7",
+                title="Hora del día", gridcolor="#e8f0fe", linecolor="#dce9f7",
                 tickangle=-45,
-                # Mostrar solo cada hora (cada 6 pasos de 10 min)
                 tickvals=[horas_proj[i] for i in range(0, len(horas_proj), 6)],
             ),
             yaxis=dict(
-                title="Altura (m)",
-                gridcolor="#e8f0fe",
-                linecolor="#dce9f7",
+                title="Altura (m)", gridcolor="#e8f0fe", linecolor="#dce9f7",
                 range=[0, max(altura_rebose * 1.1, max(niveles_proj) * 1.1)]
             ),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=20, r=70, t=30, b=60),
-            height=380
+            margin=dict(l=20, r=70, t=30, b=60), height=380
         )
         st.plotly_chart(fig_tanq, use_container_width=True)
- 
-        # ── Resumen texto ─────────────────────────────────────────────────
+
+        # ── Resumen ───────────────────────────────────────────────────────
         signo_neto = "+" if Q_neto_Ls >= 0 else ""
         st.markdown(f"""
         <div class="caja-rango">
             <b>Resumen del balance</b><br>
             Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → {hora_actual_str} ({altura_actual:.2f} m) ·
-            Intervalo: {delta_t_min:.0f} min ·
-            Δh = {delta_h:+.4f} m ·
+            Intervalo: {delta_t_min:.0f} min · Δh = {delta_h:+.4f} m ·
             Q neto = {signo_neto}{Q_neto_Ls:.2f} L/s<br>
             Q entrada estimado = <b>{Q_entrada_Ls:.2f} L/s ({Q_entrada_m3h:.1f} m³/h)</b> ·
             Q salida = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)
         </div>
         """, unsafe_allow_html=True)
- 
+
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#00c8ff">
             <b>Fórmulas aplicadas</b><br>
             <span style="color:#3a5270">
             Δt (min) = Hora actual − Hora anterior &nbsp;(cruce de medianoche si necesario)<br>
-            Área equiv. (m²) = Volumen total (m³) ÷ Altura lleno (m)<br>
+            Área equiv. (m²) = Volumen total ÷ Altura lleno<br>
             Q neto (m³/s) = Área × Δh ÷ Δt(s) &nbsp;|&nbsp; Q entrada = Q salida + Q neto<br>
-            t rebose (s) = Área × (h_rebose − h_actual) ÷ Q_neto &nbsp;(si Q_neto > 0)<br>
-            t mínimo (s) = Área × (h_actual − h_min) ÷ |Q_neto| &nbsp;(si Q_neto &lt; 0)<br>
+            t rebose = Área × (h_rebose − h_actual) ÷ Q_neto &nbsp;(si Q_neto &gt; 0)<br>
+            t mínimo = Área × (h_actual − h_min) ÷ |Q_neto| &nbsp;(si Q_neto &lt; 0)<br>
             Hora estimada = Hora actual + tiempo calculado (formato 24 h)
             </span>
         </div>
         """, unsafe_allow_html=True)
- 
+
     st.markdown("</div>", unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
 # FLUJO DE ACCESO
 # =========================================
 if not st.session_state.autenticado:
     mostrar_login()
     st.stop()
- 
+
 st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
 # ENCABEZADO
 # =========================================
@@ -1735,16 +1654,16 @@ st.markdown(f"""
     <div class="header-badge">PTAP · {planta_badge}</div>
 </div>
 """, unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
 # MENU DINAMICO
 # =========================================
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
- 
+
 with st.expander("🧭 Menú principal", expanded=False):
     m1, m2, m3, m4 = st.columns([1, 1, 1, 0.75])
- 
+
     with m1:
         st.markdown("""
         <div class="menu-card">
@@ -1757,7 +1676,7 @@ with st.expander("🧭 Menú principal", expanded=False):
         if st.button("Entrar a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
             st.session_state.vista = "recomendacion"
             st.rerun()
- 
+
     with m2:
         st.markdown("""
         <div class="menu-card">
@@ -1770,7 +1689,7 @@ with st.expander("🧭 Menú principal", expanded=False):
         if st.button("Entrar a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
             st.session_state.vista = "calculadora"
             st.rerun()
- 
+
     with m3:
         st.markdown("""
         <div class="menu-card">
@@ -1783,7 +1702,7 @@ with st.expander("🧭 Menú principal", expanded=False):
         if st.button("Entrar a calculadora de tanque", use_container_width=True, key="btn_ir_tanque"):
             st.session_state.vista = "tanque"
             st.rerun()
- 
+
     with m4:
         st.markdown("""
         <div class="menu-card">
@@ -1798,28 +1717,28 @@ with st.expander("🧭 Menú principal", expanded=False):
             st.session_state.vista          = "menu"
             st.session_state.planta_usuario = None
             st.rerun()
- 
+
 if st.session_state.vista == "menu":
     st.info("Selecciona una herramienta desde el menú desplegable.")
- 
+
 st.markdown("</div>", unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
 # VISTAS
 # =========================================
 if st.session_state.vista == "calculadora":
     mostrar_calculadora_pac()
     st.stop()
- 
+
 if st.session_state.vista == "tanque":
     mostrar_calculadora_tanque()
     st.stop()
- 
+
 if st.session_state.vista != "recomendacion":
     st.stop()
- 
- 
+
+
 # =========================================
 # VISTA RECOMENDACION — panel doble
 # =========================================
@@ -1835,10 +1754,10 @@ def _init_rec_state(config_key):
         st.session_state.rec_densidad   = d["densidad_pac"]
         st.session_state.rec_vecinos    = 8
         st.session_state.rec_resultado  = None
- 
- 
+
+
 col_form, col_result = st.columns([1, 1.85], gap="large")
- 
+
 with col_form:
     st.markdown("<div class='panel-izquierdo'>", unsafe_allow_html=True)
     st.markdown("<div class='subtitulo-panel'>Configuración del análisis</div>", unsafe_allow_html=True)
@@ -1846,9 +1765,9 @@ with col_form:
         "<div class='texto-panel'>Define las condiciones actuales del agua y ejecuta la recomendación.</div>",
         unsafe_allow_html=True
     )
- 
+
     planta_usuario = st.session_state.get("planta_usuario", "Caldas")
- 
+
     if planta_usuario == "Diviso":
         st.markdown(
             "<div style='background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;"
@@ -1866,26 +1785,26 @@ with col_form:
             unsafe_allow_html=True
         )
         config_key = "Caldas"
- 
+
     _init_rec_state(config_key)
- 
+
     st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
- 
+
     st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
     st.markdown("<div class='titulo-mini'>Fuente de datos</div>", unsafe_allow_html=True)
- 
+
     fuente_datos = st.radio(
         "Fuente", ["Usar archivo del sistema", "Subir archivo Excel"],
         horizontal=False, label_visibility="collapsed", key="rec_fuente_datos"
     )
- 
+
     if st.button("Actualizar datos", key="actualizar_datos_lateral", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
- 
+
     df = None
     archivo_excel = CONFIGS[config_key]["archivo"]
- 
+
     if fuente_datos == "Usar archivo del sistema":
         try:
             df = cargar_y_limpiar_excel(archivo_excel, config_key)
@@ -1904,27 +1823,27 @@ with col_form:
                 st.error(f"No se pudo leer el archivo: {e}")
         else:
             st.info("Sube un archivo Excel para continuar.")
- 
+
     if df is not None:
         st.caption(f"{CONFIGS[config_key]['nombre_app']} · Filas útiles: {len(df)}")
- 
+
     st.markdown("</div>", unsafe_allow_html=True)
- 
+
     st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
     st.markdown("<div class='titulo-mini'>Datos del caso actual</div>", unsafe_allow_html=True)
- 
+
     st.number_input("Caudal a tratar (L/s)",           value=st.session_state.rec_caudal,    step=1.0,  key="rec_caudal")
     st.number_input("Turbiedad del agua cruda (UNT)",  value=st.session_state.rec_turbiedad, step=0.1,  key="rec_turbiedad")
     st.number_input("pH del agua cruda",               value=st.session_state.rec_ph,        step=0.01, format="%.2f", key="rec_ph")
     st.number_input("Alcalinidad agua cruda (mg/L)",   value=st.session_state.rec_alc_cruda, step=1.0,  key="rec_alc_cruda")
- 
+
     if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
         st.number_input("Alcalinidad agua encalada (mg/L)", value=st.session_state.rec_alc_enc, step=1.0, key="rec_alc_enc")
- 
+
     st.number_input("Densidad del PAC (g/mL)", value=st.session_state.rec_densidad, step=0.01, format="%.2f", key="rec_densidad")
     st.slider("Registros históricos a evaluar", min_value=5, max_value=30,
               value=st.session_state.rec_vecinos, step=1, key="rec_vecinos")
- 
+
     caudal               = st.session_state.rec_caudal
     turbiedad            = st.session_state.rec_turbiedad
     ph                   = st.session_state.rec_ph
@@ -1932,7 +1851,7 @@ with col_form:
     alcalinidad_encalada = st.session_state.rec_alc_enc if CONFIGS[config_key]["usa_alcalinidad_encalada"] else None
     densidad_pac         = st.session_state.rec_densidad
     vecinos_deseados     = st.session_state.rec_vecinos
- 
+
     if st.button("⚡ Calcular rango PAC", use_container_width=True, key="btn_calcular_panel"):
         if df is not None:
             st.session_state.rec_resultado = calcular_rango_pac(
@@ -1942,15 +1861,15 @@ with col_form:
             )
         else:
             st.session_state.rec_resultado = None
- 
+
     if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_lateral"):
         st.session_state.vista = "menu"
         st.rerun()
- 
+
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
 # PANEL DERECHO — RESULTADOS PAC
 # =========================================
@@ -1961,9 +1880,9 @@ with col_result:
         "<div class='texto-panel'>Aquí verás el resumen, dosis sugeridas, casos históricos similares y la gráfica principal.</div>",
         unsafe_allow_html=True
     )
- 
+
     resultado = st.session_state.get("rec_resultado", None)
- 
+
     if df is None:
         st.info("Primero carga una fuente de datos válida en el panel izquierdo.")
     elif resultado is None:
@@ -1972,13 +1891,13 @@ with col_result:
         st.error(resultado["mensaje"])
     else:
         st.markdown("<div class='titulo-seccion-resultado'>Resumen general</div>", unsafe_allow_html=True)
- 
+
         r1, r2, r3, r4 = st.columns(4)
         r1.metric("Registros usados", resultado["n"])
         r2.metric("PAC promedio",     round(resultado["pac_promedio"], 1))
         r3.metric("PAC mínimo",       round(resultado["pac_min"], 1))
         r4.metric("PAC máximo",       round(resultado["pac_max"], 1))
- 
+
         if resultado.get("tolerancia_usada") is not None:
             tol = resultado["tolerancia_usada"]
             texto_tol = (f"Caudal ±{tol['caudal']} · Turbiedad ±{tol['turb']} · "
@@ -1986,16 +1905,16 @@ with col_result:
             if "alc_enc" in tol:
                 texto_tol += f" · Alc. encalada ±{tol['alc_enc']}"
             st.info(f"Tolerancias del prefiltro: {texto_tol}")
- 
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Dosis sugeridas para prueba de jarras</div>", unsafe_allow_html=True)
         st.caption(f"Densidad PAC usada: {densidad_pac:.2f} g/mL · Caudal a tratar: {caudal:.2f} L/s")
         st.dataframe(resultado["tabla_jarras"], use_container_width=True)
- 
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Registros históricos similares</div>", unsafe_allow_html=True)
         st.markdown("<p style='color:#5a7899;font-size:0.88rem;margin-bottom:0.8rem'>Registros más cercanos al caso actual ordenados por similitud.</p>", unsafe_allow_html=True)
- 
+
         fmt = {
             "Caudal a tratar (L/s)": "{:.1f}", "Turbiedad de agua cruda (UNT)": "{:.1f}",
             "pH de agua cruda": "{:.2f}", "Alcalinidad de agua cruda (mg/L)": "{:.1f}",
@@ -2003,12 +1922,12 @@ with col_result:
         }
         if "Alcalinidad de agua encalada (mg/L)" in resultado["similares_filtrados"].columns:
             fmt["Alcalinidad de agua encalada (mg/L)"] = "{:.1f}"
- 
+
         st.dataframe(resultado["similares_filtrados"].style.format(fmt), use_container_width=True)
- 
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Visualización</div>", unsafe_allow_html=True)
- 
+
         df_grafica = resultado["similares_filtrados"].sort_values("Caudal PAC (mL/min)")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -2034,5 +1953,5 @@ with col_result:
             margin=dict(l=20, r=20, t=50, b=20), height=360
         )
         st.plotly_chart(fig, use_container_width=True)
- 
+
     st.markdown("</div>", unsafe_allow_html=True)
