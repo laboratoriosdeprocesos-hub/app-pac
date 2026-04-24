@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import streamlit.components.v1 as components
 from pathlib import Path
 from datetime import datetime, timedelta
-from sklfearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 
 
@@ -1856,7 +1856,7 @@ def mostrar_calculadora_tanque():
                 line=dict(color="#6c63ff", width=2, dash="dash", shape="spline"),
                 fill="tozeroy", fillcolor="rgba(108,99,255,0.04)"
             ))
-            fig_tanq.add_vline(
+            fig_tanq.add_shape(
                 type="line",
                 x0=hora_efecto_str,
                 x1=hora_efecto_str,
