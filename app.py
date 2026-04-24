@@ -1204,7 +1204,7 @@ def mostrar_calculadora_tanque():
             # -----------------------------------------------------------------
             caudal_entrada_planta_actual = st.number_input(
                 "Caudal actual de entrada a la planta (L/s)",
-                min_value=0.0, value=150.0, step=0.5, format="%.2f",
+                min_value=0.0, value=163.0, step=0.5, format="%.2f",
                 key="tanq_caudal_entrada_planta_actual",
                 help="Cuánto está entrando ahora a la planta (antes de llegar al tanque)."
             )
@@ -1221,7 +1221,7 @@ def mostrar_calculadora_tanque():
                 )
             caudal_salida_ls = st.number_input(
                 "Caudal de salida del tanque (L/s)",
-                min_value=0.0, value=150.0, step=0.5, format="%.2f",
+                min_value=0.0, value=155.0, step=0.5, format="%.2f",
                 key="tanq_caudal_salida"
             )
             caudal_min_salida = st.number_input(
