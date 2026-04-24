@@ -42,7 +42,7 @@ if "planta_usuario" not in st.session_state:
 ESTILOS_GLOBALES = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
- 
+
 :root {
     --azul-deep:   #0a1628;
     --azul-mid:    #0d2347;
@@ -55,24 +55,24 @@ ESTILOS_GLOBALES = """
     --texto-dark:  #0a1628;
     --texto-muted: #5a7899;
 }
- 
+
 * { box-sizing: border-box; }
- 
+
 html, body, .stApp {
     font-family: 'Inter', sans-serif;
     background: #f0f6ff !important;
 }
- 
+
 header { visibility: hidden !important; }
 footer { visibility: hidden !important; }
- 
+
 .block-container {
     padding: 0.6rem 1.2rem 2rem 1.2rem !important;
     max-width: 100% !important;
 }
- 
+
 .main > div { padding-top: 0 !important; }
- 
+
 .app-header {
     background: linear-gradient(135deg, #0a1628 0%, #0d2347 55%, #0f3060 100%);
     border-radius: 20px;
@@ -85,7 +85,7 @@ footer { visibility: hidden !important; }
     position: relative;
     overflow: hidden;
 }
- 
+
 .app-header::before {
     content: "";
     position: absolute;
@@ -94,7 +94,7 @@ footer { visibility: hidden !important; }
     background: radial-gradient(circle, rgba(0,200,255,0.12) 0%, transparent 70%);
     border-radius: 50%;
 }
- 
+
 .app-header::after {
     content: "";
     position: absolute;
@@ -103,190 +103,444 @@ footer { visibility: hidden !important; }
     background: radial-gradient(circle, rgba(0,229,192,0.08) 0%, transparent 70%);
     border-radius: 50%;
 }
- 
+
 .header-logo {
-    font-size: 1.05rem; font-weight: 800; color: var(--cyan);
-    letter-spacing: 3px; text-transform: uppercase; position: relative; z-index: 2;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 2;
 }
- 
+
 .header-title {
-    font-size: 1.35rem; font-weight: 700; color: white;
-    position: relative; z-index: 2; text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: white;
+    position: relative;
+    z-index: 2;
+    text-align: center;
 }
- 
+
 .header-badge {
     background: rgba(0,200,255,0.12);
     border: 1px solid rgba(0,200,255,0.3);
     color: var(--cyan);
-    padding: 0.3rem 1rem; border-radius: 999px;
-    font-size: 0.78rem; font-weight: 600; letter-spacing: 1px;
-    position: relative; z-index: 2;
+    padding: 0.3rem 1rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 2;
 }
- 
+
 .bloque {
-    background: white; padding: 1.4rem 1.6rem; border-radius: 20px;
+    background: white;
+    padding: 1.4rem 1.6rem;
+    border-radius: 20px;
     box-shadow: 0 4px 24px rgba(10,22,40,0.07);
-    border: 1px solid rgba(220,233,247,0.8); margin-bottom: 1.1rem;
+    border: 1px solid rgba(220,233,247,0.8);
+    margin-bottom: 1.1rem;
 }
- 
+
 .bloque-mini {
-    background: #f8fcff; border: 1px solid #e1edf5;
-    border-radius: 16px; padding: 0.95rem; margin-bottom: 0.85rem;
+    background: #f8fcff;
+    border: 1px solid #e1edf5;
+    border-radius: 16px;
+    padding: 0.95rem;
+    margin-bottom: 0.85rem;
 }
- 
-.titulo-mini { font-size: 0.95rem; font-weight: 800; color: #0b4f6c; margin-bottom: 0.4rem; }
- 
+
+.titulo-mini {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0b4f6c;
+    margin-bottom: 0.4rem;
+}
+
 .etiqueta {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    background: linear-gradient(135deg, #e8f4ff, #d6ecff); color: #0d2347;
-    padding: 0.28rem 0.9rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
-    margin-bottom: 0.9rem; letter-spacing: 0.5px; text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: linear-gradient(135deg, #e8f4ff, #d6ecff);
+    color: #0d2347;
+    padding: 0.28rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.9rem;
+    letter-spacing: normal;
+    text-transform: none;
     border: 1px solid rgba(26,111,255,0.15);
 }
- 
+
 .menu-card {
-    background: white; border: 1px solid rgba(220,233,247,0.9); border-radius: 20px;
-    padding: 1.5rem 1.4rem 1.1rem 1.4rem; height: 100%;
-    box-shadow: 0 4px 20px rgba(10,22,40,0.06); position: relative; overflow: hidden;
+    background: white;
+    border: 1px solid rgba(220,233,247,0.9);
+    border-radius: 20px;
+    padding: 1.5rem 1.4rem 1.1rem 1.4rem;
+    height: 100%;
+    box-shadow: 0 4px 20px rgba(10,22,40,0.06);
+    position: relative;
+    overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
- 
+
 .menu-card::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, #1a6fff, #00c8ff); border-radius: 20px 20px 0 0;
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1a6fff, #00c8ff);
+    border-radius: 20px 20px 0 0;
 }
- 
-.menu-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(10,22,40,0.12); }
- 
-.menu-icon { font-size: 2rem; margin-bottom: 0.7rem; display: block; }
-.menu-titulo { font-weight: 700; font-size: 1.08rem; color: #0a1628; margin-bottom: 0.45rem; }
-.menu-texto { font-size: 0.9rem; color: var(--texto-muted); line-height: 1.55; margin-bottom: 1rem; }
- 
+
+.menu-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(10,22,40,0.12);
+}
+
+.menu-icon {
+    font-size: 2rem;
+    margin-bottom: 0.7rem;
+    display: block;
+}
+
+.menu-titulo {
+    font-weight: 700;
+    font-size: 1.08rem;
+    color: #0a1628;
+    margin-bottom: 0.45rem;
+}
+
+.menu-texto {
+    font-size: 0.9rem;
+    color: var(--texto-muted);
+    line-height: 1.55;
+    margin-bottom: 1rem;
+}
+
 .panel-izquierdo {
     background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-    border: 1px solid #dceaf4; border-radius: 22px; padding: 1.1rem 1.1rem 0.9rem 1.1rem;
-    box-shadow: 0 10px 28px rgba(7,62,94,0.08); position: sticky; top: 0.8rem;
+    border: 1px solid #dceaf4;
+    border-radius: 22px;
+    padding: 1.1rem 1.1rem 0.9rem 1.1rem;
+    box-shadow: 0 10px 28px rgba(7,62,94,0.08);
+    position: sticky;
+    top: 0.8rem;
 }
- 
+
 .panel-derecho {
-    background: rgba(255,255,255,0.98); border: 1px solid #dceaf4; border-radius: 22px;
-    padding: 1.1rem; box-shadow: 0 10px 28px rgba(7,62,94,0.08);
+    background: rgba(255,255,255,0.98);
+    border: 1px solid #dceaf4;
+    border-radius: 22px;
+    padding: 1.1rem;
+    box-shadow: 0 10px 28px rgba(7,62,94,0.08);
 }
- 
-.subtitulo-panel { color: #0b4f6c; font-size: 1.12rem; font-weight: 800; margin-bottom: 0.35rem; }
-.texto-panel { color: #5b7482; font-size: 0.93rem; line-height: 1.5; margin-bottom: 0.9rem; }
- 
+
+.subtitulo-panel {
+    color: #0b4f6c;
+    font-size: 1.12rem;
+    font-weight: 800;
+    margin-bottom: 0.35rem;
+}
+
+.texto-panel {
+    color: #5b7482;
+    font-size: 0.93rem;
+    line-height: 1.5;
+    margin-bottom: 0.9rem;
+}
+
 .titulo-seccion-resultado {
-    font-size: 1.08rem; font-weight: 800; color: #0b4f6c;
-    margin-bottom: 0.45rem; margin-top: 0.25rem;
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: #0b4f6c;
+    margin-bottom: 0.45rem;
+    margin-top: 0.25rem;
 }
- 
-.hr-suave { border: none; border-top: 1px solid #e5eef5; margin: 0.8rem 0 1rem 0; }
- 
+
+.hr-suave {
+    border: none;
+    border-top: 1px solid #e5eef5;
+    margin: 0.8rem 0 1rem 0;
+}
+
 .caja-rango {
-    background: linear-gradient(135deg, #eef6ff, #f5faff); border-left: 5px solid #1a6fff;
-    padding: 1.1rem 1.3rem; border-radius: 14px; font-size: 0.93rem; margin: 0.8rem 0;
-    color: #0a1628; line-height: 1.65; box-shadow: inset 0 0 0 1px rgba(26,111,255,0.08);
+    background: linear-gradient(135deg, #eef6ff, #f5faff);
+    border-left: 5px solid #1a6fff;
+    padding: 1.1rem 1.3rem;
+    border-radius: 14px;
+    font-size: 0.93rem;
+    margin: 0.8rem 0;
+    color: #0a1628;
+    line-height: 1.65;
+    box-shadow: inset 0 0 0 1px rgba(26,111,255,0.08);
 }
- 
+
+/* Métricas */
 div[data-testid="stMetric"] {
     background: linear-gradient(160deg, #f8fbff 0%, #eef5ff 100%) !important;
-    border: 1px solid rgba(26,111,255,0.12) !important; padding: 1rem 1.2rem !important;
-    border-radius: 16px !important; box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
+    border: 1px solid rgba(26,111,255,0.12) !important;
+    padding: 1rem 1.2rem !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
 }
- 
+
 div[data-testid="stMetricLabel"] > div {
-    font-size: 0.78rem !important; font-weight: 600 !important;
-    color: var(--texto-muted) !important; text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: var(--texto-muted) !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
 }
- 
+
 div[data-testid="stMetricValue"] > div {
-    color: #0d2347 !important; font-weight: 800 !important;
-    font-size: 1.65rem !important; letter-spacing: 0 !important;
+    color: #0d2347 !important;
+    font-weight: 800 !important;
+    font-size: 1.65rem !important;
+    letter-spacing: 0 !important;
 }
- 
+
+/* Botones principales */
 .stButton > button {
-    font-family: 'Inter', sans-serif !important; font-weight: 700 !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
     font-size: 0.9rem !important;
     background: linear-gradient(135deg, #1a6fff 0%, #0052cc 100%) !important;
-    color: white !important; border: none !important; border-radius: 12px !important;
-    min-height: 48px !important; width: 100% !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    min-height: 48px !important;
+    width: 100% !important;
     box-shadow: 0 6px 20px rgba(26,111,255,0.28) !important;
 }
- 
-.stButton > button:hover { transform: translateY(-1px); }
- 
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+}
+
 .stButton > button[kind="secondary"] {
     background: linear-gradient(135deg, #f0f6ff 0%, #e4eeff 100%) !important;
-    color: #0d2347 !important; border: 1px solid rgba(26,111,255,0.2) !important;
+    color: #0d2347 !important;
+    border: 1px solid rgba(26,111,255,0.2) !important;
     box-shadow: 0 4px 12px rgba(10,22,40,0.07) !important;
 }
- 
-div[data-testid="stTextInput"] > label,
-div[data-testid="stNumberInput"] > label,
-div[data-testid="stSelectbox"] > label,
-div[data-testid="stSlider"] > label,
-div[data-testid="stRadio"] > label {
-    font-size: 1rem !important; font-weight: 700 !important;
-    color: #3a5270 !important; text-transform: uppercase; letter-spacing: 0.4px;
+
+/* Labels de inputs: ahora en formato normal, no mayúsculas */
+div[data-testid="stWidgetLabel"] p,
+div[data-testid="stWidgetLabel"] label,
+div[data-testid="stTextInput"] label,
+div[data-testid="stNumberInput"] label,
+div[data-testid="stSelectbox"] label,
+div[data-testid="stSlider"] label,
+div[data-testid="stRadio"] label {
+    font-size: 1rem !important;
+    font-weight: 650 !important;
+    color: #3a5270 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    line-height: 1.35 !important;
+    margin-bottom: 0.35rem !important;
 }
- 
-div[data-baseweb="input"] input,
+
+/* Inputs más grandes */
+div[data-baseweb="input"] {
+    min-height: 56px !important;
+    border-radius: 14px !important;
+}
+
+div[data-baseweb="input"] input {
+    border-radius: 14px !important;
+    border: 1.5px solid #dce9f7 !important;
+    background: #f8fbff !important;
+    font-size: 1.12rem !important;
+    font-weight: 500 !important;
+    color: #0a1628 !important;
+    min-height: 56px !important;
+    padding: 0.7rem 1rem !important;
+}
+
 div[data-baseweb="select"] > div {
-    border-radius: 12px !important; border: 1.5px solid #dce9f7 !important;
-    background: #f8fbff !important; font-size: 0.96rem !important; color: #0a1628 !important;
+    border-radius: 14px !important;
+    border: 1.5px solid #dce9f7 !important;
+    background: #f8fbff !important;
+    font-size: 1.05rem !important;
+    color: #0a1628 !important;
+    min-height: 56px !important;
 }
- 
+
+/* Botones + y - de los number_input */
+div[data-testid="stNumberInput"] button {
+    min-height: 56px !important;
+    min-width: 52px !important;
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+}
+
+/* Separación entre controles */
+div[data-testid="stNumberInput"],
+div[data-testid="stTextInput"],
+div[data-testid="stSelectbox"] {
+    margin-bottom: 1rem !important;
+}
+
+/* Tablas */
 [data-testid="stDataFrame"] {
-    border-radius: 16px !important; overflow: hidden !important;
-    border: 1px solid #dce9f7 !important; box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    border: 1px solid #dce9f7 !important;
+    box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
 }
- 
+
 thead tr th {
-    background: #0d2347 !important; color: white !important;
-    font-weight: 700 !important; font-size: 0.8rem !important; text-align: center !important;
+    background: #0d2347 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    text-align: center !important;
 }
- 
-tbody tr:nth-child(even) { background: #f8fbff !important; }
-tbody tr td { text-align: center !important; color: #0a1628 !important; }
- 
+
+tbody tr:nth-child(even) {
+    background: #f8fbff !important;
+}
+
+tbody tr td {
+    text-align: center !important;
+    color: #0a1628 !important;
+}
+
+/* Expanders más legibles */
 div[data-testid="stExpander"] {
-    border: 1.5px solid #dce9f7 !important; border-radius: 16px !important;
-    background: white !important; overflow: hidden;
+    border: 1.5px solid #dce9f7 !important;
+    border-radius: 16px !important;
+    background: white !important;
+    overflow: hidden;
+    margin-bottom: 0.9rem !important;
 }
- 
+
+div[data-testid="stExpander"] details summary {
+    min-height: 52px !important;
+    padding: 0.7rem 1rem !important;
+}
+
+div[data-testid="stExpander"] details summary p,
 .streamlit-expanderHeader {
-    font-weight: 700 !important; color: #0d2347 !important; font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #0d2347 !important;
+    font-size: 1.08rem !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
 }
- 
+
 div[data-testid="stInfo"],
 div[data-testid="stSuccess"],
-div[data-testid="stError"] { border-radius: 14px !important; }
- 
-h1, h2, h3 { font-family: 'Inter', sans-serif !important; color: #0a1628 !important; }
-h1 { font-size: 1.5rem !important; font-weight: 800 !important; }
-h2 { font-size: 1.15rem !important; font-weight: 700 !important; }
-h3 { font-size: 1rem !important; font-weight: 700 !important; }
- 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f0f6ff; border-radius: 10px; }
-::-webkit-scrollbar-thumb { background: #b8d0e8; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #1a6fff; }
- 
-@media (max-width: 1100px) { .panel-izquierdo { position: relative; top: 0; } }
- 
-@media (max-width: 768px) {
-    .block-container { padding: 0.4rem 0.6rem 1.5rem !important; }
-    .bloque { padding: 1rem 1.1rem; border-radius: 16px; }
-    .app-header { padding: 1rem 1.2rem; flex-direction: column; gap: 0.6rem; text-align: center; }
-    .header-title { font-size: 1.1rem; }
-    div[data-testid="stMetricValue"] > div { font-size: 1.35rem !important; }
+div[data-testid="stError"] {
+    border-radius: 14px !important;
 }
- 
-.tanque-card { overflow: visible !important; width: 100% !important; }
-.tanque-layout { overflow: visible !important; width: 100% !important; }
-.tanque-svg-wrap { overflow: visible !important; }
-[data-testid="stMarkdownContainer"] { overflow: visible !important; }
+
+h1, h2, h3 {
+    font-family: 'Inter', sans-serif !important;
+    color: #0a1628 !important;
+}
+
+h1 {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+}
+
+h2 {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+}
+
+h3 {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f0f6ff;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #b8d0e8;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1a6fff;
+}
+
+.tanque-card {
+    overflow: visible !important;
+    width: 100% !important;
+}
+
+.tanque-layout {
+    overflow: visible !important;
+    width: 100% !important;
+}
+
+.tanque-svg-wrap {
+    overflow: visible !important;
+}
+
+[data-testid="stMarkdownContainer"] {
+    overflow: visible !important;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .panel-izquierdo {
+        position: relative;
+        top: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .block-container {
+        padding: 0.4rem 0.6rem 1.5rem !important;
+    }
+
+    .bloque {
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+    }
+
+    .app-header {
+        padding: 1rem 1.2rem;
+        flex-direction: column;
+        gap: 0.6rem;
+        text-align: center;
+    }
+
+    .header-title {
+        font-size: 1.1rem;
+    }
+
+    div[data-testid="stMetricValue"] > div {
+        font-size: 1.35rem !important;
+    }
+
+    div[data-testid="stWidgetLabel"] p,
+    div[data-testid="stWidgetLabel"] label {
+        font-size: 0.95rem !important;
+    }
+
+    div[data-baseweb="input"] input {
+        font-size: 1rem !important;
+        min-height: 52px !important;
+    }
+}
 </style>
 """
  
