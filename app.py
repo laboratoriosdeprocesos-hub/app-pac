@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import streamlit.components.v1 as components
 from pathlib import Path
 from datetime import datetime, timedelta
-from sklearn.preprocessing import StandardScaler
+from sklfearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 
 
@@ -1852,16 +1852,24 @@ def mostrar_calculadora_tanque():
 
             fig_tanq.add_trace(go.Scatter(
                 x=horas_proj_aj, y=niveles_proj_aj,
-                mode="lines", name=f"Proyección con ajuste (+{delta_entrada_Ls:+.1f} L/s entrada)",
+                mode="lines", name=f"Proyección con ajuste ({delta_entrada_Ls:.1f} L/s entrada)",
                 line=dict(color="#6c63ff", width=2, dash="dash", shape="spline"),
                 fill="tozeroy", fillcolor="rgba(108,99,255,0.04)"
             ))
             fig_tanq.add_vline(
-                x=hora_efecto_str, line_dash="dot", line_color="#6c63ff",
-                line_width=1.5,
-                annotation_text=f"Efecto ajuste · {hora_efecto_str}",
-                annotation_position="top right",
-                annotation_font_color="#6c63ff"
+                type="line",
+                x0=hora_efecto_str,
+                x1=hora_efecto_str,
+                y0=0,
+                y1=max(altura_rebose * 1.1, max(niveles_proj) * 1.1),
+                line=dict(color="#6c63ff", width=1.5, dash="dot")
+            )
+            fig_tanq.add_annotation(
+                x=hora_efecto_str,
+                y=max(altura_rebose * 1.05, max(niveles_proj) * 1.05),
+                text=f"Efecto ajuste · {hora_efecto_str}",
+                showarrow=False,
+                font=dict(color="#6c63ff", size=11)
             )
 
         if hora_rebose_str is not None:
