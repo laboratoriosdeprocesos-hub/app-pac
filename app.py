@@ -1642,9 +1642,9 @@ def mostrar_calculadora_tanque():
  
         tiene_rec = (tendencia in ("subiendo", "bajando") and
                      (t_rebose_min is not None or t_minimo_min is not None))
-        altura_iframe = 620 if tiene_rec else 280
+        altura_iframe = 950 if tiene_rec else 320
  
-        components.html(html_completo, height=altura_iframe, scrolling=True)
+        components.html(html_completo, height=altura_iframe, scrolling=False)
  
         # ── TANQUE SVG ───────────────────────────────────────────────────────
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
