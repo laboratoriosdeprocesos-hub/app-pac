@@ -337,13 +337,13 @@ div[data-testid="stNumberInput"] label,
 div[data-testid="stSelectbox"] label,
 div[data-testid="stSlider"] label,
 div[data-testid="stRadio"] label {
-    font-size: 1rem !important;
+    font-size: 0.25rem !important;
     font-weight: 650 !important;
     color: #3a5270 !important;
     text-transform: none !important;
     letter-spacing: normal !important;
     line-height: 1.35 !important;
-    margin-bottom: 0.35rem !important;
+    margin-bottom: 0.25rem !important;
 }
 
 /* Inputs más grandes */
