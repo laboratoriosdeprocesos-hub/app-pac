@@ -1665,113 +1665,100 @@ def mostrar_calculadora_tanque():
         accion_salida  = "subir" if delta_salida_Ls  > 0 else ("bajar" if delta_salida_Ls  < 0 else "mantener")
 
         st.markdown(f"""
-        [11:46 a. m., 24/4/2026] Robert: <div style="font-size:1.05rem;font-weight:800;color:#f4a261;
-     margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem">
-    ⚠️ Se recomienda ajuste de caudal
-</div>
+        <div style="background:{alerta_bg};border:2px solid {alerta_border};
+             border-radius:18px;padding:1.3rem 1.5rem;margin-bottom:1rem">
 
-<!-- Línea de tiempo del ajuste -->
-<div style="background:rgba(255,255,255,0.7);border-radius:12px;
-     padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
-    <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
-         text-transform:uppercase;margin-bottom:6px">
-        ⏱ Línea de tiempo del ajuste
-    </div>
-    <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
-        <span style="background:#1a6fff;color:white;border-radius:8px;
-              padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
-            Ajuste ahora…
-[11:50 a. m., 24/4/2026] Robert: 
-st.markdown(f"""
-<div style="background:{alerta_bg};border:2px solid {alerta_border};
-     border-radius:18px;padding:1.3rem 1.5rem;margin-bottom:1rem">
-
-    <div style="font-size:1.05rem;font-weight:800;color:{alerta_color};
-         margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem">
-        {alerta_icono} {alerta_titulo}
-    </div>
-
-    <!-- Línea de tiempo del ajuste -->
-    <div style="background:rgba(255,255,255,0.7);border-radius:12px;
-         padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
-        <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
-             text-transform:uppercase;margin-bottom:6px">
-            ⏱ Línea de tiempo del ajuste
-        </div>
-        <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
-            <span style="background:#1a6fff;color:white;border-radius:8px;
-                  padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
-                Ajuste ahora · {hora_ajuste_str}
-            </span>
-            <span style="color:#5a7899">→ recorrido PTAP {tiempo_recorrido_min} min →</span>
-            <span style="background:#6c63ff;color:white;border-radius:8px;
-                  padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
-                Efecto en tanque · {hora_efecto_str}
-            </span>
-            <span style="color:#5a7899">→ tiempo objetivo {tiempo_para_objetivo_min} min →</span>
-            <span style="background:#2a9d8f;color:white;border-radius:8px;
-                  padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
-                Nivel objetivo · {hora_objetivo_str}
-            </span>
-        </div>
-    </div>
-
-    <div style="background:rgba(255,255,255,0.7);border-radius:12px;
-         padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
-        <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
-             text-transform:uppercase;margin-bottom:4px">
-            Nivel proyectado cuando el ajuste surte efecto ({hora_efecto_str})
-        </div>
-        <b style="font-size:1.1rem">{h_en_llegada:.3f} m</b>
-        <span style="color:#5a7899;font-size:0.82rem">
-            → objetivo: <b>{nivel_objetivo:.2f} m</b>
-            &nbsp;|&nbsp; Δh necesario: <b>{dh_necesario:+.3f} m</b>
-        </span>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
-
-        <div style="background:rgba(255,255,255,0.85);border:1.5px solid {alerta_border};
-             border-radius:14px;padding:0.9rem 1rem">
-            <div style="font-size:0.7rem;font-weight:700;color:#5a7899;
-                 text-transform:uppercase;margin-bottom:4px">
-                Opción A · Ajustar ENTRADA
+            <div style="font-size:1.05rem;font-weight:800;color:{alerta_color};
+                 margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem">
+                {alerta_icono} {alerta_titulo}
             </div>
-            <div style="font-size:1.3rem;font-weight:800;color:{alerta_color}">
-                {accion_entrada.upper()} {abs(delta_entrada_Ls):.2f} L/s
-            </div>
-            <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
-                Entrada actual: <b>{Q_entrada_Ls:.2f} L/s</b><br>
-                Entrada necesaria: <b>{Q_entrada_necesaria_Ls:.2f} L/s</b>
-                &nbsp;({signo_ent}{delta_entrada_Ls:.2f} L/s)
-            </div>
-        </div>
 
-        <div style="background:rgba(255,255,255,0.85);border:1.5px solid #6c63ff;
-             border-radius:14px;padding:0.9rem 1rem">
-            <div style="font-size:0.7rem;font-weight:700;color:#5a7899;
-                 text-transform:uppercase;margin-bottom:4px">
-                Opción B · Ajustar SALIDA
+            <!-- Línea de tiempo del ajuste -->
+            <div style="background:rgba(255,255,255,0.7);border-radius:12px;
+                 padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
+                <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                     text-transform:uppercase;margin-bottom:6px">
+                    ⏱ Línea de tiempo del ajuste
+                </div>
+                <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
+                    <span style="background:#1a6fff;color:white;border-radius:8px;
+                          padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                        Ajuste ahora · {hora_ajuste_str}
+                    </span>
+                    <span style="color:#5a7899">→ recorrido PTAP {tiempo_recorrido_min} min →</span>
+                    <span style="background:#6c63ff;color:white;border-radius:8px;
+                          padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                        Efecto en tanque · {hora_efecto_str}
+                    </span>
+                    <span style="color:#5a7899">→ tiempo objetivo {tiempo_para_objetivo_min} min →</span>
+                    <span style="background:#2a9d8f;color:white;border-radius:8px;
+                          padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                        Nivel objetivo · {hora_objetivo_str}
+                    </span>
+                </div>
             </div>
-            <div style="font-size:1.3rem;font-weight:800;color:#6c63ff">
-                {accion_salida.upper()} {abs(delta_salida_Ls):.2f} L/s
+
+            <!-- Nivel proyectado al llegar el ajuste -->
+            <div style="background:rgba(255,255,255,0.7);border-radius:12px;
+                 padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
+                <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                     text-transform:uppercase;margin-bottom:4px">
+                    Nivel proyectado cuando el ajuste surte efecto ({hora_efecto_str})
+                </div>
+                <b style="font-size:1.1rem">{h_en_llegada:.3f} m</b>
+                <span style="color:#5a7899;font-size:0.82rem">
+                    → objetivo: <b>{nivel_objetivo:.2f} m</b>
+                    &nbsp;|&nbsp; Δh necesario: <b>{dh_necesario:+.3f} m</b>
+                </span>
             </div>
-            <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
-                Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>
-                Salida necesaria: <b>{Q_salida_necesaria_Ls:.2f} L/s</b>
-                &nbsp;({signo_sal}{delta_salida_Ls:.2f} L/s)
+
+            <!-- Dos opciones de ajuste -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+
+                <div style="background:rgba(255,255,255,0.85);border:1.5px solid {alerta_border};
+                     border-radius:14px;padding:0.9rem 1rem">
+                    <div style="font-size:0.7rem;font-weight:700;color:#5a7899;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Opción A · Ajustar ENTRADA (salida fija)
+                    </div>
+                    <div style="font-size:1.3rem;font-weight:800;color:{alerta_color}">
+                        {accion_entrada.upper()} {abs(delta_entrada_Ls):.2f} L/s
+                    </div>
+                    <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
+                        Entrada actual: <b>{Q_entrada_Ls:.2f} L/s</b><br>
+                        Entrada necesaria: <b>{Q_entrada_necesaria_Ls:.2f} L/s</b>
+                        &nbsp;({signo_ent}{delta_entrada_Ls:.2f} L/s)
+                    </div>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.85);border:1.5px solid #6c63ff;
+                     border-radius:14px;padding:0.9rem 1rem">
+                    <div style="font-size:0.7rem;font-weight:700;color:#5a7899;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Opción B · Ajustar SALIDA (entrada fija)
+                    </div>
+                    <div style="font-size:1.3rem;font-weight:800;color:#6c63ff">
+                        {accion_salida.upper()} {abs(delta_salida_Ls):.2f} L/s
+                    </div>
+                    <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
+                        Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>
+                        Salida necesaria: <b>{Q_salida_necesaria_Ls:.2f} L/s</b>
+                        &nbsp;({signo_sal}{delta_salida_Ls:.2f} L/s)
+                    </div>
+                </div>
+
+            </div>
+
+            <div style="margin-top:0.9rem;font-size:0.78rem;color:#5a7899;line-height:1.55">
+                ℹ️ <b>Nota:</b> El ajuste debe realizarse <b>ahora ({hora_ajuste_str})</b> para que
+                el efecto llegue al tanque a las <b>{hora_efecto_str}</b> considerando
+                {tiempo_recorrido_min} min de recorrido en planta.
+                El nivel objetivo de <b>{nivel_objetivo:.2f} m</b> se alcanzaría
+                aproximadamente a las <b>{hora_objetivo_str}</b>.
+                Q neto necesario: <b>{Q_neto_necesario_Ls:+.2f} L/s</b>.
             </div>
         </div>
-
-    </div>
-
-    <div style="margin-top:0.9rem;font-size:0.78rem;color:#5a7899;line-height:1.55">
-        ℹ️ <b>Nota:</b> El ajuste debe realizarse <b>ahora ({hora_ajuste_str})</b>
-        para que el efecto llegue al tanque a las <b>{hora_efecto_str}</b>.
-        Q neto necesario: <b>{Q_neto_necesario_Ls:+.2f} L/s</b>.
-    </div>
-</div>
-""", unsafe_allow_html=True
+        """, unsafe_allow_html=True)
 
         # ── TANQUE SVG ───────────────────────────────────────────────────────
         st.markdown(
