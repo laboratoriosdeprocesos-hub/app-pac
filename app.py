@@ -1681,7 +1681,8 @@ def mostrar_calculadora_tanque():
         <span style="background:#1a6fff;color:white;border-radius:8px;
               padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
             Ajuste ahora…
-[11:50 a. m., 24/4/2026] Robert: st.markdown(f"""
+[11:50 a. m., 24/4/2026] Robert: 
+st.markdown(f"""
 <div style="background:{alerta_bg};border:2px solid {alerta_border};
      border-radius:18px;padding:1.3rem 1.5rem;margin-bottom:1rem">
 
