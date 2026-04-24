@@ -1234,397 +1234,711 @@ def mostrar_calculadora_pac():
 # =========================================
 # CALCULADORA DE TANQUE DE AGUA
 # =========================================
+# =========================================
+# CALCULADORA DE TANQUE DE AGUA — VERSIÓN CORREGIDA
+# Reemplaza la función mostrar_calculadora_tanque() completa en tu app.py
+# =========================================
 def mostrar_calculadora_tanque():
     import streamlit.components.v1 as components
-    import textwrap
-
+ 
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown("<div class='etiqueta'>🏗️ Calculadora de Tanque de Agua</div>", unsafe_allow_html=True)
-
+    st.markdown("<div class='etiqueta'>&#127959;&#65039; Calculadora de Tanque de Agua</div>",
+                unsafe_allow_html=True)
+ 
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
-    Ingresa los datos del tanque, lecturas, caudales y tiempo de recorrido PTAP.
-    El sistema calcula balance hídrico, horas críticas y recomendación de ajuste de caudal.
+    Ingresa los datos del tanque y dos lecturas de nivel con su <b>hora exacta</b>
+    (formato 24 h, ej. <code>08:30</code>).
+    El sistema calcular&aacute; el <b>balance h&iacute;drico</b>,
+    la <b>hora estimada</b> en que el tanque llegar&aacute; al rebose o al m&iacute;nimo operativo,
+    y una <b>recomendaci&oacute;n de qu&eacute; ajustar</b> (entrada a planta o salida del tanque).
     </p>
     """, unsafe_allow_html=True)
-
+ 
     col_iz, col_der = st.columns([1, 1.6], gap="large")
-
+ 
+    # ─────────────────────────────────────────────────────────────────────────
+    # PANEL IZQUIERDO — entradas
+    # ─────────────────────────────────────────────────────────────────────────
     with col_iz:
+ 
+        # ── 1. Geometría ─────────────────────────────────────────────────────
         with st.expander("📐 Geometría del tanque", expanded=True):
             volumen_total = st.number_input(
                 "Volumen total del tanque (m³)",
                 min_value=1.0, value=1350.0, step=10.0, format="%.2f",
                 key="tanq_vol_total"
             )
-
             altura_lleno = st.number_input(
                 "Altura cuando el tanque está lleno (m)",
                 min_value=0.01, value=2.85, step=0.01, format="%.2f",
                 key="tanq_altura_lleno"
             )
-
             area_equiv = volumen_total / altura_lleno if altura_lleno > 0 else 0.0
-
             st.markdown(f"""
             <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
                  padding:0.7rem 1.1rem;font-size:0.87rem;color:#0d2347;margin-top:0.5rem">
-                <b>Área superficial equivalente:</b> {area_equiv:.4f} m²
+                <span style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                      text-transform:uppercase;display:block;margin-bottom:3px">
+                    &Aacute;rea superficial equivalente</span>
+                <b>{area_equiv:.4f} m²</b>
+                <span style="color:#5a7899;font-size:0.8rem">
+                    = {volumen_total:.1f} m³ &divide; {altura_lleno:.2f} m</span>
             </div>
             """, unsafe_allow_html=True)
-
+ 
+        # ── 2. Límites operativos ────────────────────────────────────────────
         with st.expander("⚙️ Límites operativos", expanded=True):
             altura_rebose = st.number_input(
                 "Altura límite de rebose (m)",
                 min_value=0.01, value=2.85, step=0.01, format="%.2f",
                 key="tanq_altura_rebose"
             )
-
             altura_minima = st.number_input(
                 "Altura mínima operativa (m)",
                 min_value=0.0, value=1.00, step=0.01, format="%.2f",
                 key="tanq_altura_minima"
             )
-
-        with st.expander("🕐 Lecturas de nivel", expanded=True):
+            # NUEVO: el nivel objetivo ES igual al rebose (ya no se pide al usuario)
+            nivel_objetivo = altura_rebose
+ 
+        # ── 3. Lecturas de nivel ─────────────────────────────────────────────
+        with st.expander("🕐 Lecturas de nivel (hora formato 24 h)", expanded=True):
             hora_antes_txt = st.text_input(
-                "Hora de la lectura anterior",
-                value="07:00",
+                "Hora de la lectura anterior", value="07:00",
                 key="tanq_hora_antes"
             )
-
             altura_antes = st.number_input(
                 "Altura en la lectura anterior (m)",
                 min_value=0.0, value=1.50, step=0.01, format="%.2f",
                 key="tanq_altura_antes"
             )
-
             hora_actual_txt = st.text_input(
-                "Hora de la lectura actual",
-                value="08:00",
+                "Hora de la lectura actual", value="08:00",
                 key="tanq_hora_actual"
             )
-
             altura_actual = st.number_input(
                 "Altura en la lectura actual (m)",
                 min_value=0.0, value=1.70, step=0.01, format="%.2f",
                 key="tanq_altura_actual"
             )
-
+ 
+        # ── 4. Caudales ──────────────────────────────────────────────────────
         with st.expander("🚰 Caudales", expanded=True):
-            caudal_salida_ls = st.number_input(
-                "Caudal de salida (L/s)",
-                min_value=0.0, value=150.0, step=0.5, format="%.2f",
-                key="tanq_caudal_salida"
+ 
+            # NUEVO: caudal de entrada a la PLANTA (diferente al que llega al tanque)
+            st.markdown("""
+            <div style="background:#fff8e1;border-left:4px solid #f4a261;border-radius:10px;
+                 padding:0.6rem 1rem;font-size:0.83rem;color:#5a4000;margin-bottom:0.8rem">
+                <b>⚠️ Dos caudales distintos:</b><br>
+                <b>Entrada a la planta</b>: lo que entra al proceso de tratamiento (tiene un límite máximo).<br>
+                <b>Entrada al tanque</b>: lo que finalmente llega al tanque (puede ser menor por fugas u otras pérdidas).<br>
+                <b>Salida del tanque</b>: lo que se distribuye a la red.
+            </div>
+            """, unsafe_allow_html=True)
+ 
+            caudal_max_planta = st.number_input(
+                "Caudal máximo de entrada a la planta (L/s)",
+                min_value=1.0, value=230.0, step=1.0, format="%.2f",
+                key="tanq_caudal_max_planta",
+                help="Límite operativo de la planta. No se puede superar este valor."
             )
-
+ 
             usar_entrada_manual = st.checkbox(
-                "Ingresar caudal de entrada manualmente",
+                "Ingresar caudal de entrada al tanque manualmente",
                 value=False,
-                key="tanq_usar_entrada_manual"
+                key="tanq_usar_entrada_manual",
+                help="Si no lo activas, se estima a partir del cambio de nivel."
             )
-
             caudal_entrada_manual_ls = None
-
             if usar_entrada_manual:
                 caudal_entrada_manual_ls = st.number_input(
-                    "Caudal de entrada (L/s)",
+                    "Caudal de entrada al tanque (L/s)",
                     min_value=0.0, value=0.0, step=0.5, format="%.2f",
                     key="tanq_caudal_entrada_manual"
                 )
-
-        with st.expander("⏱️ Tiempo de recorrido PTAP", expanded=True):
+            else:
+                st.markdown("""
+                <div style="background:#f8fbff;border:1px solid #dce9f7;border-radius:12px;
+                     padding:0.55rem 1rem;font-size:0.82rem;color:#5a7899;margin-top:0.3rem">
+                    El caudal de entrada al tanque se estimar&aacute; autom&aacute;ticamente
+                    a partir del cambio de nivel y el caudal de salida.
+                </div>
+                """, unsafe_allow_html=True)
+ 
+            caudal_salida_ls = st.number_input(
+                "Caudal de salida del tanque (L/s)",
+                min_value=0.0, value=150.0, step=0.5, format="%.2f",
+                key="tanq_caudal_salida"
+            )
+            caudal_min_salida = st.number_input(
+                "Caudal mínimo de salida del tanque (L/s)",
+                min_value=0.0, value=80.0, step=1.0, format="%.2f",
+                key="tanq_caudal_min_salida",
+                help="Mínimo caudal que debes dejar salir (demanda mínima de la red)."
+            )
+            caudal_max_salida = st.number_input(
+                "Caudal máximo de salida del tanque (L/s)",
+                min_value=0.0, value=300.0, step=1.0, format="%.2f",
+                key="tanq_caudal_max_salida",
+                help="Máxima apertura posible de la salida del tanque."
+            )
+ 
+        # ── 5. Tiempo de recorrido PTAP ──────────────────────────────────────
+        with st.expander("⏱️ Tiempo de recorrido en PTAP", expanded=True):
             tiempo_recorrido_min = st.number_input(
-                "Tiempo de recorrido PTAP (min)",
+                "Tiempo de recorrido PTAP (minutos)",
                 min_value=0, value=30, step=1,
                 key="tanq_tiempo_recorrido"
             )
-
-            nivel_objetivo = st.number_input(
-                "Nivel objetivo en el tanque (m)",
-                min_value=0.0,
-                value=float(round(altura_rebose * 0.75, 2)),
-                step=0.01,
-                format="%.2f",
-                key="tanq_nivel_objetivo"
-            )
-
             tiempo_para_objetivo_min = st.number_input(
-                "Tiempo disponible para alcanzar objetivo (min)",
+                "Tiempo disponible para alcanzar el nivel de rebose (min)",
                 min_value=1, value=60, step=5,
-                key="tanq_tiempo_objetivo"
+                key="tanq_tiempo_objetivo",
+                help="En cuántos minutos deseas que el tanque llegue al nivel de rebose (llenado máximo)."
             )
-
+ 
+    # ─────────────────────────────────────────────────────────────────────────
+    # PANEL DERECHO — resultados
+    # ─────────────────────────────────────────────────────────────────────────
     with col_der:
-        st.markdown("<div class='subtitulo-panel'>Resultados del análisis</div>", unsafe_allow_html=True)
+        st.markdown("<div class='subtitulo-panel'>Resultados del an&aacute;lisis</div>",
+                    unsafe_allow_html=True)
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
+ 
+        # ── Validaciones ─────────────────────────────────────────────────────
         errores = []
-
         if altura_lleno <= 0:
             errores.append("La altura del tanque lleno debe ser mayor que cero.")
-
         if altura_rebose > altura_lleno:
-            errores.append("La altura de rebose no puede superar la altura llena.")
-
+            errores.append("La altura de rebose no puede superar la altura cuando el tanque está lleno.")
         if altura_minima >= altura_rebose:
             errores.append("La altura mínima debe ser menor que la altura de rebose.")
-
-        min_antes = parse_hora(hora_antes_txt)
+ 
+        min_antes  = parse_hora(hora_antes_txt)
         min_actual = parse_hora(hora_actual_txt)
-
+ 
         if min_antes is None:
-            errores.append("Hora anterior inválida. Usa formato HH:MM.")
-
+            errores.append(f"Hora anterior inválida: '{hora_antes_txt}'. Usa formato HH:MM (ej. 07:00).")
         if min_actual is None:
-            errores.append("Hora actual inválida. Usa formato HH:MM.")
-
+            errores.append(f"Hora actual inválida: '{hora_actual_txt}'. Usa formato HH:MM (ej. 08:30).")
+ 
         if errores:
             for e in errores:
                 st.error(e)
             st.markdown("</div>", unsafe_allow_html=True)
             return
-
+ 
         if min_actual >= min_antes:
             delta_t_min = min_actual - min_antes
         else:
             delta_t_min = (1440 - min_antes) + min_actual
-
+ 
         if delta_t_min == 0:
             st.error("Las dos horas son iguales. Ingresa horas distintas.")
             st.markdown("</div>", unsafe_allow_html=True)
             return
-
-        hora_antes_str = minutos_a_hora_str(min_antes)
+ 
+        hora_antes_str  = minutos_a_hora_str(min_antes)
         hora_actual_str = minutos_a_hora_str(min_actual)
-
+ 
+        # ── Cálculos principales ─────────────────────────────────────────────
         delta_t_s = delta_t_min * 60
-        delta_h = altura_actual - altura_antes
-
+        delta_h   = altura_actual - altura_antes
+ 
         if usar_entrada_manual and caudal_entrada_manual_ls is not None:
-            Q_entrada_Ls = caudal_entrada_manual_ls
-            Q_neto_Ls = Q_entrada_Ls - caudal_salida_ls
-            Q_neto_m3s = Q_neto_Ls / 1000
+            Q_entrada_tanque_Ls = caudal_entrada_manual_ls
+            Q_neto_Ls           = Q_entrada_tanque_Ls - caudal_salida_ls
+            Q_neto_m3s          = Q_neto_Ls / 1000
         else:
-            Q_neto_m3s = area_equiv * delta_h / delta_t_s
-            Q_neto_Ls = Q_neto_m3s * 1000
-            Q_entrada_Ls = caudal_salida_ls + Q_neto_Ls
-
-        Q_entrada_m3h = Q_entrada_Ls * 3.6
-        Q_salida_m3h = caudal_salida_ls * 3.6
-
-        tendencia = "subiendo" if Q_neto_Ls > 0 else ("bajando" if Q_neto_Ls < 0 else "estable")
-        tendencia_txt = "🔼 Subiendo" if Q_neto_Ls > 0 else ("🔽 Bajando" if Q_neto_Ls < 0 else "➡️ Estable")
-
+            Q_neto_m3s          = area_equiv * delta_h / delta_t_s
+            Q_neto_Ls           = Q_neto_m3s * 1000
+            Q_entrada_tanque_Ls = caudal_salida_ls + Q_neto_Ls
+ 
+        Q_entrada_tanque_m3h = Q_entrada_tanque_Ls * 3.6
+        Q_salida_m3h         = caudal_salida_ls * 3.6
+ 
+        tendencia     = "subiendo" if Q_neto_Ls > 0.01 else ("bajando" if Q_neto_Ls < -0.01 else "estable")
+        tendencia_txt = "🔼 Subiendo" if tendencia == "subiendo" else ("🔽 Bajando" if tendencia == "bajando" else "➡️ Estable")
+ 
+        # ── Horas estimadas de llegada a límites ─────────────────────────────
         hora_rebose_str = None
         hora_minimo_str = None
-        t_rebose_min = None
-        t_minimo_min = None
-
+        t_rebose_min    = None
+        t_minimo_min    = None
+ 
         if Q_neto_m3s > 0:
             dh_rebose = altura_rebose - altura_actual
-            if dh_rebose >= 0:
-                t_rebose_min = ((area_equiv * dh_rebose) / Q_neto_m3s) / 60
+            if dh_rebose > 0:
+                t_rebose_s   = (area_equiv * dh_rebose) / Q_neto_m3s
+                t_rebose_min = t_rebose_s / 60
                 hora_rebose_str = minutos_a_hora_futura(min_actual, t_rebose_min)
-
+ 
         if Q_neto_m3s < 0:
             dh_minimo = altura_actual - altura_minima
-            if dh_minimo >= 0:
-                t_minimo_min = ((area_equiv * dh_minimo) / abs(Q_neto_m3s)) / 60
+            if dh_minimo > 0:
+                t_minimo_s   = (area_equiv * dh_minimo) / abs(Q_neto_m3s)
+                t_minimo_min = t_minimo_s / 60
                 hora_minimo_str = minutos_a_hora_futura(min_actual, t_minimo_min)
-
+ 
+        # ── Métricas ─────────────────────────────────────────────────────────
         m1, m2 = st.columns(2)
         m1.metric("Intervalo entre lecturas", f"{delta_t_min:.0f} min")
         m2.metric("Tendencia", tendencia_txt)
-
+ 
         m3, m4 = st.columns(2)
         m3.metric("Variación de nivel", f"{delta_h:+.4f} m")
-        m4.metric("Caudal neto", f"{Q_neto_Ls:+.2f} L/s")
-
+        m4.metric("Caudal neto en tanque", f"{Q_neto_Ls:+.2f} L/s")
+ 
         m5, m6 = st.columns(2)
-        m5.metric("Caudal entrada", f"{Q_entrada_Ls:.2f} L/s")
-        m6.metric("Caudal entrada", f"{Q_entrada_m3h:.2f} m³/h")
-
+        m5.metric("Caudal entrada tanque (L/s)", f"{Q_entrada_tanque_Ls:.2f}")
+        m6.metric("Caudal entrada tanque (m³/h)", f"{Q_entrada_tanque_m3h:.2f}")
+ 
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-
+ 
+        # ── Horas estimadas ──────────────────────────────────────────────────
+        st.markdown(
+            "<div class='titulo-seccion-resultado'>&#9201;&#65039; "
+            "Horas estimadas de llegada a l&iacute;mites</div>",
+            unsafe_allow_html=True
+        )
+ 
         def fmt_tiempo_hm(min_float):
             if min_float is None:
-                return "No aplica"
+                return "—"
             total_min = int(round(min_float))
             h = total_min // 60
             m = total_min % 60
+            partes = []
             if h > 0:
-                return f"{h} h {m} min"
-            return f"{m} min"
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-            if hora_rebose_str:
-                st.error(f"Rebose estimado: {hora_rebose_str} · En {fmt_tiempo_hm(t_rebose_min)}")
+                partes.append(f"{h} h")
+            partes.append(f"{m} min")
+            return " ".join(partes)
+ 
+        t1, t2 = st.columns(2)
+ 
+        with t1:
+            if hora_rebose_str is not None:
+                t_val = t_rebose_min or 0
+                col_r = "#e63946" if t_val < 60 else ("#f4a261" if t_val < 180 else "#2a9d8f")
+                st.markdown(f"""
+                <div style="background:linear-gradient(135deg,#fff5f5,#ffe8e8);
+                     border-left:5px solid {col_r};border-radius:14px;
+                     padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Llegada a rebose ({altura_rebose:.2f} m)
+                    </div>
+                    <div style="font-size:1.6rem;font-weight:800;color:{col_r}">
+                        &#128336; {hora_rebose_str}
+                    </div>
+                    <div style="font-size:0.8rem;color:#888;margin-top:3px">
+                        En {fmt_tiempo_hm(t_rebose_min)} &middot; desde {hora_actual_str}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                st.info("Rebose: No aplica")
-
-        with c2:
-            if hora_minimo_str:
-                st.warning(f"Mínimo estimado: {hora_minimo_str} · En {fmt_tiempo_hm(t_minimo_min)}")
+                st.markdown("""
+                <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
+                     border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">Llegada a rebose</div>
+                    <div style="font-size:1rem;color:#5a7899">
+                        No aplica &mdash; nivel bajando o estable
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+ 
+        with t2:
+            if hora_minimo_str is not None:
+                t_val = t_minimo_min or 0
+                col_m = "#e63946" if t_val < 60 else ("#f4a261" if t_val < 180 else "#2a9d8f")
+                st.markdown(f"""
+                <div style="background:linear-gradient(135deg,#fff8f0,#ffedd8);
+                     border-left:5px solid {col_m};border-radius:14px;
+                     padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Llegada a m&iacute;nimo ({altura_minima:.2f} m)
+                    </div>
+                    <div style="font-size:1.6rem;font-weight:800;color:{col_m}">
+                        &#128336; {hora_minimo_str}
+                    </div>
+                    <div style="font-size:0.8rem;color:#888;margin-top:3px">
+                        En {fmt_tiempo_hm(t_minimo_min)} &middot; desde {hora_actual_str}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                st.info("Mínimo: No aplica")
-
+                st.markdown("""
+                <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
+                     border-radius:14px;padding:1rem 1.2rem;margin-bottom:0.6rem">
+                    <div style="font-size:0.72rem;font-weight:700;color:#888;
+                         text-transform:uppercase;margin-bottom:4px">Llegada a m&iacute;nimo</div>
+                    <div style="font-size:1rem;color:#5a7899">
+                        No aplica &mdash; nivel subiendo o estable
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+ 
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-seccion-resultado'>⚠️ Recomendación de ajuste de caudal</div>", unsafe_allow_html=True)
-
+ 
+        # ══════════════════════════════════════════════════════════════════════
+        # ▶▶  RECOMENDACIONES DE AJUSTE — lógica nueva
+        # ══════════════════════════════════════════════════════════════════════
+        st.markdown(
+            "<div class='titulo-seccion-resultado'>&#9888;&#65039; "
+            "Recomendaci&oacute;n de ajuste de caudal</div>",
+            unsafe_allow_html=True
+        )
+ 
         t_recorrido_s = tiempo_recorrido_min * 60
-        h_en_llegada = altura_actual + Q_neto_m3s * t_recorrido_s / area_equiv
-        h_en_llegada = max(0.0, h_en_llegada)
-
-        t_objetivo_s = tiempo_para_objetivo_min * 60
-        dh_necesario = nivel_objetivo - h_en_llegada
-
-        Q_neto_necesario_m3s = (area_equiv * dh_necesario) / t_objetivo_s
-        Q_neto_necesario_Ls = Q_neto_necesario_m3s * 1000
-
-        Q_entrada_necesaria_Ls = caudal_salida_ls + Q_neto_necesario_Ls
-        delta_entrada_Ls = Q_entrada_necesaria_Ls - Q_entrada_Ls
-
-        Q_salida_necesaria_Ls = Q_entrada_Ls - Q_neto_necesario_Ls
-        delta_salida_Ls = Q_salida_necesaria_Ls - caudal_salida_ls
-
-        hora_ajuste_str = minutos_a_hora_futura(min_actual, 0)
-        hora_efecto_str = minutos_a_hora_futura(min_actual, tiempo_recorrido_min)
-        hora_objetivo_str = minutos_a_hora_futura(
-            min_actual,
-            tiempo_recorrido_min + tiempo_para_objetivo_min
-        )
-
-        urgente = (
-            (t_rebose_min is not None and t_rebose_min < tiempo_recorrido_min)
-            or
-            (t_minimo_min is not None and t_minimo_min < tiempo_recorrido_min)
-        )
-
-        if urgente:
-            alerta_color = "#e63946"
-            alerta_icono = "🚨"
-            alerta_titulo = "Ajuste urgente: el límite se alcanza antes del recorrido PTAP"
-            alerta_bg = "linear-gradient(135deg,#fff0f0,#ffe0e0)"
-            alerta_border = "#e63946"
-        elif abs(delta_entrada_Ls) < 1.0:
-            alerta_color = "#2a9d8f"
-            alerta_icono = "✅"
-            alerta_titulo = "El sistema opera cerca del nivel objetivo"
-            alerta_bg = "linear-gradient(135deg,#f0fff8,#e0f5f0)"
-            alerta_border = "#2a9d8f"
+ 
+        # ── CASO A: Nivel SUBIENDO → riesgo de REBOSE ────────────────────────
+        if tendencia == "subiendo" and t_rebose_min is not None:
+ 
+            # Nivel proyectado cuando el ajuste surte efecto
+            h_en_llegada = altura_actual + Q_neto_m3s * t_recorrido_s / area_equiv
+            h_en_llegada = min(h_en_llegada, altura_rebose)
+ 
+            # Tiempo desde que el ajuste surte efecto hasta el rebose
+            # con el caudal actual (sin ajuste)
+            urgente_rebose = t_rebose_min <= tiempo_recorrido_min
+ 
+            hora_ajuste_str   = hora_actual_str
+            hora_efecto_str   = minutos_a_hora_futura(min_actual, tiempo_recorrido_min)
+            hora_objetivo_str = hora_rebose_str  # queremos que el tanque tarde más en llegar al rebose
+ 
+            # ── Opción 1: ABRIR más la salida del tanque ─────────────────────
+            # Para que al llegar el ajuste al tanque el nivel no suba más rápido
+            # Queremos Q_neto = 0 o negativo → Q_salida = Q_entrada_tanque
+            Q_salida_necesaria_Ls = Q_entrada_tanque_Ls  # balance neutro
+            delta_salida_Ls       = Q_salida_necesaria_Ls - caudal_salida_ls
+            # Aplicar límites
+            Q_salida_ajustada_Ls  = min(max(Q_salida_necesaria_Ls, caudal_min_salida), caudal_max_salida)
+            Q_neto_con_salida_m3s = (Q_entrada_tanque_Ls - Q_salida_ajustada_Ls) / 1000
+ 
+            # Tiempo de rebose con la salida ajustada
+            if Q_neto_con_salida_m3s > 0 and h_en_llegada < altura_rebose:
+                dh = altura_rebose - h_en_llegada
+                t_rebose_ajustado_min = (area_equiv * dh / Q_neto_con_salida_m3s) / 60
+            elif Q_neto_con_salida_m3s <= 0:
+                t_rebose_ajustado_min = None  # ya no llegará al rebose
+            else:
+                t_rebose_ajustado_min = 0.0
+ 
+            # ── Opción 2: BAJAR la entrada a la planta ────────────────────────
+            # Queremos Q_entrada_tanque_nuevo tal que Q_neto = 0
+            Q_entrada_nueva_Ls = caudal_salida_ls  # balance neutro
+            # No puede ser negativa ni mayor al max
+            Q_entrada_nueva_Ls = max(0.0, min(Q_entrada_nueva_Ls, caudal_max_planta))
+            Q_neto_con_entrada_m3s = (Q_entrada_nueva_Ls - caudal_salida_ls) / 1000
+ 
+            if Q_neto_con_entrada_m3s > 0 and h_en_llegada < altura_rebose:
+                dh = altura_rebose - h_en_llegada
+                t_rebose_entrada_min = (area_equiv * dh / Q_neto_con_entrada_m3s) / 60
+            elif Q_neto_con_entrada_m3s <= 0:
+                t_rebose_entrada_min = None
+            else:
+                t_rebose_entrada_min = 0.0
+ 
+            if urgente_rebose:
+                alerta_color  = "#e63946"
+                alerta_icono  = "🚨"
+                alerta_titulo = "AJUSTE URGENTE — el rebose ocurre antes del recorrido PTAP"
+                alerta_bg     = "linear-gradient(135deg,#fff0f0,#ffe0e0)"
+                alerta_border = "#e63946"
+            else:
+                alerta_color  = "#f4a261"
+                alerta_icono  = "⚠️"
+                alerta_titulo = "Nivel subiendo — se recomienda ajuste para evitar el rebose"
+                alerta_bg     = "linear-gradient(135deg,#fff8f0,#ffedd8)"
+                alerta_border = "#f4a261"
+ 
+            def hora_rebose_con(t_extra_min):
+                if t_extra_min is None:
+                    return "No llega al rebose ✅"
+                return minutos_a_hora_futura(min_actual, tiempo_recorrido_min + t_extra_min)
+ 
+            # Checks de límite
+            salida_limitada = Q_salida_necesaria_Ls > caudal_max_salida
+            entrada_factible = Q_entrada_nueva_Ls <= caudal_max_planta
+ 
+            st.markdown(f"""
+            <div style="background:{alerta_bg};border:2px solid {alerta_border};
+                 border-radius:18px;padding:1.3rem 1.5rem;margin-bottom:1rem">
+ 
+                <div style="font-size:1.05rem;font-weight:800;color:{alerta_color};
+                     margin-bottom:0.9rem">
+                    {alerta_icono} {alerta_titulo}
+                </div>
+ 
+                <!-- Línea de tiempo -->
+                <div style="background:rgba(255,255,255,0.75);border-radius:12px;
+                     padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
+                    <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                         text-transform:uppercase;margin-bottom:6px">⏱ Línea de tiempo</div>
+                    <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
+                        <span style="background:#1a6fff;color:white;border-radius:8px;
+                              padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                            Ajustar ahora · {hora_ajuste_str}
+                        </span>
+                        <span style="color:#5a7899">→ recorrido {tiempo_recorrido_min} min →</span>
+                        <span style="background:#6c63ff;color:white;border-radius:8px;
+                              padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                            Efecto en tanque · {hora_efecto_str}
+                        </span>
+                        <span style="color:#5a7899">→ Sin ajuste: rebose previsto a las</span>
+                        <span style="background:#e63946;color:white;border-radius:8px;
+                              padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                            {hora_rebose_str}
+                        </span>
+                    </div>
+                </div>
+ 
+                <!-- Nivel proyectado al llegar el efecto -->
+                <div style="background:rgba(255,255,255,0.75);border-radius:12px;
+                     padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
+                    <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Nivel proyectado cuando el ajuste surte efecto ({hora_efecto_str})
+                    </div>
+                    <b style="font-size:1.1rem">{h_en_llegada:.3f} m</b>
+                    <span style="color:#5a7899;font-size:0.82rem">
+                        &nbsp;(rebose en {altura_rebose:.2f} m)
+                    </span>
+                </div>
+ 
+                <!-- Dos opciones -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+ 
+                    <!-- Opción A: Abrir salida -->
+                    <div style="background:rgba(255,255,255,0.9);border:2px solid #1a6fff;
+                         border-radius:14px;padding:0.9rem 1rem">
+                        <div style="font-size:0.7rem;font-weight:700;color:#1a6fff;
+                             text-transform:uppercase;margin-bottom:6px">
+                            ✅ Opción A · Abrir SALIDA del tanque
+                        </div>
+                        <div style="font-size:1.25rem;font-weight:800;color:#0d2347">
+                            Abrir a <span style="color:#1a6fff">{Q_salida_ajustada_Ls:.1f} L/s</span>
+                        </div>
+                        <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
+                            Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>
+                            Incremento: <b style="color:#1a6fff">+{Q_salida_ajustada_Ls - caudal_salida_ls:.2f} L/s</b><br>
+                            Nuevo rebose proyectado: <b style="color:#2a9d8f">{hora_rebose_con(t_rebose_ajustado_min)}</b>
+                            {"<br><span style='color:#e63946;font-size:0.78rem'>⚠️ Límite máximo de salida alcanzado</span>" if salida_limitada else ""}
+                        </div>
+                    </div>
+ 
+                    <!-- Opción B: Bajar entrada planta -->
+                    <div style="background:rgba(255,255,255,0.9);border:2px solid #6c63ff;
+                         border-radius:14px;padding:0.9rem 1rem">
+                        <div style="font-size:0.7rem;font-weight:700;color:#6c63ff;
+                             text-transform:uppercase;margin-bottom:6px">
+                            🔽 Opción B · Bajar ENTRADA a la planta
+                        </div>
+                        <div style="font-size:1.25rem;font-weight:800;color:#0d2347">
+                            Bajar a <span style="color:#6c63ff">{Q_entrada_nueva_Ls:.1f} L/s</span>
+                        </div>
+                        <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
+                            Entrada actual (planta): estimada ≈ <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>
+                            Reducción: <b style="color:#6c63ff">-{Q_entrada_tanque_Ls - Q_entrada_nueva_Ls:.2f} L/s</b><br>
+                            Nuevo rebose proyectado: <b style="color:#2a9d8f">{hora_rebose_con(t_rebose_entrada_min)}</b>
+                            {"" if entrada_factible else "<br><span style='color:#e63946;font-size:0.78rem'>⚠️ Verificar límites de planta</span>"}
+                        </div>
+                    </div>
+ 
+                </div>
+ 
+                <div style="margin-top:0.9rem;font-size:0.78rem;color:#5a7899;line-height:1.55">
+                    ℹ️ El ajuste debe realizarse <b>ahora ({hora_ajuste_str})</b>.
+                    El efecto llega al tanque a las <b>{hora_efecto_str}</b>
+                    ({tiempo_recorrido_min} min de recorrido).
+                    Ajustar la <b>salida</b> tiene efecto inmediato;
+                    ajustar la <b>entrada a la planta</b> requiere esperar el recorrido.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+ 
+        # ── CASO B: Nivel BAJANDO → riesgo de MÍNIMO ────────────────────────
+        elif tendencia == "bajando" and t_minimo_min is not None:
+ 
+            h_en_llegada = altura_actual + Q_neto_m3s * t_recorrido_s / area_equiv
+            h_en_llegada = max(h_en_llegada, altura_minima)
+ 
+            urgente_minimo = t_minimo_min <= tiempo_recorrido_min
+ 
+            hora_ajuste_str = hora_actual_str
+            hora_efecto_str = minutos_a_hora_futura(min_actual, tiempo_recorrido_min)
+ 
+            # ── Opción 1: SUBIR la entrada a la planta ────────────────────────
+            # Queremos Q_neto = 0 → Q_entrada_nueva = Q_salida
+            Q_entrada_nueva_Ls    = min(caudal_salida_ls, caudal_max_planta)
+            Q_neto_con_entrada_m3s = (Q_entrada_nueva_Ls - caudal_salida_ls) / 1000
+ 
+            if Q_neto_con_entrada_m3s < 0 and h_en_llegada > altura_minima:
+                dh = h_en_llegada - altura_minima
+                t_minimo_entrada_min = (area_equiv * dh / abs(Q_neto_con_entrada_m3s)) / 60
+            elif Q_neto_con_entrada_m3s >= 0:
+                t_minimo_entrada_min = None  # ya no bajará al mínimo
+            else:
+                t_minimo_entrada_min = 0.0
+ 
+            # ── Opción 2: REDUCIR la salida del tanque ────────────────────────
+            Q_salida_nueva_Ls      = max(Q_entrada_tanque_Ls, caudal_min_salida)
+            Q_neto_con_salida_m3s  = (Q_entrada_tanque_Ls - Q_salida_nueva_Ls) / 1000
+ 
+            if Q_neto_con_salida_m3s < 0 and h_en_llegada > altura_minima:
+                dh = h_en_llegada - altura_minima
+                t_minimo_salida_min = (area_equiv * dh / abs(Q_neto_con_salida_m3s)) / 60
+            elif Q_neto_con_salida_m3s >= 0:
+                t_minimo_salida_min = None
+            else:
+                t_minimo_salida_min = 0.0
+ 
+            if urgente_minimo:
+                alerta_color  = "#e63946"
+                alerta_icono  = "🚨"
+                alerta_titulo = "AJUSTE URGENTE — el mínimo se alcanza antes del recorrido PTAP"
+                alerta_bg     = "linear-gradient(135deg,#fff0f0,#ffe0e0)"
+                alerta_border = "#e63946"
+            else:
+                alerta_color  = "#f4a261"
+                alerta_icono  = "⚠️"
+                alerta_titulo = "Nivel bajando — se recomienda ajuste para evitar el mínimo"
+                alerta_bg     = "linear-gradient(135deg,#fff8f0,#ffedd8)"
+                alerta_border = "#f4a261"
+ 
+            def hora_minimo_con(t_extra_min):
+                if t_extra_min is None:
+                    return "No llega al mínimo ✅"
+                return minutos_a_hora_futura(min_actual, tiempo_recorrido_min + t_extra_min)
+ 
+            salida_limitada_min  = Q_salida_nueva_Ls <= caudal_min_salida and Q_entrada_tanque_Ls < caudal_min_salida
+            entrada_max_planta   = Q_entrada_nueva_Ls >= caudal_max_planta
+ 
+            st.markdown(f"""
+            <div style="background:{alerta_bg};border:2px solid {alerta_border};
+                 border-radius:18px;padding:1.3rem 1.5rem;margin-bottom:1rem">
+ 
+                <div style="font-size:1.05rem;font-weight:800;color:{alerta_color};
+                     margin-bottom:0.9rem">
+                    {alerta_icono} {alerta_titulo}
+                </div>
+ 
+                <!-- Línea de tiempo -->
+                <div style="background:rgba(255,255,255,0.75);border-radius:12px;
+                     padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
+                    <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                         text-transform:uppercase;margin-bottom:6px">⏱ Línea de tiempo</div>
+                    <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
+                        <span style="background:#1a6fff;color:white;border-radius:8px;
+                              padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                            Ajustar ahora · {hora_ajuste_str}
+                        </span>
+                        <span style="color:#5a7899">→ recorrido {tiempo_recorrido_min} min →</span>
+                        <span style="background:#6c63ff;color:white;border-radius:8px;
+                              padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                            Efecto en tanque · {hora_efecto_str}
+                        </span>
+                        <span style="color:#5a7899">→ Sin ajuste: mínimo previsto a las</span>
+                        <span style="background:#f4a261;color:white;border-radius:8px;
+                              padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
+                            {hora_minimo_str}
+                        </span>
+                    </div>
+                </div>
+ 
+                <!-- Nivel proyectado al llegar el efecto -->
+                <div style="background:rgba(255,255,255,0.75);border-radius:12px;
+                     padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
+                    <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                         text-transform:uppercase;margin-bottom:4px">
+                        Nivel proyectado cuando el ajuste surte efecto ({hora_efecto_str})
+                    </div>
+                    <b style="font-size:1.1rem">{h_en_llegada:.3f} m</b>
+                    <span style="color:#5a7899;font-size:0.82rem">
+                        &nbsp;(mínimo en {altura_minima:.2f} m)
+                    </span>
+                </div>
+ 
+                <!-- Dos opciones -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+ 
+                    <!-- Opción A: Subir entrada planta -->
+                    <div style="background:rgba(255,255,255,0.9);border:2px solid #2a9d8f;
+                         border-radius:14px;padding:0.9rem 1rem">
+                        <div style="font-size:0.7rem;font-weight:700;color:#2a9d8f;
+                             text-transform:uppercase;margin-bottom:6px">
+                            🔼 Opción A · Subir ENTRADA a la planta
+                        </div>
+                        <div style="font-size:1.25rem;font-weight:800;color:#0d2347">
+                            Subir a <span style="color:#2a9d8f">{Q_entrada_nueva_Ls:.1f} L/s</span>
+                        </div>
+                        <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
+                            Entrada actual (tanque): <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>
+                            Incremento: <b style="color:#2a9d8f">+{Q_entrada_nueva_Ls - Q_entrada_tanque_Ls:.2f} L/s</b><br>
+                            Nuevo mínimo proyectado: <b style="color:#2a9d8f">{hora_minimo_con(t_minimo_entrada_min)}</b>
+                            {"<br><span style='color:#e63946;font-size:0.78rem'>⚠️ Ya en el límite máximo de la planta ({:.0f} L/s)</span>".format(caudal_max_planta) if entrada_max_planta else ""}
+                        </div>
+                    </div>
+ 
+                    <!-- Opción B: Cerrar salida -->
+                    <div style="background:rgba(255,255,255,0.9);border:2px solid #6c63ff;
+                         border-radius:14px;padding:0.9rem 1rem">
+                        <div style="font-size:0.7rem;font-weight:700;color:#6c63ff;
+                             text-transform:uppercase;margin-bottom:6px">
+                            🔽 Opción B · Reducir SALIDA del tanque
+                        </div>
+                        <div style="font-size:1.25rem;font-weight:800;color:#0d2347">
+                            Bajar a <span style="color:#6c63ff">{Q_salida_nueva_Ls:.1f} L/s</span>
+                        </div>
+                        <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
+                            Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>
+                            Reducción: <b style="color:#6c63ff">-{caudal_salida_ls - Q_salida_nueva_Ls:.2f} L/s</b><br>
+                            Nuevo mínimo proyectado: <b style="color:#2a9d8f">{hora_minimo_con(t_minimo_salida_min)}</b>
+                            {"<br><span style='color:#e63946;font-size:0.78rem'>⚠️ Ya en el límite mínimo de salida</span>" if salida_limitada_min else ""}
+                        </div>
+                    </div>
+ 
+                </div>
+ 
+                <div style="margin-top:0.9rem;font-size:0.78rem;color:#5a7899;line-height:1.55">
+                    ℹ️ El ajuste debe realizarse <b>ahora ({hora_ajuste_str})</b>.
+                    Reducir la <b>salida</b> tiene efecto inmediato en el balance.
+                    Subir la <b>entrada a la planta</b> tarda {tiempo_recorrido_min} min en verse en el tanque.
+                    Límite máximo de entrada a la planta: <b>{caudal_max_planta:.0f} L/s</b>.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+ 
+        # ── CASO C: Nivel ESTABLE ────────────────────────────────────────────
         else:
-            alerta_color = "#f4a261"
-            alerta_icono = "⚠️"
-            alerta_titulo = "Se recomienda ajuste de caudal"
-            alerta_bg = "linear-gradient(135deg,#fff8f0,#ffedd8)"
-            alerta_border = "#f4a261"
-
-        accion_entrada = "SUBIR" if delta_entrada_Ls > 0 else ("BAJAR" if delta_entrada_Ls < 0 else "MANTENER")
-        accion_salida = "SUBIR" if delta_salida_Ls > 0 else ("BAJAR" if delta_salida_Ls < 0 else "MANTENER")
-
-        signo_ent = "+" if delta_entrada_Ls >= 0 else ""
-        signo_sal = "+" if delta_salida_Ls >= 0 else ""
-
-        html_alerta_caudal = textwrap.dedent(f"""
-        <div style="background:{alerta_bg};border:2px solid {alerta_border};
-             border-radius:18px;padding:1.3rem 1.5rem;margin-bottom:1rem">
-
-            <div style="font-size:1.05rem;font-weight:800;color:{alerta_color};
-                 margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem">
-                {alerta_icono} {alerta_titulo}
-            </div>
-
-            <div style="background:rgba(255,255,255,0.7);border-radius:12px;
-                 padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
-                <div style="font-weight:700;font-size:0.72rem;color:#5a7899;
-                     text-transform:uppercase;margin-bottom:6px">
-                    ⏱ Línea de tiempo del ajuste
+            st.markdown(f"""
+            <div style="background:linear-gradient(135deg,#f0fff8,#e0f5f0);
+                 border:2px solid #2a9d8f;border-radius:18px;
+                 padding:1.2rem 1.5rem;margin-bottom:1rem">
+                <div style="font-size:1.05rem;font-weight:800;color:#2a9d8f;margin-bottom:0.5rem">
+                    ✅ El sistema opera normalmente
                 </div>
-
-                <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
-                    <span style="background:#1a6fff;color:white;border-radius:8px;
-                          padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
-                        Ajuste ahora · {hora_ajuste_str}
-                    </span>
-
-                    <span style="color:#5a7899">→ recorrido PTAP {tiempo_recorrido_min} min →</span>
-
-                    <span style="background:#6c63ff;color:white;border-radius:8px;
-                          padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
-                        Efecto en tanque · {hora_efecto_str}
-                    </span>
-
-                    <span style="color:#5a7899">→ objetivo {tiempo_para_objetivo_min} min →</span>
-
-                    <span style="background:#2a9d8f;color:white;border-radius:8px;
-                          padding:0.2rem 0.65rem;font-weight:700;font-size:0.82rem">
-                        Nivel objetivo · {hora_objetivo_str}
-                    </span>
+                <div style="font-size:0.9rem;color:#5a7899;line-height:1.6">
+                    El nivel del tanque está <b>{"subiendo pero sin riesgo inmediato" if tendencia == "subiendo" else ("bajando pero sin riesgo inmediato" if tendencia == "bajando" else "estable")}</b>.
+                    No se requieren ajustes en este momento.<br>
+                    Nivel actual: <b>{altura_actual:.3f} m</b> &middot;
+                    Q neto: <b>{Q_neto_Ls:+.2f} L/s</b> &middot;
+                    Entrada tanque: <b>{Q_entrada_tanque_Ls:.2f} L/s</b> &middot;
+                    Salida: <b>{caudal_salida_ls:.2f} L/s</b>
                 </div>
             </div>
-
-            <div style="background:rgba(255,255,255,0.7);border-radius:12px;
-                 padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#0a1628">
-                <b>Nivel proyectado cuando el ajuste surte efecto:</b><br>
-                <span style="font-size:1.1rem;font-weight:800">{h_en_llegada:.3f} m</span>
-                <span style="color:#5a7899">
-                    → objetivo: <b>{nivel_objetivo:.2f} m</b>
-                    | Δh necesario: <b>{dh_necesario:+.3f} m</b>
-                </span>
-            </div>
-
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.8rem">
-                <div style="background:rgba(255,255,255,0.85);border:1.5px solid {alerta_border};
-                     border-radius:14px;padding:0.9rem 1rem">
-                    <div style="font-size:0.7rem;font-weight:700;color:#5a7899;
-                         text-transform:uppercase;margin-bottom:4px">
-                        Opción A · Ajustar entrada
-                    </div>
-                    <div style="font-size:1.3rem;font-weight:800;color:{alerta_color}">
-                        {accion_entrada} {abs(delta_entrada_Ls):.2f} L/s
-                    </div>
-                    <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
-                        Entrada actual: <b>{Q_entrada_Ls:.2f} L/s</b><br>
-                        Entrada necesaria: <b>{Q_entrada_necesaria_Ls:.2f} L/s</b>
-                        ({signo_ent}{delta_entrada_Ls:.2f} L/s)
-                    </div>
-                </div>
-
-                <div style="background:rgba(255,255,255,0.85);border:1.5px solid #6c63ff;
-                     border-radius:14px;padding:0.9rem 1rem">
-                    <div style="font-size:0.7rem;font-weight:700;color:#5a7899;
-                         text-transform:uppercase;margin-bottom:4px">
-                        Opción B · Ajustar salida
-                    </div>
-                    <div style="font-size:1.3rem;font-weight:800;color:#6c63ff">
-                        {accion_salida} {abs(delta_salida_Ls):.2f} L/s
-                    </div>
-                    <div style="font-size:0.82rem;color:#5a7899;margin-top:4px">
-                        Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>
-                        Salida necesaria: <b>{Q_salida_necesaria_Ls:.2f} L/s</b>
-                        ({signo_sal}{delta_salida_Ls:.2f} L/s)
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-top:0.9rem;font-size:0.78rem;color:#5a7899;line-height:1.55">
-                ℹ️ El ajuste debe realizarse <b>ahora ({hora_ajuste_str})</b>.
-                El efecto llegaría al tanque a las <b>{hora_efecto_str}</b>.
-                El nivel objetivo de <b>{nivel_objetivo:.2f} m</b> se alcanzaría aproximadamente
-                a las <b>{hora_objetivo_str}</b>.
-                Q neto necesario: <b>{Q_neto_necesario_Ls:+.2f} L/s</b>.
-            </div>
-        </div>
-        """)
-
-        st.markdown(html_alerta_caudal, unsafe_allow_html=True)
-
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-seccion-resultado'>🏗️ Visualización del tanque</div>", unsafe_allow_html=True)
-
+            """, unsafe_allow_html=True)
+ 
+        # ── TANQUE SVG ───────────────────────────────────────────────────────
+        st.markdown(
+            "<div class='titulo-seccion-resultado'>&#127959;&#65039; "
+            "Visualizaci&oacute;n del Tanque</div>",
+            unsafe_allow_html=True
+        )
+ 
         tanque_html = generar_tanque_svg(
             h_actual=altura_actual,
             h_rebose=altura_rebose,
@@ -1636,117 +1950,155 @@ def mostrar_calculadora_tanque():
             tendencia=tendencia,
             Q_neto_Ls=Q_neto_Ls,
         )
-
         components.html(tanque_html, height=780, scrolling=False)
-
+ 
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-seccion-resultado'>📈 Proyección del nivel — próximas 6 horas</div>", unsafe_allow_html=True)
-
-        pasos_min = list(range(0, 361, 10))
-        horas_proj = []
-        niveles_proj = []
-
-        for p in pasos_min:
-            h_proj = altura_actual + Q_neto_m3s * (p * 60) / area_equiv
-            h_proj = max(0.0, h_proj)
-            niveles_proj.append(round(h_proj, 4))
-            horas_proj.append(minutos_a_hora_futura(min_actual, p))
-
+ 
+        # ── Gráfica proyección próximas 6 horas — MEJORADA ──────────────────
+        st.markdown(
+            "<div class='titulo-seccion-resultado'>&#128200; "
+            "Proyecci&oacute;n del nivel &mdash; pr&oacute;ximas 6 horas</div>",
+            unsafe_allow_html=True
+        )
+ 
+        pasos_min    = list(range(0, 361, 10))
+        horas_proj   = [minutos_a_hora_futura(min_actual, p) for p in pasos_min]
+        niveles_proj = [
+            round(max(0.0, min(altura_rebose * 1.05, altura_actual + Q_neto_m3s * (p * 60) / area_equiv)), 4)
+            for p in pasos_min
+        ]
+ 
+        import plotly.graph_objects as go
+ 
         fig_tanq = go.Figure()
-
+ 
+        y_max = max(altura_rebose * 1.12, max(niveles_proj) * 1.08)
+ 
+        # Zonas sombreadas
+        fig_tanq.add_hrect(
+            y0=altura_rebose, y1=y_max,
+            fillcolor="rgba(230,57,70,0.08)", line_width=0,
+        )
+        fig_tanq.add_hrect(
+            y0=0, y1=altura_minima,
+            fillcolor="rgba(244,162,97,0.08)", line_width=0,
+        )
+ 
+        # Líneas de límite con anotaciones al LADO (no encima)
+        fig_tanq.add_shape(type="line", x0=0, x1=1, xref="paper",
+            y0=altura_rebose, y1=altura_rebose,
+            line=dict(color="#e63946", width=2, dash="dash"))
+        fig_tanq.add_shape(type="line", x0=0, x1=1, xref="paper",
+            y0=altura_minima, y1=altura_minima,
+            line=dict(color="#f4a261", width=2, dash="dash"))
+        fig_tanq.add_shape(type="line", x0=0, x1=1, xref="paper",
+            y0=nivel_objetivo, y1=nivel_objetivo,
+            line=dict(color="#6c63ff", width=1.5, dash="dot"))
+ 
+        # Anotaciones posicionadas con xref=paper para no superponerse
+        fig_tanq.add_annotation(
+            xref="paper", x=1.01, y=altura_rebose,
+            text=f"<b>Rebose</b><br>{altura_rebose:.2f} m",
+            showarrow=False, font=dict(color="#e63946", size=11),
+            align="left", xanchor="left"
+        )
+        fig_tanq.add_annotation(
+            xref="paper", x=1.01, y=altura_minima,
+            text=f"<b>Mínimo</b><br>{altura_minima:.2f} m",
+            showarrow=False, font=dict(color="#f4a261", size=11),
+            align="left", xanchor="left"
+        )
+ 
+        # Traza principal — nivel actual
         fig_tanq.add_trace(go.Scatter(
-            x=horas_proj,
-            y=niveles_proj,
+            x=horas_proj, y=niveles_proj,
             mode="lines",
-            name="Nivel proyectado actual",
-            line=dict(color="#1a6fff", width=2.5, shape="spline"),
+            name="Nivel proyectado",
+            line=dict(color="#1a6fff", width=3, shape="spline"),
             fill="tozeroy",
-            fillcolor="rgba(26,111,255,0.06)"
+            fillcolor="rgba(26,111,255,0.07)"
         ))
-
+ 
+        # Punto nivel actual
         fig_tanq.add_trace(go.Scatter(
-            x=[hora_actual_str],
-            y=[altura_actual],
+            x=[hora_actual_str], y=[altura_actual],
             mode="markers",
-            name="Nivel actual",
-            marker=dict(size=13, color="#00e5c0", line=dict(color="#0a1628", width=2))
+            name=f"Nivel actual ({altura_actual:.2f} m)",
+            marker=dict(size=14, color="#00e5c0",
+                        line=dict(color="#0a1628", width=2), symbol="circle")
         ))
-
-        fig_tanq.add_hline(
-            y=altura_rebose,
-            line_dash="dash",
-            line_color="#e63946",
-            annotation_text=f"Rebose {altura_rebose:.2f} m"
-        )
-
-        fig_tanq.add_hline(
-            y=altura_minima,
-            line_dash="dash",
-            line_color="#f4a261",
-            annotation_text=f"Mínimo {altura_minima:.2f} m"
-        )
-
-        fig_tanq.add_hline(
-            y=nivel_objetivo,
-            line_dash="dot",
-            line_color="#6c63ff",
-            annotation_text=f"Objetivo {nivel_objetivo:.2f} m"
-        )
-
-        if abs(delta_entrada_Ls) >= 1.0:
-            horas_proj_aj = []
-            niveles_proj_aj = []
-
+ 
+        # Traza con ajuste (solo si hay riesgo)
+        if (tendencia == "subiendo" and t_rebose_min is not None) or \
+           (tendencia == "bajando"  and t_minimo_min is not None):
+ 
+            if tendencia == "subiendo":
+                Q_neto_ajustado_m3s = 0.0  # balance neutro tras ajuste
+                color_ajuste = "#6c63ff"
+                nombre_ajuste = "Con ajuste (balance neutro)"
+            else:
+                Q_neto_ajustado_m3s = 0.0
+                color_ajuste = "#2a9d8f"
+                nombre_ajuste = "Con ajuste (balance neutro)"
+ 
+            niveles_aj = []
             for p in pasos_min:
                 if p < tiempo_recorrido_min:
                     h_aj = altura_actual + Q_neto_m3s * (p * 60) / area_equiv
                 else:
-                    t_efecto = (p - tiempo_recorrido_min) * 60
-                    h_aj = h_en_llegada + Q_neto_necesario_m3s * t_efecto / area_equiv
-
-                h_aj = max(0.0, h_aj)
-                niveles_proj_aj.append(round(h_aj, 4))
-                horas_proj_aj.append(minutos_a_hora_futura(min_actual, p))
-
+                    t_ef = (p - tiempo_recorrido_min) * 60
+                    h_aj = h_en_llegada + Q_neto_ajustado_m3s * t_ef / area_equiv
+                niveles_aj.append(round(max(0.0, h_aj), 4))
+ 
             fig_tanq.add_trace(go.Scatter(
-                x=horas_proj_aj,
-                y=niveles_proj_aj,
+                x=horas_proj, y=niveles_aj,
                 mode="lines",
-                name=f"Con ajuste entrada ({delta_entrada_Ls:+.1f} L/s)",
-                line=dict(color="#6c63ff", width=2, dash="dash", shape="spline")
+                name=nombre_ajuste,
+                line=dict(color=color_ajuste, width=2.5, dash="dash", shape="spline"),
+                fill="tozeroy",
+                fillcolor=f"rgba(108,99,255,0.04)"
             ))
-
-            fig_tanq.add_vline(
-                x=hora_efecto_str,
-                line_dash="dot",
-                line_color="#6c63ff",
-                line_width=1.5
+ 
+            # Línea vertical del efecto del ajuste
+            fig_tanq.add_shape(
+                type="line",
+                x0=hora_efecto_str, x1=hora_efecto_str,
+                y0=0, y1=y_max,
+                line=dict(color=color_ajuste, width=1.5, dash="dot")
             )
-
+            fig_tanq.add_annotation(
+                x=hora_efecto_str, y=y_max * 0.95,
+                text=f"Efecto ajuste<br>{hora_efecto_str}",
+                showarrow=False,
+                font=dict(color=color_ajuste, size=10),
+                bgcolor="rgba(255,255,255,0.8)",
+                bordercolor=color_ajuste,
+                borderwidth=1,
+                borderpad=4
+            )
+ 
+        # Marcadores de rebose/mínimo
         if hora_rebose_str is not None:
             fig_tanq.add_trace(go.Scatter(
-                x=[hora_rebose_str],
-                y=[altura_rebose],
-                mode="markers+text",
-                name="Hora rebose",
-                text=[f"⚠️ {hora_rebose_str}"],
-                textposition="top center",
-                marker=dict(size=12, color="#e63946", symbol="x")
+                x=[hora_rebose_str], y=[altura_rebose],
+                mode="markers",
+                name=f"Rebose {hora_rebose_str}",
+                marker=dict(size=13, color="#e63946",
+                            line=dict(color="white", width=2), symbol="x-open-dot")
             ))
-
         if hora_minimo_str is not None:
             fig_tanq.add_trace(go.Scatter(
-                x=[hora_minimo_str],
-                y=[altura_minima],
-                mode="markers+text",
-                name="Hora mínimo",
-                text=[f"⚠️ {hora_minimo_str}"],
-                textposition="bottom center",
-                marker=dict(size=12, color="#f4a261", symbol="x")
+                x=[hora_minimo_str], y=[altura_minima],
+                mode="markers",
+                name=f"Mínimo {hora_minimo_str}",
+                marker=dict(size=13, color="#f4a261",
+                            line=dict(color="white", width=2), symbol="x-open-dot")
             ))
-
-        y_max = max(altura_rebose * 1.1, max(niveles_proj) * 1.1, nivel_objetivo * 1.1)
-
+ 
+        # Ticks del eje X: cada 30 min
+        tick_indices = [i for i, p in enumerate(pasos_min) if p % 30 == 0]
+        tick_vals    = [horas_proj[i] for i in tick_indices]
+ 
         fig_tanq.update_layout(
             plot_bgcolor="white",
             paper_bgcolor="white",
@@ -1754,36 +2106,78 @@ def mostrar_calculadora_tanque():
             xaxis=dict(
                 title="Hora del día",
                 gridcolor="#e8f0fe",
-                tickangle=-45,
-                tickvals=[horas_proj[i] for i in range(0, len(horas_proj), 6)]
+                linecolor="#dce9f7",
+                tickangle=-30,
+                tickvals=tick_vals,
+                tickfont=dict(size=11),
+                showgrid=True,
             ),
             yaxis=dict(
                 title="Altura (m)",
                 gridcolor="#e8f0fe",
-                range=[0, y_max]
+                linecolor="#dce9f7",
+                range=[0, y_max],
+                tickfont=dict(size=11),
+                showgrid=True,
             ),
-            legend=dict(orientation="h", y=1.02, x=1, xanchor="right"),
-            margin=dict(l=20, r=70, t=30, b=60),
-            height=420
+            legend=dict(
+                orientation="h",
+                yanchor="bottom", y=1.03,
+                xanchor="left", x=0,
+                bgcolor="rgba(255,255,255,0.85)",
+                bordercolor="#dce9f7",
+                borderwidth=1,
+                font=dict(size=11)
+            ),
+            margin=dict(l=20, r=110, t=20, b=60),
+            height=420,
         )
-
         st.plotly_chart(fig_tanq, use_container_width=True)
-
+ 
+        # ── Resumen y fórmulas ───────────────────────────────────────────────
         signo_neto = "+" if Q_neto_Ls >= 0 else ""
-
+        modo_calc  = (
+            "Caudal de entrada al tanque ingresado manualmente"
+            if (usar_entrada_manual and caudal_entrada_manual_ls is not None)
+            else "Caudal de entrada al tanque estimado a partir del cambio de nivel"
+        )
         st.markdown(f"""
         <div class="caja-rango">
             <b>Resumen del balance</b><br>
             Lecturas: {hora_antes_str} ({altura_antes:.2f} m)
-            → {hora_actual_str} ({altura_actual:.2f} m)<br>
-            Intervalo: {delta_t_min:.0f} min ·
-            Δh = {delta_h:+.4f} m ·
+            &rarr; {hora_actual_str} ({altura_actual:.2f} m) &middot;
+            Intervalo: {delta_t_min:.0f} min &middot;
+            &Delta;h = {delta_h:+.4f} m &middot;
             Q neto = {signo_neto}{Q_neto_Ls:.2f} L/s<br>
-            Q entrada = <b>{Q_entrada_Ls:.2f} L/s ({Q_entrada_m3h:.1f} m³/h)</b> ·
-            Q salida = <b>{caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)</b>
+            Q entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s ({Q_entrada_tanque_m3h:.1f} m³/h)</b> &middot;
+            Q salida tanque = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)<br>
+            Q máx entrada planta = {caudal_max_planta:.0f} L/s<br>
+            <span style="color:#5a7899;font-size:0.85rem">&#8505; {modo_calc}</span>
         </div>
         """, unsafe_allow_html=True)
-
+ 
+        st.markdown("""
+        <div class="caja-rango" style="border-left-color:#00c8ff">
+            <b>F&oacute;rmulas aplicadas</b><br>
+            <span style="color:#3a5270">
+            &Delta;t (min) = Hora actual &minus; Hora anterior
+            (cruce de medianoche si necesario)<br>
+            &Aacute;rea equiv. (m²) = Volumen total &divide; Altura lleno<br>
+            <b>Modo autom&aacute;tico:</b>
+            Q neto (m³/s) = &Aacute;rea &times; &Delta;h &divide; &Delta;t(s)
+            &nbsp;|&nbsp; Q entrada tanque = Q salida + Q neto<br>
+            <b>Modo manual:</b>
+            Q neto = Q entrada tanque &minus; Q salida<br>
+            t rebose = &Aacute;rea &times; (h_rebose &minus; h_actual) &divide; Q_neto (si Q_neto &gt; 0)<br>
+            t m&iacute;nimo = &Aacute;rea &times; (h_actual &minus; h_min) &divide; |Q_neto| (si Q_neto &lt; 0)<br>
+            <b>Proyecci&oacute;n con ajuste:</b>
+            h_llegada = h_actual + Q_neto &times; t_recorrido &divide; &Aacute;rea<br>
+            Ajuste para balance neutro: Q_entrada_tanque = Q_salida
+            (Opci&oacute;n A: abrir salida &nbsp;|&nbsp; Opci&oacute;n B: ajustar entrada planta)
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+ 
     st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================
