@@ -1163,12 +1163,12 @@ def mostrar_calculadora_tanque():
         with st.expander("⚙️ Límites operativos", expanded=True):
             altura_rebose = st.number_input(
                 "Altura límite de rebose (m)",
-                min_value=0.01, value=2.85, step=0.01, format="%.2f",
+                min_value=0.01, value=2.8, step=0.01, format="%.2f",
                 key="tanq_altura_rebose"
             )
             altura_minima = st.number_input(
                 "Altura mínima operativa (m)",
-                min_value=0.0, value=1.00, step=0.01, format="%.2f",
+                min_value=0.0, value=1.4, step=0.01, format="%.2f",
                 key="tanq_altura_minima"
             )
  
