@@ -227,7 +227,7 @@ div[data-testid="stNumberInput"] > label,
 div[data-testid="stSelectbox"] > label,
 div[data-testid="stSlider"] > label,
 div[data-testid="stRadio"] > label {
-    font-size: 0.83rem !important; font-weight: 600 !important;
+    font-size: 1rem !important; font-weight: 700 !important;
     color: #3a5270 !important; text-transform: uppercase; letter-spacing: 0.4px;
 }
  
