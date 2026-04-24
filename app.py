@@ -1240,7 +1240,7 @@ def mostrar_calculadora_tanque():
         with st.expander("⏱️ Tiempo de recorrido PTAP", expanded=True):
             tiempo_recorrido_min = st.number_input(
                 "Tiempo de recorrido PTAP (minutos)",
-                min_value=0, value=30, step=1, key="tanq_tiempo_recorrido",
+                min_value=0, value=45, step=1, key="tanq_tiempo_recorrido",
                 help="Tiempo desde que ajustas en planta hasta que el cambio llega al tanque."
             )
  
