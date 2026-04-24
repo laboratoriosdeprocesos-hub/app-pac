@@ -1642,7 +1642,7 @@ def mostrar_calculadora_tanque():
  
         tiene_rec = (tendencia in ("subiendo", "bajando") and
                      (t_rebose_min is not None or t_minimo_min is not None))
-        altura_iframe = 690 if tiene_rec else 320
+        altura_iframe = 650 if tiene_rec else 320
  
         components.html(html_completo, height=altura_iframe, scrolling=False)
  
