@@ -1407,8 +1407,8 @@ body::before {{
   font-family: var(--mono);
   font-size: 0.95rem;
   color: var(--cyan);
-  background: rgba(0,200,255,0.08);
-  border: 1px solid rgba(0,200,255,0.2);
+  background: rgba(0,119,182,0.12);
+  border: 1px solid rgba(0,119,182,0.35);
   border-radius: 8px;
   padding: 4px 12px;
   white-space: nowrap;
