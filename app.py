@@ -2052,7 +2052,7 @@ def mostrar_calculadora_tanque():
             f"<div style='background:linear-gradient(135deg,#ffffff,#f7fbff);"
             f"border:2px solid {color_rec};border-radius:18px;padding:1rem 1.2rem;'>"
 
-            f"<div style='font-size:1.25rem;font-weight:800;color:{color_rec};margin-bottom:0.9rem'>"
+            f"<div style='font-size:1rem;font-weight:800;color:{color_rec};margin-bottom:0.9rem'>"
             "Recomendación considerando tiempo de recorrido PTAP</div>"
 
             "<div style='background:rgba(255,255,255,0.88);border-radius:13px;"
@@ -2098,7 +2098,7 @@ def mostrar_calculadora_tanque():
             "<div style='background:#f8fbff;border:2px solid #2a9d8f;border-radius:14px;padding:0.9rem 1rem'>"
             "<div style='font-size:0.9rem;font-weight:800;color:#2a9d8f;margin-bottom:5px'>"
             "Caudal requerido al tanque</div>"
-            f"<div style='font-size:1.55rem;font-weight:800;color:#0d2347'>{Q_requerido_tanque_Ls:.2f} L/s</div>"
+            f"<div style='font-size:1.25rem;font-weight:800;color:#0d2347'>{Q_requerido_tanque_Ls:.2f} L/s</div>"
             "<div style='font-size:1rem;color:#5a7899;line-height:1.5;margin-top:4px'>"
             f"Entrada actual estimada al tanque: <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>"
             f"Salida esperada: <b>{caudal_salida_esperada_ls:.2f} L/s</b><br>"
@@ -2108,7 +2108,7 @@ def mostrar_calculadora_tanque():
             "<div style='background:#f8fbff;border:2px solid #1a6fff;border-radius:14px;padding:0.9rem 1rem'>"
             "<div style='font-size:0.9rem;font-weight:800;color:#1a6fff;margin-bottom:5px'>"
             "Caudal recomendado en planta</div>"
-            f"<div style='font-size:1.55rem;font-weight:800;color:#0d2347'>{Q_planta_recomendado_Ls:.2f} L/s</div>"
+            f"<div style='font-size:1..25rem;font-weight:800;color:#0d2347'>{Q_planta_recomendado_Ls:.2f} L/s</div>"
             "<div style='font-size:1rem;color:#5a7899;line-height:1.5;margin-top:4px'>"
             f"Entrada actual planta: <b>{caudal_entrada_planta_actual:.2f} L/s</b><br>"
             f"{texto_entrada}<br>"
