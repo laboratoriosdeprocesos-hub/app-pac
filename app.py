@@ -1406,7 +1406,7 @@ body::before {{
 .hdr-time {{
   font-family: var(--mono);
   font-size: 0.95rem;
-  color: var(--cyan);
+  color: #0077b6;
   background: rgba(0,119,182,0.12);
   border: 1px solid rgba(0,119,182,0.35);
   border-radius: 8px;
@@ -1437,7 +1437,7 @@ body::before {{
   font-family: var(--titulo);
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--cyan);
+  color: #0077b6;
   letter-spacing: 2px;
   text-transform: uppercase;
 }}
@@ -1482,13 +1482,13 @@ body::before {{
   top: 0; left: 0; right: 0;
   height: 3px;
   border-radius: 12px 12px 0 0;
-  background: var(--cyan);
+  background: #0077b6;
   opacity: 0.5;
 }}
 .metric-card.verde::before {{ background: var(--verde); }}
 .metric-card.rojo::before  {{ background: var(--rojo); }}
 .metric-card.naranja::before {{ background: var(--naranja); }}
-.metric-card.cyan::before {{ background: var(--cyan); }}
+.metric-card.cyan::before {{ background: #0077b6; }}
 
 .m-label {{
   font-family: var(--mono);
@@ -1510,14 +1510,14 @@ body::before {{
 .m-unit {{
   font-family: var(--mono);
   font-size: 0.62rem;
-  color: var(--gris1);
+  color: #5a8aaa;
   margin-top: 2px;
   display: block;
 }}
 
 /* ── PANEL ACCIÓN PRINCIPAL ── */
 .accion-panel {{
-  background: linear-gradient(135deg, rgba(13,46,90,0.8), rgba(10,30,64,0.9));
+  background: linear-gradient(135deg, rgba(255,255,255,0.80), rgba(224,242,252,0.90));
   border: 2px solid {accion_color}44;
   border-radius: 16px;
   padding: 14px 16px;
@@ -1561,7 +1561,7 @@ body::before {{
 .accion-sub {{
   font-family: var(--cuerpo);
   font-size: 0.82rem;
-  color: var(--gris1);
+  color: #3a6a88;
   line-height: 1.4;
 }}
 .accion-numeros {{
@@ -1571,8 +1571,8 @@ body::before {{
   flex-wrap: wrap;
 }}
 .accion-num-item {{
-  background: rgba(0,0,0,0.25);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,100,160,0.08);
+  border: 1px solid rgba(0,119,182,0.2);
   border-radius: 10px;
   padding: 8px 14px;
   text-align: center;
@@ -1580,7 +1580,7 @@ body::before {{
 .accion-num-lbl {{
   font-family: var(--mono);
   font-size: 0.58rem;
-  color: var(--gris1);
+  color: #4a7a9b;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   display: block;
@@ -1590,7 +1590,7 @@ body::before {{
   font-family: var(--titulo);
   font-size: 1.5rem;
   font-weight: 800;
-  color: #e8f4ff;
+  color: #0a2244;
   display: block;
 }}
 .accion-num-val.verde {{ color: var(--verde); }}
@@ -1604,8 +1604,8 @@ body::before {{
 
 /* ── LÍNEA DE TIEMPO ── */
 .timeline-card {{
-  background: rgba(13,46,90,0.5);
-  border: 1px solid rgba(0,200,255,0.12);
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(0,119,182,0.18);
   border-radius: 14px;
   padding: 12px 14px;
 }}
@@ -1613,7 +1613,7 @@ body::before {{
   font-family: var(--titulo);
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--cyan);
+  color: #0077b6;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin-bottom: 10px;
@@ -1639,7 +1639,7 @@ body::before {{
   border-radius: 8px;
   background: rgba(0,200,255,0.12);
   border: 1px solid rgba(0,200,255,0.3);
-  color: var(--cyan);
+  color: #0077b6;
   white-space: nowrap;
 }}
 .tl-hora.efecto {{
@@ -1655,7 +1655,7 @@ body::before {{
 .tl-desc {{
   font-family: var(--mono);
   font-size: 0.55rem;
-  color: var(--gris1);
+  color: #3a4a7a);
   text-align: center;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -1688,8 +1688,8 @@ body::before {{
   gap: 10px;
 }}
 .limites-card {{
-  background: rgba(13,46,90,0.5);
-  border: 1px solid rgba(0,200,255,0.12);
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(0,119,182,0.18);
   border-radius: 14px;
   padding: 12px 14px;
 }}
@@ -1697,7 +1697,7 @@ body::before {{
   font-family: var(--titulo);
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--cyan);
+  color: #0077b6;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin-bottom: 10px;
@@ -1732,15 +1732,15 @@ body::before {{
 .lim-dur {{
   font-family: var(--mono);
   font-size: 0.62rem;
-  color: var(--gris1);
+  color: #3a4a7a;
   display: block;
   margin-top: 2px;
 }}
 
 /* ── RESULTADO ESPERADO ── */
 .resultado-card {{
-  background: rgba(13,46,90,0.5);
-  border: 1px solid rgba(0,200,160,0.2);
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(0,180,140,0.25);
   border-radius: 14px;
   padding: 12px 14px;
 }}
@@ -1748,7 +1748,7 @@ body::before {{
   font-family: var(--titulo);
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--verde);
+  color: #1a9e7a;;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin-bottom: 10px;
@@ -1822,7 +1822,7 @@ body::before {{
   flex-wrap: wrap;
   font-family: var(--mono);
   font-size: 0.6rem;
-  color: var(--gris1);
+  color: #3a4a7a);
   margin-bottom: 8px;
 }}
 .leyenda-item {{ display: flex; align-items: center; gap: 4px; }}
@@ -1844,7 +1844,7 @@ body::before {{
 .rs-lbl {{
   font-family: var(--mono);
   font-size: 0.56rem;
-  color: var(--gris1);
+  color: #3a4a7a;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   display: block;
@@ -1883,7 +1883,7 @@ body::before {{
 .valv-detalle {{
   font-family: var(--cuerpo);
   font-size: 0.8rem;
-  color: var(--gris1);
+  color: #3a4a7a;
   line-height: 1.5;
 }}
 
@@ -1939,8 +1939,8 @@ body::before {{
 
 /* ── BALANCE TÉCNICO ── */
 .balance-card {{
-  background: rgba(5,15,35,0.6);
-  border: 1px solid rgba(0,200,255,0.08);
+  background: rgba(220,238,252,0.70);
+  border: 1px solid rgba(0,119,182,0.15);
   border-radius: 14px;
   padding: 12px 14px;
 }}
@@ -1948,7 +1948,7 @@ body::before {{
   font-family: var(--titulo);
   font-size: 0.7rem;
   font-weight: 700;
-  color: rgba(0,200,255,0.6);
+  color: #0077b6;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin-bottom: 10px;
@@ -1964,7 +1964,7 @@ body::before {{
 .bal-lbl {{
   font-family: var(--mono);
   font-size: 0.55rem;
-  color: var(--gris1);
+  color: #3a4a7a;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   display: block;
