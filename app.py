@@ -1114,9 +1114,6 @@ def mostrar_calculadora_pac():
 # =========================================
 # CALCULADORA DE TANQUE DE AGUA
 # =========================================
-# =========================================
-# CALCULADORA DE TANQUE DE AGUA
-# =========================================
 def mostrar_calculadora_tanque():
 
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
@@ -1130,7 +1127,9 @@ def mostrar_calculadora_tanque():
         "Ingresa los datos del tanque, dos lecturas de nivel y los caudales actuales. "
         "El sistema estima el balance hídrico, el caudal real de entrada al tanque, "
         "la hora de rebose o mínimo operativo, y recomienda ajustes diferenciando "
-        "el caudal que debe llegar al tanque del caudal que debe manejarse en planta."
+        "el caudal que debe llegar al tanque del caudal que debe manejarse en planta. "
+        "La salida del tanque se usa para el balance, pero queda como opción informativa "
+        "para coordinación con el valvulero."
         "</p>",
         unsafe_allow_html=True
     )
@@ -1253,16 +1252,16 @@ def mostrar_calculadora_tanque():
             )
 
             caudal_planta_referencia = st.number_input(
-                "Caudal de planta de referencia para esta lectura (L/s)",
+                "Caudal promedio de planta asociado a esta lectura (L/s)",
                 min_value=0.0,
                 value=float(caudal_entrada_planta_actual),
                 step=0.5,
                 format="%.2f",
                 key="tanq_caudal_planta_referencia",
                 help=(
-                    "Caudal de entrada a planta que probablemente originó el comportamiento observado en el tanque. "
-                    "Idealmente usa el promedio de planta aproximadamente 45 minutos antes de la lectura actual. "
-                    "Si no lo tienes, puedes usar el caudal registrado más cercano."
+                    "Es el caudal de entrada a planta que, por el tiempo de recorrido, probablemente "
+                    "originó el cambio observado en el tanque. Si el recorrido es 45 min y analizas "
+                    "el tanque de 04:50 a 05:20, usa idealmente el promedio de planta entre 04:05 y 04:35."
                 )
             )
 
@@ -1289,7 +1288,8 @@ def mostrar_calculadora_tanque():
                 value=120.0,
                 step=0.5,
                 format="%.2f",
-                key="tanq_caudal_salida"
+                key="tanq_caudal_salida",
+                help="Este dato se usa para el balance. No se toma como acción principal si no puedes ajustar la salida."
             )
 
             caudal_min_salida = st.number_input(
@@ -1381,12 +1381,20 @@ def mostrar_calculadora_tanque():
             else:
                 caudal_salida_esperada_ls = caudal_salida_ls
 
+            mostrar_opcion_valvulero = st.checkbox(
+                "Mostrar opción informativa para valvulero",
+                value=False,
+                key="tanq_mostrar_opcion_valvulero",
+                help=(
+                    "Activa esta opción solo cuando necesites saber qué ajuste de salida "
+                    "podría consultarse con el valvulero. No se toma como acción principal."
+                )
+            )
+
     # ─────────────────────────────────────────────────────────────────────────
     # PANEL DERECHO
     # ─────────────────────────────────────────────────────────────────────────
     with col_der:
-        st.markdown("<div class='subtitulo-panel'>Resultados del análisis</div>", unsafe_allow_html=True)
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
 
         errores = []
 
@@ -1627,8 +1635,8 @@ def mostrar_calculadora_tanque():
         if nivel_cuando_llega_ajuste > nivel_objetivo_max:
             texto_modo = (
                 "El nivel futuro queda por encima de la banda objetivo. "
-                "Se requiere reducir la entrada efectiva al tanque o aumentar temporalmente la salida, "
-                "siempre dentro de los límites operativos."
+                "La recomendación principal es ajustar la entrada a planta. "
+                "La salida del tanque solo se presenta como referencia informativa para coordinación con el valvulero."
             )
             Q_requerido_tanque_Ls = Q_entrada_corregir_tanque_Ls
             color_rec = "#e63946" if nivel_cuando_llega_ajuste >= altura_rebose else "#f4a261"
@@ -1636,8 +1644,8 @@ def mostrar_calculadora_tanque():
         elif nivel_cuando_llega_ajuste < nivel_objetivo_min:
             texto_modo = (
                 "El nivel futuro queda por debajo de la banda objetivo. "
-                "Se requiere aumentar la entrada efectiva al tanque o reducir temporalmente la salida, "
-                "siempre dentro de los límites operativos."
+                "La recomendación principal es aumentar la entrada efectiva al tanque mediante ajuste en planta. "
+                "La reducción de salida solo se considera como alternativa informativa para consultar con el valvulero."
             )
             Q_requerido_tanque_Ls = Q_entrada_corregir_tanque_Ls
             color_rec = "#e63946" if nivel_cuando_llega_ajuste <= altura_minima else "#f4a261"
@@ -1645,12 +1653,12 @@ def mostrar_calculadora_tanque():
         else:
             texto_modo = (
                 "El nivel futuro queda dentro de la banda aceptable. "
-                "Para sostener el nivel, la entrada efectiva al tanque debe acercarse a la salida esperada."
+                "Para sostener el nivel, la entrada efectiva al tanque debe acercarse a la salida esperada. "
+                "El ajuste principal se realiza desde la entrada a planta."
             )
             Q_requerido_tanque_Ls = Q_entrada_sostener_tanque_Ls
             color_rec = "#2a9d8f"
 
-        # Relación efectiva planta → tanque
         if caudal_planta_referencia > 0 and Q_entrada_tanque_Ls > 0:
             relacion_planta_tanque = Q_entrada_tanque_Ls / caudal_planta_referencia
         else:
@@ -1681,7 +1689,6 @@ def mostrar_calculadora_tanque():
             (Q_neto_real_recomendado_Ls / 1000) * t_correccion_s / area_equiv
         )
 
-        # Ajuste inmediato de salida mientras llega el cambio de planta
         Q_salida_inmediata_Ls = max(
             caudal_min_salida,
             min(Q_entrada_tanque_Ls, caudal_max_salida)
@@ -1735,6 +1742,33 @@ def mostrar_calculadora_tanque():
             alerta_demanda = (
                 f"<br><span style='color:#6c63ff;font-weight:700'>"
                 f"Se está usando una salida esperada de {caudal_salida_esperada_ls:.2f} L/s.</span>"
+            )
+
+        if mostrar_opcion_valvulero:
+            bloque_salida_valvulero = (
+                "<div style='background:#f8fbff;border:2px solid #6c63ff;border-radius:14px;"
+                "padding:0.8rem 0.95rem;margin-bottom:0.8rem'>"
+                "<div style='font-size:0.72rem;font-weight:700;color:#6c63ff;margin-bottom:5px'>"
+                "Opción informativa para valvulero</div>"
+                f"<div style='font-size:1.05rem;font-weight:800;color:#0d2347'>{Q_salida_inmediata_Ls:.2f} L/s</div>"
+                "<div style='font-size:0.82rem;color:#5a7899;line-height:1.45;margin-top:4px'>"
+                f"Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>"
+                f"{texto_salida}<br>"
+                "Este valor no es una orden de operación. Solo sirve como referencia "
+                "para consultar o coordinar con el valvulero si se requiere apoyo temporal."
+                "</div></div>"
+            )
+        else:
+            bloque_salida_valvulero = (
+                "<div style='background:#f8fbff;border-left:5px solid #b8d0e8;"
+                "border-radius:14px;padding:0.8rem 0.95rem;margin-bottom:0.8rem'>"
+                "<div style='font-size:0.72rem;font-weight:700;color:#5a7899;margin-bottom:5px'>"
+                "Salida del tanque</div>"
+                "<div style='font-size:0.86rem;color:#0a1628;line-height:1.45'>"
+                f"La salida actual del tanque es <b>{caudal_salida_ls:.2f} L/s</b>. "
+                "Este dato se usa para el balance hidráulico, pero no se toma como acción principal "
+                "porque el ajuste depende del valvulero."
+                "</div></div>"
             )
 
         bloque_rec = (
@@ -1805,16 +1839,7 @@ def mostrar_calculadora_tanque():
 
             "</div>"
 
-            "<div style='background:#f8fbff;border:2px solid #6c63ff;border-radius:14px;"
-            "padding:0.8rem 0.95rem;margin-bottom:0.8rem'>"
-            "<div style='font-size:0.72rem;font-weight:700;color:#6c63ff;margin-bottom:5px'>"
-            "Ajuste inmediato de salida mientras llega el cambio</div>"
-            f"<div style='font-size:1.05rem;font-weight:800;color:#0d2347'>{Q_salida_inmediata_Ls:.2f} L/s</div>"
-            "<div style='font-size:0.82rem;color:#5a7899;line-height:1.45;margin-top:4px'>"
-            f"Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>"
-            f"{texto_salida}<br>"
-            "Este ajuste sirve solo como control temporal mientras se refleja el cambio realizado en planta."
-            "</div></div>"
+            f"{bloque_salida_valvulero}"
 
             "<div style='background:rgba(42,157,143,0.08);border-left:5px solid #2a9d8f;"
             "border-radius:12px;padding:0.75rem 0.95rem'>"
@@ -1825,7 +1850,8 @@ def mostrar_calculadora_tanque():
             f"<b>{Q_tanque_post_ajuste_Ls:.2f} L/s</b>.<br>"
             f"El nivel estimado después de {tiempo_correccion_min} min de corrección sería aproximadamente: "
             f"<b>{nivel_final_estimado:.3f} m</b>.<br>"
-            "La recomendación diferencia el caudal que debe llegar al tanque del caudal que se debe manejar en planta."
+            "La recomendación diferencia el caudal que debe llegar al tanque del caudal que se debe manejar en planta. "
+            "La salida se conserva como dato de balance y, opcionalmente, como consulta informativa para el valvulero."
             "</div></div>"
 
             "</div>"
@@ -1977,7 +2003,6 @@ def mostrar_calculadora_tanque():
             )
         ))
 
-        # Curva con ajuste recomendado
         niv_aj = []
         for p in pasos_min:
             if p < tiempo_recorrido_min:
@@ -2090,37 +2115,6 @@ def mostrar_calculadora_tanque():
 
         st.plotly_chart(fig, use_container_width=True)
 
-        # ── Resumen y fórmulas ───────────────────────────────────────────────
-        signo = "+" if Q_neto_Ls >= 0 else ""
-        signo_proy = "+" if Q_neto_proyeccion_Ls >= 0 else ""
-
-        resumen_html = (
-            "<div class='caja-rango'>"
-            "<b>Resumen del balance</b><br>"
-            f"Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → {hora_actual_str} ({altura_actual:.2f} m) "
-            f"· Intervalo: {delta_t_min:.0f} min "
-            f"· Δh = {delta_h:+.4f} m<br><br>"
-
-            f"Q neto actual = <b>{signo}{Q_neto_Ls:.2f} L/s</b> "
-            f"· Entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s ({Q_entrada_tanque_m3h:.1f} m³/h)</b> "
-            f"· Salida actual = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)<br><br>"
-
-            f"Salida esperada = <b>{caudal_salida_esperada_ls:.2f} L/s</b> "
-            f"· Q neto esperado = <b>{signo_proy}{Q_neto_proyeccion_Ls:.2f} L/s</b> "
-            f"· Tiempo recorrido PTAP = {tiempo_recorrido_min} min<br><br>"
-
-            f"Nivel cuando llegue el ajuste = <b>{nivel_cuando_llega_ajuste:.3f} m</b> "
-            f"· Nivel objetivo = {nivel_objetivo:.3f} m<br><br>"
-
-            f"Caudal requerido al tanque = <b>{Q_requerido_tanque_Ls:.2f} L/s</b><br>"
-            f"Caudal recomendado en planta = <b>{Q_planta_recomendado_Ls:.2f} L/s</b><br><br>"
-
-            f"<span style='color:#5a7899;font-size:0.85rem'>ℹ {modo}</span>"
-            "</div>"
-        )
-
-        st.markdown(resumen_html, unsafe_allow_html=True)
-
         formulas_html = (
             "<div class='caja-rango' style='border-left-color:#00c8ff'>"
             "<b>Fórmulas usadas</b><br>"
@@ -2128,10 +2122,11 @@ def mostrar_calculadora_tanque():
             "Área equivalente = Volumen / Altura lleno<br>"
             "Q neto actual = Área × Δh / Δt<br>"
             "Q entrada tanque = Q salida actual + Q neto actual<br>"
-            "Relación planta–tanque = Entrada estimada al tanque / Caudal planta de referencia<br>"
+            "Relación planta–tanque = Entrada estimada al tanque / Caudal promedio de planta asociado a esta lectura<br>"
             "Caudal requerido al tanque = Salida esperada ± corrección por nivel objetivo<br>"
             "Caudal recomendado en planta = Caudal requerido al tanque / Relación planta–tanque<br>"
-            "Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área"
+            "Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área<br>"
+            "La salida del tanque se usa para el balance y, si se activa, solo como referencia informativa para valvulero."
             "</span>"
             "</div>"
         )
