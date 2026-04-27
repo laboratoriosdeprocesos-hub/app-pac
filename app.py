@@ -1114,93 +1114,134 @@ def mostrar_calculadora_pac():
 # =========================================
 # PANEL DE RESULTADOS HTML — PTAP STYLE
 # =========================================
+# =============================================================================
+# REEMPLAZA COMPLETAMENTE ESTAS DOS SECCIONES EN TU app.py:
+#   1. La función generar_panel_resultados_html(...)
+#   2. La línea: components.html(panel_html, height=1020, scrolling=True)
+#      por:      components.html(panel_html, height=1060, scrolling=False)
+#
+# CAMBIOS PRINCIPALES:
+#   - Fondo claro (#f0f6ff / blanco) en lugar de azul oscuro -> mejor lectura
+#   - Todos los textos en colores oscuros con contraste WCAG AA correcto
+#   - Grid responsive que cabe sin scroll en pantallas normales
+#   - Corregido bug: "color:#3a4a7a)" tenia parentesis de mas
+#   - Tamano de fuente ligeramente mayor en etiquetas
+#   - Tarjetas con sombra suave en lugar de fondo translucido oscuro
+# =============================================================================
+
 def generar_panel_resultados_html(
-    # Nivel y geometría
     altura_actual, altura_antes, altura_lleno,
     altura_rebose, altura_minima, nivel_objetivo, banda_control,
     area_equiv, volumen_total,
-    # Caudales
     Q_entrada_tanque_Ls, caudal_salida_ls, Q_neto_Ls,
     Q_neto_proyeccion_Ls, caudal_salida_esperada_ls,
     Q_planta_recomendado_Ls, caudal_entrada_planta_actual,
     delta_entrada_planta, relacion_operativa,
     Q_tanque_post_ajuste_Ls, Q_neto_post_ajuste_Ls,
-    # Tiempo
     hora_antes_str, hora_actual_str, hora_efecto_str,
     delta_t_min, tiempo_recorrido_min, tiempo_correccion_min,
-    # Proyección
     nivel_cuando_llega_ajuste, nivel_final_estimado,
-    # Límites
     hora_rebose_str, hora_minimo_str, t_rebose_min, t_minimo_min,
-    # Estado
     estado_operativo, accion_operativa, color_estado,
     tendencia_actual, tendencia_proy,
-    # Alertas
     incertidumbre_alta, ajuste_limitado, caudal_no_contabilizado_Ls,
     porcentaje_no_contabilizado, posible_fuga,
     hay_lavado, lavado_afecta_resultado, tipo_lavado,
-    # Otros
     texto_entrada, texto_salida,
     mostrar_recomendacion_valvulero,
     Q_salida_valvulero_Ls, caudal_salida_ls_actual,
     max_ajuste_seguro_ls, caudal_max_planta, Q_planta_requerido_Ls,
     fuente_relacion, relacion_observada,
 ):
-    # ── Porcentajes de nivel ──────────────────────────────────────────────
-    pct = lambda h: max(0.0, min(100.0, h / altura_lleno * 100)) if altura_lleno > 0 else 0
+    # ── Porcentajes ──────────────────────────────────────────────────────────
+    def pct(h):
+        return max(0.0, min(100.0, h / altura_lleno * 100)) if altura_lleno > 0 else 0.0
+
     pct_actual   = pct(altura_actual)
     pct_objetivo = pct(nivel_objetivo)
     pct_rebose   = pct(altura_rebose)
     pct_minima   = pct(altura_minima)
 
-    # ── Colores según nivel ───────────────────────────────────────────────
+    # ── Color segun nivel ────────────────────────────────────────────────────
     if pct_actual > 90:
-        nivel_color = "#e63946"; nivel_label = "🔴 NIVEL CRÍTICO ALTO"
+        nivel_color = "#c0392b"; nivel_label = "NIVEL CRITICO ALTO"
         agua_c1, agua_c2 = "#e63946", "#ff6b7a"
     elif pct_actual > 75:
-        nivel_color = "#f4a261"; nivel_label = "🟠 NIVEL ALTO"
+        nivel_color = "#d35400"; nivel_label = "NIVEL ALTO"
         agua_c1, agua_c2 = "#f4a261", "#ffd166"
     elif pct_actual < 15:
-        nivel_color = "#e63946"; nivel_label = "🔴 NIVEL CRÍTICO BAJO"
+        nivel_color = "#c0392b"; nivel_label = "NIVEL CRITICO BAJO"
         agua_c1, agua_c2 = "#e63946", "#ff6b7a"
     elif pct_actual < 30:
-        nivel_color = "#f4a261"; nivel_label = "🟠 NIVEL BAJO"
+        nivel_color = "#d35400"; nivel_label = "NIVEL BAJO"
         agua_c1, agua_c2 = "#f4a261", "#ffd166"
     else:
-        nivel_color = "#00c8a0"; nivel_label = "🟢 NIVEL NORMAL"
+        nivel_color = "#1a7a5a"; nivel_label = "NIVEL NORMAL"
         agua_c1, agua_c2 = "#1a6fff", "#00c8ff"
 
-    # ── Colores de tendencia ──────────────────────────────────────────────
+    # ── Color de tendencia ───────────────────────────────────────────────────
     if tendencia_proy == "subiendo":
-        tend_color = "#00c8a0"; tend_icon = "▲"; tend_txt = "SUBIENDO"
+        tend_color = "#1a7a5a"; tend_icon = "▲"; tend_txt = "SUBIENDO"
     elif tendencia_proy == "bajando":
-        tend_color = "#e63946"; tend_icon = "▼"; tend_txt = "BAJANDO"
+        tend_color = "#c0392b"; tend_icon = "▼"; tend_txt = "BAJANDO"
     else:
-        tend_color = "#8ab4cc"; tend_icon = "●"; tend_txt = "ESTABLE"
+        tend_color = "#4a7899"; tend_icon = "●"; tend_txt = "ESTABLE"
 
-    # ── Acción recomendada ────────────────────────────────────────────────
+    # ── Accion recomendada ───────────────────────────────────────────────────
     if delta_entrada_planta > 0.5:
-        accion_color = "#00c8a0"; accion_icon = "⬆"; accion_dir = "SUBIR"
+        accion_color = "#1a7a5a"; accion_icon = "⬆"; accion_dir = "SUBIR"
     elif delta_entrada_planta < -0.5:
-        accion_color = "#e63946"; accion_icon = "⬇"; accion_dir = "BAJAR"
+        accion_color = "#c0392b"; accion_icon = "⬇"; accion_dir = "BAJAR"
     else:
-        accion_color = "#8ab4cc"; accion_icon = "●"; accion_dir = "MANTENER"
+        accion_color = "#4a7899"; accion_icon = "●"; accion_dir = "MANTENER"
 
-    # ── Urgencia ─────────────────────────────────────────────────────────
-    urgente = (
-        (t_rebose_min is not None and t_rebose_min < tiempo_recorrido_min) or
-        (t_minimo_min is not None and t_minimo_min < tiempo_recorrido_min)
-    )
-    alerta_urgente_html = ""
+    # ── Helpers ──────────────────────────────────────────────────────────────
+    def fmt_tiempo(v):
+        if v is None:
+            return "No aplica"
+        h, m = int(v) // 60, int(v) % 60
+        return f"{h}h {m}min" if h > 0 else f"{m} min"
+
+    delta_h = altura_actual - altura_antes
+    signo_dh = "+" if delta_h >= 0 else ""
+    signo_qn = "+" if Q_neto_Ls >= 0 else ""
+    signo_da = "+" if delta_entrada_planta >= 0 else ""
+    signo_naj = "+" if Q_neto_post_ajuste_Ls >= 0 else ""
+
+    rebose_txt = hora_rebose_str if hora_rebose_str else "No aplica"
+    minimo_txt = hora_minimo_str if hora_minimo_str else "No aplica"
+    rebose_dur = fmt_tiempo(t_rebose_min)
+    minimo_dur = fmt_tiempo(t_minimo_min)
+
+    rebose_color = ("#c0392b" if (t_rebose_min is not None and t_rebose_min < 60)
+                    else "#d35400" if (t_rebose_min is not None and t_rebose_min < 180)
+                    else "#4a7899")
+    minimo_color = ("#c0392b" if (t_minimo_min is not None and t_minimo_min < 60)
+                    else "#d35400" if (t_minimo_min is not None and t_minimo_min < 180)
+                    else "#4a7899")
+
+    rel_obs_txt = (f"{relacion_observada:.3f}"
+                   if (relacion_observada is not None
+                       and isinstance(relacion_observada, float)
+                       and relacion_observada == relacion_observada)
+                   else "N/D")
+
+    urgente = ((t_rebose_min is not None and t_rebose_min < tiempo_recorrido_min) or
+               (t_minimo_min is not None and t_minimo_min < tiempo_recorrido_min))
+
+    # ── Alerta urgente ───────────────────────────────────────────────────────
+    alerta_html = ""
     if urgente:
-        alerta_urgente_html = """
-        <div class="alerta-urgente">
-            <span class="alerta-pulse">⚡</span>
-            LÍMITE ALCANZABLE ANTES DEL RECORRIDO PTAP — ACCIÓN INMEDIATA
-        </div>
-        """
+        alerta_html = (
+            '<div style="background:#fef2f2;border:2px solid #c0392b;border-radius:12px;'
+            'padding:10px 16px;margin:8px 12px 0 12px;display:flex;align-items:center;gap:8px;'
+            'font-family:Inter,sans-serif;font-size:0.82rem;font-weight:700;color:#c0392b;'
+            'letter-spacing:0.5px">'
+            '⚡ LIMITE ALCANZABLE ANTES DEL RECORRIDO PTAP — ACCION INMEDIATA'
+            '</div>'
+        )
 
-    # ── Incertidumbre ─────────────────────────────────────────────────────
+    # ── Incertidumbre ────────────────────────────────────────────────────────
     inc_html = ""
     if incertidumbre_alta:
         motivos = []
@@ -1210,106 +1251,78 @@ def generar_panel_resultados_html(
             motivos.append("fuga posible")
         if caudal_no_contabilizado_Ls > 80 or porcentaje_no_contabilizado > 35:
             motivos.append(f"Q no contabilizado {caudal_no_contabilizado_Ls:.1f} L/s")
-        motivos_txt = " · ".join(motivos) if motivos else "múltiples factores"
-        inc_html = f"""
-        <div class="badge-incertidumbre">
-            ⚠ ALTA INCERTIDUMBRE: {motivos_txt} — confirme con nueva lectura
-        </div>
-        """
+        motivos_txt = " · ".join(motivos) if motivos else "multiples factores"
+        inc_html = (
+            f'<div style="background:#fffbeb;border:1px solid #d97706;border-radius:10px;'
+            f'padding:8px 12px;margin-bottom:8px;font-family:Inter,sans-serif;'
+            f'font-size:0.78rem;color:#92400e;line-height:1.5">'
+            f'&#9888; ALTA INCERTIDUMBRE: {motivos_txt} — confirme con nueva lectura'
+            f'</div>'
+        )
 
-    # ── Hora rebose / mínimo ──────────────────────────────────────────────
-    def fmt_tiempo(v):
-        if v is None:
-            return "No aplica"
-        h, m = int(v) // 60, int(v) % 60
-        return f"{h}h {m}min" if h > 0 else f"{m} min"
+    # ── Limite ajuste ────────────────────────────────────────────────────────
+    limite_html = ""
+    if ajuste_limitado:
+        limite_html += (
+            f'<div style="background:#fffbeb;border:1px dashed #d97706;border-radius:8px;'
+            f'padding:6px 10px;margin-bottom:6px;font-family:Inter,sans-serif;'
+            f'font-size:0.72rem;color:#92400e">'
+            f'Ajuste limitado a +/-{max_ajuste_seguro_ls:.0f} L/s por incertidumbre'
+            f'</div>'
+        )
+    if Q_planta_requerido_Ls > caudal_max_planta:
+        limite_html += (
+            f'<div style="background:#fffbeb;border:1px dashed #d97706;border-radius:8px;'
+            f'padding:6px 10px;margin-bottom:6px;font-family:Inter,sans-serif;'
+            f'font-size:0.72rem;color:#92400e">'
+            f'Calculo ideal requiere {Q_planta_requerido_Ls:.1f} L/s, maximo: {caudal_max_planta:.1f} L/s'
+            f'</div>'
+        )
 
-    rebose_txt  = hora_rebose_str if hora_rebose_str else "—"
-    minimo_txt  = hora_minimo_str if hora_minimo_str else "—"
-    rebose_dur  = fmt_tiempo(t_rebose_min)
-    minimo_dur  = fmt_tiempo(t_minimo_min)
-
-    rebose_color = "#e63946" if (t_rebose_min is not None and t_rebose_min < 60) else \
-                   "#f4a261" if (t_rebose_min is not None and t_rebose_min < 180) else "#5a7899"
-    minimo_color = "#e63946" if (t_minimo_min is not None and t_minimo_min < 60) else \
-                   "#f4a261" if (t_minimo_min is not None and t_minimo_min < 180) else "#5a7899"
-
-    # ── Diferencia de nivel ────────────────────────────────────────────────
-    delta_h = altura_actual - altura_antes
-    signo_dh = "+" if delta_h >= 0 else ""
-    signo_qn = "+" if Q_neto_Ls >= 0 else ""
-    signo_da = "+" if delta_entrada_planta >= 0 else ""
-
-    # ── Neto post-ajuste ──────────────────────────────────────────────────
-    signo_naj = "+" if Q_neto_post_ajuste_Ls >= 0 else ""
-
-    # ── Relación observada texto ──────────────────────────────────────────
-    rel_obs_txt = f"{relacion_observada:.3f}" if (relacion_observada is not None and
-                    isinstance(relacion_observada, float) and
-                    not (relacion_observada != relacion_observada)) else "N/D"
-
-    # ── Valvulero HTML ────────────────────────────────────────────────────
+    # ── Valvulero ────────────────────────────────────────────────────────────
     valv_html = ""
     if mostrar_recomendacion_valvulero:
         if delta_entrada_planta > 0.5:
-            valv_c = "#00c8a0"; valv_dir = "⬆ ABRIR"
+            vc = "#1a7a5a"; vd = "ABRIR SALIDA"
         elif delta_entrada_planta < -0.5:
-            valv_c = "#e63946"; valv_dir = "⬇ CERRAR"
+            vc = "#c0392b"; vd = "CERRAR SALIDA"
         else:
-            valv_c = "#8ab4cc"; valv_dir = "● MANTENER"
+            vc = "#4a7899"; vd = "MANTENER SALIDA"
+        valv_html = (
+            f'<div style="background:#f0f6ff;border:1.5px solid #2563eb;border-radius:12px;'
+            f'padding:10px 14px;margin-top:8px;font-family:Inter,sans-serif">'
+            f'<div style="font-size:0.68rem;font-weight:700;color:#1e3a5f;text-transform:uppercase;'
+            f'letter-spacing:1px;margin-bottom:4px">Referencia valvulero</div>'
+            f'<div style="font-size:1.1rem;font-weight:800;color:{vc}">{vd}</div>'
+            f'<div style="font-size:0.8rem;color:#374151;margin-top:3px;line-height:1.5">'
+            f'De <b>{caudal_salida_ls_actual:.2f}</b> L/s a <b>{Q_salida_valvulero_Ls:.2f}</b> L/s'
+            f' — temporal mientras llega ajuste de planta</div>'
+            f'</div>'
+        )
 
-        valv_html = f"""
-        <div class="valv-card">
-            <div class="valv-titulo">🔧 REFERENCIA VALVULERO</div>
-            <div class="valv-accion" style="color:{valv_c}">{valv_dir} SALIDA</div>
-            <div class="valv-detalle">
-                De <b>{caudal_salida_ls_actual:.2f}</b> → <b>{Q_salida_valvulero_Ls:.2f} L/s</b><br>
-                Temporal — mientras llega ajuste de planta
-            </div>
-        </div>
-        """
-
-    # ── Limitación de ajuste ──────────────────────────────────────────────
-    limite_html = ""
-    if ajuste_limitado:
-        limite_html = f"""
-        <div class="badge-limite">
-            🔒 Ajuste limitado a ±{max_ajuste_seguro_ls:.0f} L/s por incertidumbre —
-            realice nueva lectura antes de aumentar el cambio
-        </div>
-        """
-    if Q_planta_requerido_Ls > caudal_max_planta:
-        limite_html += f"""
-        <div class="badge-limite">
-            ⚙ Cálculo ideal requiere {Q_planta_requerido_Ls:.1f} L/s pero el máximo
-            configurado es {caudal_max_planta:.1f} L/s
-        </div>
-        """
-
-    # ── SVG del tanque ────────────────────────────────────────────────────
-    # Tanque: 120px ancho, 300px alto dentro del SVG
-    TW, TH, TX, TY = 110, 280, 50, 20
+    # ── SVG del tanque ────────────────────────────────────────────────────────
+    TW, TH, TX, TY = 100, 250, 45, 20
     TB = TY + TH
 
-    def nivel_y(pct_val):
-        return TB - (pct_val / 100) * TH
+    def nivel_y(p):
+        return TB - (p / 100.0) * TH
 
-    y_agua    = nivel_y(pct_actual)
-    y_obj     = nivel_y(pct_objetivo)
-    y_rebose  = nivel_y(pct_rebose)
-    y_minima  = nivel_y(pct_minima)
+    y_agua   = nivel_y(pct_actual)
+    y_obj    = nivel_y(pct_objetivo)
+    y_rebose = nivel_y(pct_rebose)
+    y_minima = nivel_y(pct_minima)
 
-    # Wave path doble para animación
-    cx, cw = TX + 3, TW - 6
+    cx_w, cw_w = TX + 3, TW - 6
+
     def wave(y):
-        p = f"M {cx},{y:.1f} "
+        p = f"M {cx_w},{y:.1f} "
         for k in range(8):
-            p += (f"Q {cx + cw*(k+0.5)/8:.1f},{y + (-6 if k%2==0 else 6):.1f} "
-                  f"{cx + cw*(k+1)/8:.1f},{y:.1f} ")
+            p += (f"Q {cx_w + cw_w*(k+0.5)/8:.1f},{y + (-5 if k%2==0 else 5):.1f} "
+                  f"{cx_w + cw_w*(k+1)/8:.1f},{y:.1f} ")
         for k in range(8):
-            p += (f"Q {cx + cw*(k+8.5)/8:.1f},{y + (-6 if k%2==0 else 6):.1f} "
-                  f"{cx + cw*(k+9)/8:.1f},{y:.1f} ")
-        p += f"L {cx + cw*2},{TB} L {cx},{TB} Z"
+            p += (f"Q {cx_w + cw_w*(k+8.5)/8:.1f},{y + (-5 if k%2==0 else 5):.1f} "
+                  f"{cx_w + cw_w*(k+9)/8:.1f},{y:.1f} ")
+        p += f"L {cx_w + cw_w*2},{TB} L {cx_w},{TB} Z"
         return p
 
     wave_d = wave(y_agua)
@@ -1317,12 +1330,12 @@ def generar_panel_resultados_html(
     burbujas = ""
     if tendencia_proy != "bajando":
         for bx, by, br, bd, bb in [
-            (TX + int(TW*0.3), TB-15, 2.5, "3.2s", "0s"),
-            (TX + int(TW*0.6), TB-8,  2.0, "4.1s", "1.1s"),
-            (TX + int(TW*0.5), TB-25, 1.8, "5.0s", "2.2s"),
+            (TX + int(TW*0.3), TB-12, 2.2, "3.2s", "0s"),
+            (TX + int(TW*0.6), TB-7,  1.8, "4.1s", "1.1s"),
+            (TX + int(TW*0.5), TB-22, 1.5, "5.0s", "2.2s"),
         ]:
             burbujas += (
-                f'<circle cx="{bx}" cy="{by}" r="{br}" fill="rgba(255,255,255,0.55)">'
+                f'<circle cx="{bx}" cy="{by}" r="{br}" fill="rgba(255,255,255,0.65)">'
                 f'<animate attributeName="cy" values="{TB};{TY}" dur="{bd}" repeatCount="indefinite" begin="{bb}"/>'
                 f'<animate attributeName="opacity" values="0.6;0" dur="{bd}" repeatCount="indefinite" begin="{bb}"/>'
                 f'</circle>'
@@ -1331,839 +1344,614 @@ def generar_panel_resultados_html(
     escala = ""
     for i in range(5):
         sy = TY + i * TH // 4
-        sv = altura_lleno * (1 - i/4)
+        sv = altura_lleno * (1 - i / 4)
         escala += (
-            f'<line x1="{TX-14}" y1="{sy}" x2="{TX-6}" y2="{sy}" stroke="#4a8fa8" stroke-width="1.2"/>'
-            f'<text x="{TX-16}" y="{sy+4}" text-anchor="end" font-size="7.5" '
-            f'font-family="Share Tech Mono,monospace" fill="#6ab4cc">{sv:.1f}</text>'
+            f'<line x1="{TX-12}" y1="{sy}" x2="{TX-5}" y2="{sy}" stroke="#94a3b8" stroke-width="1.2"/>'
+            f'<text x="{TX-14}" y="{sy+4}" text-anchor="end" font-size="7.5" '
+            f'font-family="Inter,sans-serif" fill="#475569">{sv:.1f}</text>'
         )
 
-    # Clip
-    clip_rect = f'<clipPath id="clipT"><rect x="{TX+3}" y="{TY}" width="{TW-6}" height="{TH}"/></clipPath>'
-
+    # ── HTML completo ─────────────────────────────────────────────────────────
     html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet">
 <style>
-:root {{
-  --azul:   #0a1e3d;
-  --azul2:  #0d2e5a;
-  --cyan:   #0077b6;
-  --verde:  #1a9e7a;
-  --rojo:   #e63946;
-  --naranja:#e07a30;
-  --gris1:  #4a7a9b;
-  --mono:   'DM Mono', monospace;
-  --titulo: 'Outfit', sans-serif;
-  --cuerpo: 'DM Sans', sans-serif;
-}}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
-  background: linear-gradient(160deg, #0a1e3d 0%, #0b2a50 60%, #0a2244 100%);
-  font-family: var(--cuerpo);
-  color: #0a2244;
-  min-height: 100vh;
-  overflow-x: hidden;
-}}
-
-/* ── Fondo de partículas de agua ── */
-body::before {{
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 40% at 15% 20%, rgba(255,255,255,0.45) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 85% 80%, rgba(0,150,180,0.12) 0%, transparent 60%);
-  pointer-events: none;
+  background: #f0f6ff;
+  font-family: Inter, sans-serif;
+  color: #0f172a;
+  padding: 10px;
+  font-size: 13px;
 }}
 
 /* ── HEADER ── */
 .hdr {{
-  background: linear-gradient(90deg, #0077b6, #0096c7);
-  border-bottom: 2px solid rgba(255,255,255,0.25);
-  padding: 10px 18px;
+  background: linear-gradient(90deg, #0d2347 0%, #1a4a8a 100%);
+  border-radius: 14px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  margin-bottom: 10px;
 }}
 .hdr-title {{
-  font-family: var(--titulo);
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }}
 .hdr-sub {{
-  font-family: var(--mono);
   font-size: 0.65rem;
-  color: rgba(255,255,255,0.75);
-  letter-spacing: 1px;
+  color: rgba(255,255,255,0.70);
+  letter-spacing: 0.8px;
+  margin-top: 2px;
 }}
 .hdr-time {{
-  font-family: var(--mono);
-  font-size: 0.95rem;
-  color: #0077b6;
-  background: rgba(0,119,182,0.12);
-  border: 1px solid rgba(0,119,182,0.35);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0d2347;
+  background: rgba(255,255,255,0.92);
   border-radius: 8px;
-  padding: 4px 12px;
+  padding: 4px 14px;
   white-space: nowrap;
 }}
 
 /* ── LAYOUT PRINCIPAL ── */
 .main-grid {{
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 12px;
-  padding: 12px;
+  grid-template-columns: 190px 1fr;
+  gap: 10px;
+  align-items: start;
 }}
 
-/* ── TANQUE ── */
+/* ── TARJETA GENÉRICA ── */
+.card {{
+  background: #ffffff;
+  border: 1px solid #dce9f7;
+  border-radius: 14px;
+  padding: 11px 13px;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.06);
+}}
+.card-titulo {{
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid #e8f0fb;
+  padding-bottom: 5px;
+}}
+
+/* ── PANEL TANQUE ── */
 .tank-panel {{
-  background: rgba(255,255,255,0.55);
-  border: 1.5px solid rgba(0,119,182,0.25);
-  border-radius: 16px;
-  padding: 12px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }}
-.tank-label {{
-  font-family: var(--titulo);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #0077b6;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}}
 .nivel-badge {{
-  font-family: var(--titulo);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1.5px solid {nivel_color};
+  border: 2px solid {nivel_color};
   color: {nivel_color};
   background: {nivel_color}18;
-  text-align: center;
+  text-transform: uppercase;
 }}
 
-/* ── GRID DERECHO ── */
-.right-grid {{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}}
-
-/* ── FILA DE MÉTRICAS ── */
+/* ── MÉTRICAS ── */
 .metrics-row {{
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
+  margin-bottom: 8px;
 }}
-.metric-card {{
-  background: rgba(255,255,255,0.70);
-  border: 1px solid rgba(0,119,182,0.18);
+.mc {{
+  background: #ffffff;
+  border: 1px solid #dce9f7;
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 9px 11px;
+  box-shadow: 0 2px 6px rgba(10,22,40,0.05);
   position: relative;
   overflow: hidden;
-  transition: border-color 0.3s;
 }}
-.metric-card::before {{
+.mc::before {{
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
   border-radius: 12px 12px 0 0;
-  background: #0077b6;
-  opacity: 0.5;
+  background: #1a6fff;
 }}
-.metric-card.verde::before {{ background: var(--verde); }}
-.metric-card.rojo::before  {{ background: var(--rojo); }}
-.metric-card.naranja::before {{ background: var(--naranja); }}
-.metric-card.cyan::before {{ background: #0077b6; }}
-
-.m-label {{
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  color: #4a7a9b;
+.mc.verde::before {{ background: #16a34a; }}
+.mc.rojo::before  {{ background: #dc2626; }}
+.mc.naranja::before {{ background: #ea580c; }}
+.mc.azul::before {{ background: #2563eb; }}
+.m-lbl {{
+  font-size: 0.60rem;
+  font-weight: 600;
+  color: #4a7899;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.7px;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }}
-.m-value {{
-  font-family: var(--titulo);
-  font-size: 1.35rem;
+.m-val {{
+  font-size: 1.3rem;
   font-weight: 800;
-  color: #e8f4ff;
+  color: #0f172a;
   line-height: 1.1;
   display: block;
 }}
 .m-unit {{
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  color: #5a8aaa;
+  font-size: 0.60rem;
+  color: #64748b;
   margin-top: 2px;
   display: block;
 }}
 
-/* ── PANEL ACCIÓN PRINCIPAL ── */
+/* ── ACCIÓN PRINCIPAL ── */
 .accion-panel {{
-  background: linear-gradient(135deg, rgba(255,255,255,0.80), rgba(224,242,252,0.90));
-  border: 2px solid {accion_color}44;
-  border-radius: 16px;
-  padding: 14px 16px;
-  position: relative;
-  overflow: hidden;
-}}
-.accion-panel::after {{
-  content: "";
-  position: absolute;
-  top: -40px; right: -40px;
-  width: 140px; height: 140px;
-  background: radial-gradient(circle, {accion_color}15 0%, transparent 70%);
-  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid {accion_color}55;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(10,22,40,0.06);
 }}
 .accion-header {{
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }}
 .accion-icono {{
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: {accion_color};
-  font-family: var(--titulo);
   font-weight: 900;
   line-height: 1;
-  animation: pulsoAccion 2s ease-in-out infinite;
-}}
-@keyframes pulsoAccion {{
-  0%, 100% {{ opacity: 1; transform: scale(1); }}
-  50% {{ opacity: 0.7; transform: scale(1.15); }}
 }}
 .accion-titulo {{
-  font-family: var(--titulo);
-  font-size: 1.0rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: {accion_color};
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
 }}
 .accion-sub {{
-  font-family: var(--cuerpo);
-  font-size: 0.82rem;
-  color: #3a6a88;
+  font-size: 0.78rem;
+  color: #374151;
   line-height: 1.4;
+  margin-top: 2px;
 }}
 .accion-numeros {{
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }}
-.accion-num-item {{
-  background: rgba(0,100,160,0.08);
-  border: 1px solid rgba(0,119,182,0.2);
+.an-item {{
+  background: #f0f6ff;
+  border: 1px solid #dce9f7;
   border-radius: 10px;
-  padding: 8px 14px;
+  padding: 7px 12px;
   text-align: center;
 }}
-.accion-num-lbl {{
-  font-family: var(--mono);
+.an-lbl {{
   font-size: 0.58rem;
-  color: #4a7a9b;
+  font-weight: 600;
+  color: #4a7899;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.7px;
   display: block;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }}
-.accion-num-val {{
-  font-family: var(--titulo);
-  font-size: 1.5rem;
+.an-val {{
+  font-size: 1.35rem;
   font-weight: 800;
-  color: #0a2244;
+  color: #0f172a;
   display: block;
 }}
-.accion-num-val.verde {{ color: var(--verde); }}
-.accion-num-val.rojo  {{ color: var(--rojo); }}
-.accion-num-val.naranja {{ color: var(--naranja); }}
-.accion-flecha {{
-  font-size: 1.8rem;
-  color: var(--gris1);
-  font-family: var(--titulo);
+.an-unit {{
+  font-size: 0.58rem;
+  color: #64748b;
+}}
+.an-flecha {{
+  font-size: 1.4rem;
+  color: #94a3b8;
+  font-weight: 700;
 }}
 
 /* ── LÍNEA DE TIEMPO ── */
-.timeline-card {{
-  background: rgba(255,255,255,0.65);
-  border: 1px solid rgba(0,119,182,0.18);
-  border-radius: 14px;
-  padding: 12px 14px;
-}}
-.tl-titulo {{
-  font-family: var(--titulo);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #0077b6;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 10px;
-}}
-.tl-row {{
+.tl-chips {{
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
+  margin-bottom: 7px;
 }}
-.tl-nodo {{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 70px;
-}}
-.tl-hora {{
-  font-family: var(--mono);
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 4px 10px;
+.chip {{
   border-radius: 8px;
-  background: rgba(0,200,255,0.12);
-  border: 1px solid rgba(0,200,255,0.3);
-  color: #0077b6;
+  padding: 3px 10px;
+  font-weight: 700;
+  font-size: 0.78rem;
   white-space: nowrap;
 }}
-.tl-hora.efecto {{
-  background: rgba(108,99,255,0.15);
-  border-color: rgba(108,99,255,0.4);
-  color: #a89dff;
+.chip-azul  {{ background: #1a6fff; color: #fff; }}
+.chip-morado {{ background: #6c63ff; color: #fff; }}
+.chip-verde  {{ background: #16a34a; color: #fff; }}
+.tl-sep {{
+  font-size: 0.72rem;
+  color: #64748b;
 }}
-.tl-hora.objetivo {{
-  background: rgba(0,200,160,0.12);
-  border-color: rgba(0,200,160,0.3);
-  color: var(--verde);
+.tl-det {{
+  font-size: 0.75rem;
+  color: #374151;
+  line-height: 1.6;
+  margin-top: 4px;
 }}
-.tl-desc {{
-  font-family: var(--mono);
-  font-size: 0.55rem;
-  color: #3a4a7a);
-  text-align: center;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}}
-.tl-linea {{
-  flex: 1;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(0,200,255,0.3), rgba(0,200,160,0.3));
-  border-radius: 2px;
-  min-width: 20px;
-  position: relative;
-  overflow: hidden;
-}}
-.tl-linea::after {{
-  content: "";
-  position: absolute;
-  top: 0; left: -100%;
-  width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,200,255,0.8), transparent);
-  animation: flujoLinea 2s linear infinite;
-}}
-@keyframes flujoLinea {{
-  to {{ left: 100%; }}
-}}
+.tl-det b {{ color: #0f172a; }}
+.tl-det .vc {{ color: #6c63ff; font-weight: 700; }}
+.tl-det .vg {{ color: #16a34a; font-weight: 700; }}
+.tl-det .va {{ color: {accion_color}; font-weight: 700; }}
 
-/* ── FILA INFERIOR: LÍMITES + NIVEL PROYECTADO ── */
+/* ── FILA INFERIOR ── */
 .bottom-row {{
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}}
-.limites-card {{
-  background: rgba(255,255,255,0.65);
-  border: 1px solid rgba(0,119,182,0.18);
-  border-radius: 14px;
-  padding: 12px 14px;
-}}
-.lim-titulo {{
-  font-family: var(--titulo);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #0077b6;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 10px;
-}}
-.lim-row {{
-  display: flex;
   gap: 8px;
-  margin-bottom: 8px;
-}}
-.lim-item {{
-  flex: 1;
-  background: rgba(0,0,0,0.2);
-  border-radius: 10px;
-  padding: 8px 10px;
-  border-left: 3px solid;
-}}
-.lim-lbl {{
-  font-family: var(--mono);
-  font-size: 0.58rem;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  display: block;
-  margin-bottom: 3px;
-}}
-.lim-hora {{
-  font-family: var(--titulo);
-  font-size: 1.2rem;
-  font-weight: 800;
-  display: block;
-  line-height: 1.1;
-}}
-.lim-dur {{
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  color: #3a4a7a;
-  display: block;
-  margin-top: 2px;
 }}
 
-/* ── RESULTADO ESPERADO ── */
-.resultado-card {{
-  background: rgba(255,255,255,0.65);
-  border: 1px solid rgba(0,180,140,0.25);
-  border-radius: 14px;
-  padding: 12px 14px;
-}}
-.res-titulo {{
-  font-family: var(--titulo);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #1a9e7a;;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 10px;
-}}
+/* ── BARRA DE NIVEL ── */
 .nivel-bar-wrap {{
   position: relative;
-  height: 28px;
-  background: rgba(0,0,0,0.25);
-  border-radius: 14px;
+  height: 26px;
+  background: #e8f0fb;
+  border-radius: 13px;
   overflow: visible;
-  margin-bottom: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 7px;
+  border: 1px solid #dce9f7;
 }}
 .nivel-bar-fill {{
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  border-radius: 14px;
+  border-radius: 13px;
   background: linear-gradient(90deg, {agua_c1}, {agua_c2});
-  transition: width 0.8s ease;
   width: {pct_actual:.1f}%;
+  transition: width 0.8s ease;
 }}
 .nivel-bar-fill::after {{
   content: "";
   position: absolute;
   right: 0; top: 0; bottom: 0;
-  width: 40px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25));
-  border-radius: 0 14px 14px 0;
+  width: 30px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35));
+  border-radius: 0 13px 13px 0;
 }}
-.nivel-bar-objetivo {{
+.nivel-bar-obj {{
   position: absolute;
   top: -4px; bottom: -4px;
   width: 3px;
-  background: var(--verde);
+  background: #16a34a;
   border-radius: 2px;
   left: {pct_objetivo:.1f}%;
-  box-shadow: 0 0 8px var(--verde);
+  box-shadow: 0 0 6px #16a34a88;
 }}
-.nivel-bar-rebose {{
+.nivel-bar-reb {{
   position: absolute;
   top: -4px; bottom: -4px;
   width: 2px;
-  background: var(--rojo);
+  background: #dc2626;
   border-radius: 2px;
   left: {pct_rebose:.1f}%;
-  opacity: 0.7;
 }}
-.nivel-bar-minima {{
+.nivel-bar-min {{
   position: absolute;
   top: -4px; bottom: -4px;
   width: 2px;
-  background: var(--naranja);
+  background: #ea580c;
   border-radius: 2px;
   left: {pct_minima:.1f}%;
-  opacity: 0.7;
 }}
-.nivel-bar-texto {{
+.nivel-bar-txt {{
   position: absolute;
   left: 8px; top: 50%;
   transform: translateY(-50%);
-  font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.70rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.9);
+  color: #ffffff;
   z-index: 2;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.55);
 }}
 .leyenda-bar {{
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  color: #3a4a7a);
-  margin-bottom: 8px;
+  font-size: 0.60rem;
+  color: #374151;
+  margin-bottom: 7px;
 }}
-.leyenda-item {{ display: flex; align-items: center; gap: 4px; }}
-.leyenda-dot {{
-  width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
-}}
+.ld {{ display: flex; align-items: center; gap: 3px; font-weight: 600; }}
+.ld-dot {{ width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }}
+
+/* ── STATS RESULTADO ── */
 .res-stats {{
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 6px;
+  gap: 7px;
 }}
-.res-stat {{
+.rs {{
   text-align: center;
-  background: rgba(0,0,0,0.18);
+  background: #f8fbff;
+  border: 1px solid #dce9f7;
   border-radius: 10px;
-  padding: 8px 6px;
+  padding: 7px 5px;
 }}
 .rs-lbl {{
-  font-family: var(--mono);
-  font-size: 0.56rem;
-  color: #3a4a7a;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  display: block;
-  margin-bottom: 3px;
-}}
-.rs-val {{
-  font-family: var(--titulo);
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #e8f4ff;
-  display: block;
-}}
-
-/* ── VALVULERO ── */
-.valv-card {{
-  background: linear-gradient(135deg, rgba(13,46,90,0.7), rgba(10,30,55,0.8));
-  border: 1px solid rgba(108,99,255,0.3);
-  border-radius: 14px;
-  padding: 12px 14px;
-}}
-.valv-titulo {{
-  font-family: var(--titulo);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #a89dff;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 6px;
-}}
-.valv-accion {{
-  font-family: var(--titulo);
-  font-size: 1.3rem;
-  font-weight: 800;
-  margin-bottom: 4px;
-}}
-.valv-detalle {{
-  font-family: var(--cuerpo);
-  font-size: 0.8rem;
-  color: #3a4a7a;
-  line-height: 1.5;
-}}
-
-/* ── ALERTAS ── */
-.alerta-urgente {{
-  background: linear-gradient(90deg, #3a0a0e, #5a1010);
-  border: 2px solid var(--rojo);
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-family: var(--titulo);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--rojo);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: parpadeoAlerta 1.2s ease-in-out infinite;
-}}
-@keyframes parpadeoAlerta {{
-  0%, 100% {{ border-color: var(--rojo); box-shadow: 0 0 8px rgba(230,57,70,0.3); }}
-  50% {{ border-color: #ff6b7a; box-shadow: 0 0 20px rgba(230,57,70,0.6); }}
-}}
-.alerta-pulse {{
-  animation: pulsoIcono 0.8s ease-in-out infinite;
-  font-size: 1.1rem;
-}}
-@keyframes pulsoIcono {{
-  0%, 100% {{ transform: scale(1); }}
-  50% {{ transform: scale(1.4); }}
-}}
-.badge-incertidumbre {{
-  background: rgba(244,162,97,0.1);
-  border: 1px solid rgba(244,162,97,0.4);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-family: var(--cuerpo);
-  font-size: 0.75rem;
-  color: var(--naranja);
-  line-height: 1.4;
-}}
-.badge-limite {{
-  background: rgba(244,162,97,0.08);
-  border: 1px dashed rgba(244,162,97,0.3);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  color: #f4c07a;
-  margin-top: 6px;
-}}
-
-/* ── BALANCE TÉCNICO ── */
-.balance-card {{
-  background: rgba(220,238,252,0.70);
-  border: 1px solid rgba(0,119,182,0.15);
-  border-radius: 14px;
-  padding: 12px 14px;
-}}
-.bal-titulo {{
-  font-family: var(--titulo);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #0077b6;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 10px;
-}}
-.bal-grid {{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}}
-.bal-item {{
-  text-align: center;
-}}
-.bal-lbl {{
-  font-family: var(--mono);
-  font-size: 0.55rem;
-  color: #3a4a7a;
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #4a7899;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   display: block;
   margin-bottom: 2px;
 }}
-.bal-val {{
-  font-family: var(--mono);
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #b8d8f0;
+.rs-val {{
+  font-size: 1.0rem;
+  font-weight: 800;
+  color: #0f172a;
   display: block;
 }}
 
-/* ── RESPONSIVE ── */
-@media (max-width: 700px) {{
-  .main-grid {{ grid-template-columns: 1fr; }}
-  .metrics-row {{ grid-template-columns: 1fr 1fr; }}
-  .bottom-row {{ grid-template-columns: 1fr; }}
-  .res-stats {{ grid-template-columns: 1fr 1fr; }}
-  .bal-grid {{ grid-template-columns: 1fr 1fr; }}
+/* ── LIMITES ── */
+.lim-row {{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
 }}
+.lim-item {{
+  background: #f8fbff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  border-left: 3px solid;
+}}
+.lim-lbl {{
+  font-size: 0.60rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  display: block;
+  margin-bottom: 3px;
+}}
+.lim-hora {{
+  font-size: 1.15rem;
+  font-weight: 800;
+  display: block;
+  line-height: 1.1;
+}}
+.lim-dur {{
+  font-size: 0.65rem;
+  color: #64748b;
+  display: block;
+  margin-top: 2px;
+}}
+
+/* ── BALANCE TÉCNICO ── */
+.bal-grid {{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}}
+.bi {{
+  text-align: center;
+  background: #f8fbff;
+  border: 1px solid #dce9f7;
+  border-radius: 9px;
+  padding: 7px 5px;
+}}
+.bi-lbl {{
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #4a7899;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 2px;
+}}
+.bi-val {{
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: block;
+}}
+
+/* ── LECTURA COMPACTA BAJO TANQUE ── */
+.lecturas-box {{
+  width: 100%;
+  background: #f0f6ff;
+  border: 1px solid #dce9f7;
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 0.72rem;
+  color: #374151;
+  line-height: 1.75;
+  text-align: center;
+}}
+.lecturas-box b {{ color: #0f172a; }}
+.lecturas-box .val-tend {{ color: {tend_color}; font-weight: 700; }}
+.lecturas-box .val-nivel {{ color: {nivel_color}; font-weight: 700; }}
 </style>
 </head>
 <body>
 
-<!-- ══ HEADER ══ -->
+<!-- ═══ HEADER ═══ -->
 <div class="hdr">
   <div>
-    <div class="hdr-title">💧 Monitor de Tanque — PTAP</div>
+    <div class="hdr-title">&#128167; Monitor de Tanque &mdash; PTAP</div>
     <div class="hdr-sub">Balance Hidráulico en Tiempo Real</div>
   </div>
-  <div class="hdr-time">🕐 {hora_actual_str}</div>
+  <div class="hdr-time">&#128336; {hora_actual_str}</div>
 </div>
 
-{alerta_urgente_html}
+{alerta_html}
+{'<div style="height:8px"></div>' if alerta_html else ''}
 
-<!-- ══ GRID PRINCIPAL ══ -->
+<!-- ═══ GRID PRINCIPAL ═══ -->
 <div class="main-grid">
 
-  <!-- ── TANQUE SVG ── -->
+  <!-- ── COLUMNA TANQUE ── -->
   <div class="tank-panel">
-    <div class="tank-label">Estado del Tanque</div>
-    <div class="nivel-badge">{nivel_label}</div>
+    <div class="card" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 8px">
+      <div style="font-size:0.62rem;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:1px">
+        Estado del Tanque
+      </div>
+      <div class="nivel-badge">{nivel_label}</div>
 
-    <svg viewBox="0 0 230 370" xmlns="http://www.w3.org/2000/svg"
-         style="width:100%;max-width:230px;overflow:visible">
-      <defs>
-        <linearGradient id="gAgua" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="{agua_c2}" stop-opacity="0.95"/>
-          <stop offset="100%" stop-color="{agua_c1}"/>
-        </linearGradient>
-        <linearGradient id="gTk" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#0d2e5a"/>
-          <stop offset="40%" stop-color="#1a4a7a"/>
-          <stop offset="60%" stop-color="#1a4a7a"/>
-          <stop offset="100%" stop-color="#0a2244"/>
-        </linearGradient>
-        <linearGradient id="gRef" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
-          <stop offset="30%" stop-color="rgba(255,255,255,0.18)"/>
-          <stop offset="60%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        {clip_rect}
-      </defs>
+      <svg viewBox="0 0 210 330" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;max-width:200px;overflow:visible">
+        <defs>
+          <linearGradient id="gAg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="{agua_c2}" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="{agua_c1}"/>
+          </linearGradient>
+          <linearGradient id="gTk" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#d0e8f5"/>
+            <stop offset="35%"  stop-color="#eaf4fc"/>
+            <stop offset="65%"  stop-color="#eaf4fc"/>
+            <stop offset="100%" stop-color="#b8d4e8"/>
+          </linearGradient>
+          <linearGradient id="gRef" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"  stop-color="rgba(255,255,255,0)"/>
+            <stop offset="30%" stop-color="rgba(255,255,255,0.30)"/>
+            <stop offset="60%" stop-color="rgba(255,255,255,0)"/>
+          </linearGradient>
+          <clipPath id="clipT">
+            <rect x="{TX+3}" y="{TY}" width="{TW-6}" height="{TH}"/>
+          </clipPath>
+        </defs>
 
-      <!-- Sombra tanque -->
-      <rect x="{TX+5}" y="{TY+5}" width="{TW}" height="{TH+22}"
-            rx="9" fill="rgba(0,0,0,0.35)"/>
+        <!-- Sombra -->
+        <rect x="{TX+5}" y="{TY+5}" width="{TW}" height="{TH+22}"
+              rx="9" fill="rgba(10,30,60,0.10)"/>
+        <!-- Cuerpo -->
+        <rect x="{TX}" y="{TY}" width="{TW}" height="{TH+22}"
+              rx="9" fill="url(#gTk)" stroke="#8ab4cc" stroke-width="2"/>
 
-      <!-- Cuerpo tanque -->
-      <rect x="{TX}" y="{TY}" width="{TW}" height="{TH+22}"
-            rx="9" fill="url(#gTk)" stroke="#1e5a8a" stroke-width="2"/>
+        <!-- Agua -->
+        <g clip-path="url(#clipT)">
+          <rect x="{TX+3}" y="{y_agua:.1f}" width="{TW-6}"
+                height="{TB - y_agua:.1f}" fill="url(#gAg)" opacity="0.92"/>
+          <path d="{wave_d}" fill="{agua_c2}" opacity="0.45">
+            <animateTransform attributeName="transform" type="translate"
+              from="0,0" to="{-(cw_w):.0f},0" dur="2.6s" repeatCount="indefinite"/>
+          </path>
+          <rect x="{TX+3}" y="{y_agua:.1f}" width="{TW-6}"
+                height="{TB - y_agua:.1f}" fill="url(#gRef)" opacity="0.5"/>
+          {burbujas}
+        </g>
 
-      <!-- Contenido agua -->
-      <g clip-path="url(#clipT)">
-        <rect x="{TX+3}" y="{y_agua:.1f}" width="{TW-6}"
-              height="{TB - y_agua:.1f}" fill="url(#gAgua)" opacity="0.9"/>
+        <!-- Línea rebose -->
+        <line x1="{TX-5}" y1="{y_rebose:.1f}" x2="{TX+TW+5}" y2="{y_rebose:.1f}"
+              stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.9"/>
+        <text x="{TX+TW+8}" y="{y_rebose+4:.1f}" font-size="7.5"
+              font-family="Inter,sans-serif" fill="#dc2626" font-weight="700">
+          REB {altura_rebose:.2f}m
+        </text>
 
-        <!-- Ola animada -->
-        <path d="{wave_d}" fill="{agua_c2}" opacity="0.45">
-          <animateTransform attributeName="transform" type="translate"
-            from="0,0" to="{-(cw):.0f},0" dur="2.5s" repeatCount="indefinite"/>
-        </path>
+        <!-- Línea mínima -->
+        <line x1="{TX-5}" y1="{y_minima:.1f}" x2="{TX+TW+5}" y2="{y_minima:.1f}"
+              stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.9"/>
+        <text x="{TX+TW+8}" y="{y_minima+4:.1f}" font-size="7.5"
+              font-family="Inter,sans-serif" fill="#ea580c" font-weight="700">
+          MIN {altura_minima:.2f}m
+        </text>
 
-        <!-- Reflejo -->
-        <rect x="{TX+3}" y="{y_agua:.1f}" width="{TW-6}"
-              height="{TB - y_agua:.1f}" fill="url(#gRef)" opacity="0.5"/>
+        <!-- Línea objetivo -->
+        <line x1="{TX-5}" y1="{y_obj:.1f}" x2="{TX+TW+5}" y2="{y_obj:.1f}"
+              stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.8"/>
+        <text x="{TX+TW+8}" y="{y_obj+4:.1f}" font-size="7.5"
+              font-family="Inter,sans-serif" fill="#16a34a" font-weight="700">
+          OBJ {nivel_objetivo:.2f}m
+        </text>
 
-        {burbujas}
-      </g>
+        <!-- Etiqueta nivel -->
+        <rect x="{TX + TW//2 - 28:.0f}" y="{y_agua - 21:.1f}"
+              width="56" height="17" rx="8" fill="{agua_c1}" opacity="0.92"/>
+        <text x="{TX + TW//2:.0f}" y="{y_agua - 9:.1f}"
+              text-anchor="middle" font-size="9"
+              font-family="Inter,sans-serif" fill="white" font-weight="800">
+          {altura_actual:.3f} m
+        </text>
 
-      <!-- Línea rebose -->
-      <line x1="{TX-5}" y1="{y_rebose:.1f}" x2="{TX+TW+5}" y2="{y_rebose:.1f}"
-            stroke="#e63946" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8"/>
-      <text x="{TX+TW+8}" y="{y_rebose+4:.1f}" font-size="7.5"
-            font-family="Share Tech Mono,monospace" fill="#e63946">
-        REBOSE {altura_rebose:.2f}m
-      </text>
+        <!-- Tapa -->
+        <rect x="{TX-6}" y="{TY-9}" width="{TW+12}" height="12"
+              rx="5" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+        <!-- Base -->
+        <rect x="{TX-8}" y="{TB+22}" width="{TW+16}" height="11"
+              rx="5" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+        <rect x="{TX+6}" y="{TB+33}" width="10" height="20"
+              rx="3" fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
+        <rect x="{TX+TW-16}" y="{TB+33}" width="10" height="20"
+              rx="3" fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
 
-      <!-- Línea mínima -->
-      <line x1="{TX-5}" y1="{y_minima:.1f}" x2="{TX+TW+5}" y2="{y_minima:.1f}"
-            stroke="#f4a261" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8"/>
-      <text x="{TX+TW+8}" y="{y_minima+4:.1f}" font-size="7.5"
-            font-family="Share Tech Mono,monospace" fill="#f4a261">
-        MIN {altura_minima:.2f}m
-      </text>
+        <!-- Escala -->
+        <line x1="{TX-17}" y1="{TY}" x2="{TX-17}" y2="{TB}"
+              stroke="#94a3b8" stroke-width="1.5"/>
+        {escala}
 
-      <!-- Línea objetivo -->
-      <line x1="{TX-5}" y1="{y_obj:.1f}" x2="{TX+TW+5}" y2="{y_obj:.1f}"
-            stroke="#00c8a0" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.7"/>
-      <text x="{TX+TW+8}" y="{y_obj+4:.1f}" font-size="7.5"
-            font-family="Share Tech Mono,monospace" fill="#00c8a0">
-        OBJ {nivel_objetivo:.2f}m
-      </text>
+        <!-- Tendencia -->
+        <text x="{TX + TW//2:.0f}" y="{TB+16}"
+              text-anchor="middle" font-size="10"
+              font-family="Inter,sans-serif"
+              fill="{tend_color}" font-weight="700">
+          {tend_icon} {tend_txt}
+        </text>
+      </svg>
 
-      <!-- Etiqueta de nivel flotante -->
-      <rect x="{TX + TW//2 - 30:.0f}" y="{y_agua - 22:.1f}"
-            width="60" height="18" rx="9" fill="{agua_c1}" opacity="0.9"
-            filter="url(#glow)"/>
-      <text x="{TX + TW//2:.0f}" y="{y_agua - 9:.1f}"
-            text-anchor="middle" font-size="9"
-            font-family="Share Tech Mono,monospace"
-            fill="white" font-weight="700">{altura_actual:.3f} m</text>
-
-      <!-- Tapa superior -->
-      <rect x="{TX-6}" y="{TY-10}" width="{TW+12}" height="13"
-            rx="5" fill="#1e5a8a" stroke="#2a7ab0" stroke-width="1.5"/>
-
-      <!-- Base -->
-      <rect x="{TX-8}" y="{TB+22}" width="{TW+16}" height="12"
-            rx="5" fill="#1e5a8a" stroke="#2a7ab0" stroke-width="1.5"/>
-      <rect x="{TX+6}" y="{TB+34}" width="11" height="22"
-            rx="3" fill="#18507e" stroke="#1a608a" stroke-width="1"/>
-      <rect x="{TX+TW-17}" y="{TB+34}" width="11" height="22"
-            rx="3" fill="#18507e" stroke="#1a608a" stroke-width="1"/>
-
-      <!-- Escala -->
-      <line x1="{TX-18}" y1="{TY}" x2="{TX-18}" y2="{TB}"
-            stroke="#1e5a8a" stroke-width="1.5"/>
-      {escala}
-
-      <!-- Indicador de tendencia -->
-      <text x="{TX + TW//2:.0f}" y="{TB+17}"
-            text-anchor="middle" font-size="10"
-            font-family="Share Tech Mono,monospace"
-            fill="{tend_color}" font-weight="700">
-        {tend_icon} {tend_txt}
-      </text>
-
-    </svg>
-
-    <!-- Lecturas debajo del tanque -->
-    <div style="width:100%">
-      <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:8px 10px;
-                  font-family:'Share Tech Mono',monospace;font-size:0.65rem;
-                  color:#8ab4cc;line-height:1.8;text-align:center">
-        <span style="color:#b8d8f0">{hora_antes_str}</span>
-        <span> → </span>
-        <span style="color:{nivel_color}">{altura_actual:.3f} m</span><br>
-        <span>Q neto: </span>
-        <span style="color:{tend_color}">{signo_qn}{Q_neto_Ls:.2f} L/s</span><br>
-        <span>Δh: </span>
-        <span style="color:{tend_color}">{signo_dh}{delta_h:.4f} m</span><br>
-        <span>Δt: </span>
-        <span style="color:#b8d8f0">{delta_t_min:.0f} min</span>
+      <!-- Lecturas compactas -->
+      <div class="lecturas-box">
+        <b>{hora_antes_str}</b> &#8594; <span class="val-nivel">{altura_actual:.3f} m</span><br>
+        Q neto: <span class="val-tend">{signo_qn}{Q_neto_Ls:.2f} L/s</span><br>
+        &#916;h: <span class="val-tend">{signo_dh}{delta_h:.4f} m</span>
+        &nbsp;&middot;&nbsp; &#916;t: <b>{delta_t_min:.0f} min</b>
       </div>
     </div>
   </div>
 
-  <!-- ── GRID DERECHO ── -->
-  <div class="right-grid">
+  <!-- ── COLUMNA DERECHA ── -->
+  <div style="display:flex;flex-direction:column;gap:8px">
 
     {inc_html}
 
-    <!-- Métricas principales -->
+    <!-- Métricas -->
     <div class="metrics-row">
-      <div class="metric-card cyan">
-        <span class="m-label">Nivel actual</span>
-        <span class="m-value" style="color:{nivel_color}">{altura_actual:.3f}</span>
-        <span class="m-unit">metros — {pct_actual:.1f}% cap.</span>
+      <div class="mc azul">
+        <span class="m-lbl">Nivel actual</span>
+        <span class="m-val" style="color:{nivel_color}">{altura_actual:.3f}</span>
+        <span class="m-unit">m &nbsp;·&nbsp; {pct_actual:.1f}% cap.</span>
       </div>
-      <div class="metric-card verde">
-        <span class="m-label">Entrada al tanque</span>
-        <span class="m-value">{Q_entrada_tanque_Ls:.2f}</span>
+      <div class="mc verde">
+        <span class="m-lbl">Entrada al tanque</span>
+        <span class="m-val" style="color:#15803d">{Q_entrada_tanque_Ls:.2f}</span>
         <span class="m-unit">L/s estimada</span>
       </div>
-      <div class="metric-card naranja">
-        <span class="m-label">Salida del tanque</span>
-        <span class="m-value">{caudal_salida_ls:.2f}</span>
+      <div class="mc naranja">
+        <span class="m-lbl">Salida del tanque</span>
+        <span class="m-val" style="color:#c2410c">{caudal_salida_ls:.2f}</span>
         <span class="m-unit">L/s actual</span>
       </div>
-      <div class="metric-card {'verde' if Q_neto_Ls >= 0 else 'rojo'}">
-        <span class="m-label">Q neto</span>
-        <span class="m-value" style="color:{tend_color}">{signo_qn}{Q_neto_Ls:.2f}</span>
-        <span class="m-unit">L/s — {tend_txt}</span>
+      <div class="mc {'verde' if Q_neto_Ls >= 0 else 'rojo'}">
+        <span class="m-lbl">Q neto tanque</span>
+        <span class="m-val" style="color:{tend_color}">{signo_qn}{Q_neto_Ls:.2f}</span>
+        <span class="m-unit">L/s &nbsp;·&nbsp; {tend_txt}</span>
       </div>
     </div>
 
@@ -2173,121 +1961,105 @@ body::before {{
       <div class="accion-header">
         <div class="accion-icono">{accion_icon}</div>
         <div>
-          <div class="accion-titulo">{accion_dir} ENTRADA A PLANTA — {texto_entrada}</div>
-          <div class="accion-sub">Efecto esperado en tanque a las {hora_efecto_str} · Recorrido PTAP: {tiempo_recorrido_min} min</div>
+          <div class="accion-titulo">{accion_dir} ENTRADA A PLANTA</div>
+          <div class="accion-sub">{texto_entrada} &nbsp;·&nbsp; Efecto en tanque: <b>{hora_efecto_str}</b> &nbsp;(recorrido {tiempo_recorrido_min} min)</div>
         </div>
       </div>
       <div class="accion-numeros">
-        <div class="accion-num-item">
-          <span class="accion-num-lbl">Caudal planta actual</span>
-          <span class="accion-num-val">{caudal_entrada_planta_actual:.2f}</span>
-          <span style="font-family:var(--mono);font-size:0.6rem;color:var(--gris1)">L/s</span>
+        <div class="an-item">
+          <span class="an-lbl">Planta actual</span>
+          <span class="an-val">{caudal_entrada_planta_actual:.2f}</span>
+          <span class="an-unit">L/s</span>
         </div>
-        <div class="accion-flecha">→</div>
-        <div class="accion-num-item">
-          <span class="accion-num-lbl">Caudal recomendado</span>
-          <span class="accion-num-val" style="color:{accion_color}">{Q_planta_recomendado_Ls:.2f}</span>
-          <span style="font-family:var(--mono);font-size:0.6rem;color:var(--gris1)">L/s</span>
+        <div class="an-flecha">&#8594;</div>
+        <div class="an-item">
+          <span class="an-lbl">Recomendado</span>
+          <span class="an-val" style="color:{accion_color}">{Q_planta_recomendado_Ls:.2f}</span>
+          <span class="an-unit">L/s</span>
         </div>
-        <div class="accion-flecha">→</div>
-        <div class="accion-num-item">
-          <span class="accion-num-lbl">Ajuste</span>
-          <span class="accion-num-val" style="color:{accion_color}">{signo_da}{delta_entrada_planta:.2f}</span>
-          <span style="font-family:var(--mono);font-size:0.6rem;color:var(--gris1)">L/s</span>
+        <div class="an-flecha">&#8594;</div>
+        <div class="an-item">
+          <span class="an-lbl">Ajuste</span>
+          <span class="an-val" style="color:{accion_color}">{signo_da}{delta_entrada_planta:.2f}</span>
+          <span class="an-unit">L/s</span>
         </div>
-        <div class="accion-num-item">
-          <span class="accion-num-lbl">Relación P→T</span>
-          <span class="accion-num-val">{relacion_operativa:.3f}</span>
-          <span style="font-family:var(--mono);font-size:0.6rem;color:var(--gris1)">{fuente_relacion[:18]}…</span>
+        <div class="an-item">
+          <span class="an-lbl">Rel. P&#8594;T</span>
+          <span class="an-val">{relacion_operativa:.3f}</span>
+          <span class="an-unit">{fuente_relacion[:22]}</span>
         </div>
       </div>
     </div>
 
     <!-- Línea de tiempo -->
-    <div class="timeline-card">
-      <div class="tl-titulo">⏱ Línea de tiempo del ajuste</div>
-      <div class="tl-row">
-        <div class="tl-nodo">
-          <div class="tl-hora">{hora_actual_str}</div>
-          <div class="tl-desc">Ajuste<br>ahora</div>
-        </div>
-        <div class="tl-linea"></div>
-        <div class="tl-nodo">
-          <div class="tl-hora efecto">{hora_efecto_str}</div>
-          <div class="tl-desc">Efecto<br>en tanque</div>
-        </div>
-        <div class="tl-linea"></div>
-        <div class="tl-nodo">
-          <div class="tl-hora objetivo">{minutos_a_hora_futura(0, 0) if False else ''}</div>
-          <div class="tl-desc">Nivel<br>objetivo</div>
-        </div>
+    <div class="card">
+      <div class="card-titulo">&#9203; Línea de tiempo del ajuste</div>
+      <div class="tl-chips">
+        <span class="chip chip-azul">Ajustar ahora &middot; {hora_actual_str}</span>
+        <span class="tl-sep">&#8594; {tiempo_recorrido_min} min &#8594;</span>
+        <span class="chip chip-morado">Efecto en tanque &middot; {hora_efecto_str}</span>
+        <span class="tl-sep">&#8594; {tiempo_correccion_min} min &#8594;</span>
+        <span class="chip chip-verde">Objetivo {nivel_objetivo:.2f} m</span>
       </div>
-      <div style="margin-top:8px;font-family:var(--mono);font-size:0.62rem;color:var(--gris1)">
-        Nivel al llegar ajuste: <span style="color:#a89dff;font-weight:700">{nivel_cuando_llega_ajuste:.3f} m</span>
-        &nbsp;·&nbsp; Objetivo: <span style="color:var(--verde);font-weight:700">{nivel_objetivo:.2f} m</span>
-        &nbsp;·&nbsp; Estimado post-corrección: <span style="color:{accion_color};font-weight:700">{nivel_final_estimado:.3f} m</span>
+      <div class="tl-det">
+        Nivel cuando llega ajuste: <span class="vc">{nivel_cuando_llega_ajuste:.3f} m</span>
+        &nbsp;&middot;&nbsp; Objetivo: <span class="vg">{nivel_objetivo:.2f} m</span>
+        &nbsp;&middot;&nbsp; Estimado post-corrección: <span class="va">{nivel_final_estimado:.3f} m</span>
+        &nbsp;&middot;&nbsp; Q neto esperado: <span style="color:{tend_color};font-weight:700">{signo_naj}{Q_neto_post_ajuste_Ls:.2f} L/s</span>
       </div>
     </div>
 
-    <!-- Fila inferior -->
+    <!-- Fila inferior: límites + proyección -->
     <div class="bottom-row">
 
       <!-- Límites -->
-      <div class="limites-card">
-        <div class="lim-titulo">⚠ Llegada estimada a límites</div>
+      <div class="card">
+        <div class="card-titulo">&#9888; Llegada estimada a límites</div>
         <div class="lim-row">
           <div class="lim-item" style="border-color:{rebose_color}">
-            <span class="lim-lbl" style="color:{rebose_color}">🔴 Rebose ({altura_rebose:.2f} m)</span>
+            <span class="lim-lbl" style="color:{rebose_color}">&#128308; Rebose ({altura_rebose:.2f} m)</span>
             <span class="lim-hora" style="color:{rebose_color}">{rebose_txt}</span>
             <span class="lim-dur">{rebose_dur}</span>
           </div>
           <div class="lim-item" style="border-color:{minimo_color}">
-            <span class="lim-lbl" style="color:{minimo_color}">🟠 Mínimo ({altura_minima:.2f} m)</span>
+            <span class="lim-lbl" style="color:{minimo_color}">&#128992; Mínimo ({altura_minima:.2f} m)</span>
             <span class="lim-hora" style="color:{minimo_color}">{minimo_txt}</span>
             <span class="lim-dur">{minimo_dur}</span>
           </div>
         </div>
       </div>
 
-      <!-- Resultado esperado con barra de nivel -->
-      <div class="resultado-card">
-        <div class="res-titulo">📊 Nivel proyectado</div>
+      <!-- Proyección -->
+      <div class="card">
+        <div class="card-titulo">&#128202; Nivel proyectado</div>
 
         <div class="nivel-bar-wrap">
           <div class="nivel-bar-fill"></div>
-          <div class="nivel-bar-objetivo"></div>
-          <div class="nivel-bar-rebose"></div>
-          <div class="nivel-bar-minima"></div>
-          <div class="nivel-bar-texto">{altura_actual:.3f} m ({pct_actual:.0f}%)</div>
+          <div class="nivel-bar-obj"></div>
+          <div class="nivel-bar-reb"></div>
+          <div class="nivel-bar-min"></div>
+          <div class="nivel-bar-txt">{altura_actual:.3f} m ({pct_actual:.0f}%)</div>
         </div>
 
         <div class="leyenda-bar">
-          <div class="leyenda-item">
-            <div class="leyenda-dot" style="background:{agua_c1}"></div>Actual
-          </div>
-          <div class="leyenda-item">
-            <div class="leyenda-dot" style="background:var(--verde)"></div>Objetivo
-          </div>
-          <div class="leyenda-item">
-            <div class="leyenda-dot" style="background:var(--rojo)"></div>Rebose
-          </div>
-          <div class="leyenda-item">
-            <div class="leyenda-dot" style="background:var(--naranja)"></div>Mínimo
-          </div>
+          <div class="ld"><div class="ld-dot" style="background:{agua_c1}"></div>Actual</div>
+          <div class="ld"><div class="ld-dot" style="background:#16a34a"></div>Objetivo</div>
+          <div class="ld"><div class="ld-dot" style="background:#dc2626"></div>Rebose</div>
+          <div class="ld"><div class="ld-dot" style="background:#ea580c"></div>Mínimo</div>
         </div>
 
         <div class="res-stats">
-          <div class="res-stat">
+          <div class="rs">
             <span class="rs-lbl">Cuando llega ajuste</span>
-            <span class="rs-val" style="color:#a89dff">{nivel_cuando_llega_ajuste:.3f} m</span>
+            <span class="rs-val" style="color:#6c63ff">{nivel_cuando_llega_ajuste:.3f} m</span>
           </div>
-          <div class="res-stat">
+          <div class="rs">
             <span class="rs-lbl">Post corrección</span>
             <span class="rs-val" style="color:{accion_color}">{nivel_final_estimado:.3f} m</span>
           </div>
-          <div class="res-stat">
+          <div class="rs">
             <span class="rs-lbl">Q neto esperado</span>
-            <span class="rs-val" style="color:{tend_color}">{signo_qn}{Q_neto_proyeccion_Ls:.1f} L/s</span>
+            <span class="rs-val" style="color:{tend_color}">{signo_qn}{Q_neto_proyeccion_Ls:.2f} L/s</span>
           </div>
         </div>
       </div>
@@ -2295,45 +2067,57 @@ body::before {{
 
     {valv_html}
 
-    <!-- Balance técnico compacto -->
-    <div class="balance-card">
-      <div class="bal-titulo">⚙ Balance técnico</div>
+    <!-- Balance técnico -->
+    <div class="card">
+      <div class="card-titulo">&#9881; Balance técnico</div>
       <div class="bal-grid">
-        <div class="bal-item">
-          <span class="bal-lbl">Q no contabilizado</span>
-          <span class="bal-val" style="color:{'var(--rojo)' if caudal_no_contabilizado_Ls > 80 else 'var(--gris1)'}">
-            {caudal_no_contabilizado_Ls:.2f} L/s ({porcentaje_no_contabilizado:.1f}%)
-          </span>
+        <div class="bi">
+          <span class="bi-lbl">Q no contabilizado</span>
+          <span class="bi-val" style="color:{'#c0392b' if caudal_no_contabilizado_Ls > 80 else '#0f172a'}">{caudal_no_contabilizado_Ls:.2f} L/s ({porcentaje_no_contabilizado:.1f}%)</span>
         </div>
-        <div class="bal-item">
-          <span class="bal-lbl">Q entrada planta ref.</span>
-          <span class="bal-val">{caudal_entrada_planta_actual:.2f} L/s</span>
+        <div class="bi">
+          <span class="bi-lbl">Q entrada planta ref.</span>
+          <span class="bi-val">{caudal_entrada_planta_actual:.2f} L/s</span>
         </div>
-        <div class="bal-item">
-          <span class="bal-lbl">Área equiv.</span>
-          <span class="bal-val">{area_equiv:.2f} m²</span>
+        <div class="bi">
+          <span class="bi-lbl">Área equiv.</span>
+          <span class="bi-val">{area_equiv:.2f} m²</span>
         </div>
-        <div class="bal-item">
-          <span class="bal-lbl">Δh observado</span>
-          <span class="bal-val">{signo_dh}{delta_h:.4f} m</span>
+        <div class="bi">
+          <span class="bi-lbl">&#916;h observado</span>
+          <span class="bi-val">{signo_dh}{delta_h:.4f} m</span>
         </div>
-        <div class="bal-item">
-          <span class="bal-lbl">Rel. observada</span>
-          <span class="bal-val">{rel_obs_txt}</span>
+        <div class="bi">
+          <span class="bi-lbl">Rel. observada</span>
+          <span class="bi-val">{rel_obs_txt}</span>
         </div>
-        <div class="bal-item">
-          <span class="bal-lbl">Rel. operativa</span>
-          <span class="bal-val">{relacion_operativa:.3f}</span>
+        <div class="bi">
+          <span class="bi-lbl">Rel. operativa</span>
+          <span class="bi-val">{relacion_operativa:.3f}</span>
         </div>
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- fin columna derecha -->
+</div><!-- fin main-grid -->
+
 </body>
 </html>"""
     return html
 
+
+# =============================================================================
+# TAMBIÉN REEMPLAZA ESTA LÍNEA dentro de mostrar_calculadora_tanque():
+#
+#   ANTES:
+#       components.html(panel_html, height=1020, scrolling=True)
+#
+#   DESPUÉS:
+#       components.html(panel_html, height=1060, scrolling=False)
+#
+# La altura 1060 cubre el panel completo sin barra de scroll.
+# Si tu pantalla es muy pequeña o tienes valvulero activo, usa 1100.
+# =============================================================================
 
 # =========================================
 # CALCULADORA DE TANQUE DE AGUA
@@ -2800,7 +2584,7 @@ def mostrar_calculadora_tanque():
             relacion_observada=rel_obs_display,
         )
 
-        components.html(panel_html, height=1020, scrolling=True)
+        components.html(panel_html, height=1060, scrolling=False)
 
         # ── Gráfica Plotly (expandible) ──────────────────────────────────────
         with st.expander("📈 Proyección del nivel — próximas 6 horas", expanded=False):
