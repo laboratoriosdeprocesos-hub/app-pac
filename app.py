@@ -1361,7 +1361,7 @@ def generar_panel_resultados_html(
 }}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
-  background: linear-gradient(170deg, #ffffff 0%, #eaf4fb 50%, #d0e8f5 100%);
+  background: linear-gradient(160deg, #f0f8ff 0%, #daeef8 35%, #c2e4f5 70%, #a8d8ee 100%);
   font-family: var(--cuerpo);
   color: #d0e8f5;
   min-height: 100vh;
