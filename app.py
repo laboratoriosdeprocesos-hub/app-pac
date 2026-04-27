@@ -1537,7 +1537,7 @@ def mostrar_calculadora_tanque():
             ajuste_minimo_urgente = False
 
         # ── Métricas principales ─────────────────────────────────────────────
-        st.markdown("div style='heigth:0.2rem'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='heigth:0.2rem'></div>", unsafe_allow_html=True)
 
         def fmt_t(v):
             if v is None:
