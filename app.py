@@ -1350,11 +1350,11 @@ def generar_panel_resultados_html(
 :root {{
   --azul:   #0a1e3d;
   --azul2:  #0d2e5a;
-  --cyan:   #00c8ff;
-  --verde:  #00c8a0;
+  --cyan:   #0077b6;
+  --verde:  #1a9e7a;
   --rojo:   #e63946;
-  --naranja:#f4a261;
-  --gris1:  #8ab4cc;
+  --naranja:#e07a30;
+  --gris1:  #4a7a9b;
   --mono:   'Share Tech Mono', monospace;
   --titulo: 'Barlow Condensed', sans-serif;
   --cuerpo: 'Barlow', sans-serif;
