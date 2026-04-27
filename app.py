@@ -1115,7 +1115,6 @@ def mostrar_calculadora_pac():
 # CALCULADORA DE TANQUE DE AGUA
 # =========================================
 def mostrar_calculadora_tanque():
-    from textwrap import dedent
 
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown(
@@ -1123,14 +1122,15 @@ def mostrar_calculadora_tanque():
         unsafe_allow_html=True
     )
 
-    st.markdown("""
-    <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
-    Ingresa los datos del tanque, dos lecturas de nivel y los caudales actuales.
-    El sistema estima el balance hídrico, el caudal real de entrada al tanque,
-    la hora de rebose o mínimo operativo, y recomienda ajustes considerando el
-    tiempo de recorrido desde la PTAP hasta el tanque y una posible demanda esperada.
-    </p>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        "<p style='color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6'>"
+        "Ingresa los datos del tanque, dos lecturas de nivel y los caudales actuales. "
+        "El sistema estima el balance hídrico, el caudal real de entrada al tanque, "
+        "la hora de rebose o mínimo operativo, y recomienda ajustes considerando el "
+        "tiempo de recorrido desde la PTAP hasta el tanque y una posible demanda esperada."
+        "</p>",
+        unsafe_allow_html=True
+    )
 
     col_iz, col_der = st.columns([1.2, 1.4], gap="large")
 
@@ -1160,16 +1160,15 @@ def mostrar_calculadora_tanque():
 
             area_equiv = volumen_total / altura_lleno if altura_lleno > 0 else 0.0
 
-            area_html = dedent(f"""
-            <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
-                padding:0.65rem 1rem;font-size:0.87rem;color:#0d2347;margin-top:0.4rem">
-                <span style="font-weight:700;font-size:0.72rem;color:#5a7899;
-                text-transform:none;display:block;margin-bottom:3px">Área equivalente</span>
-                <b>{area_equiv:.4f} m²</b>
-                <span style="color:#5a7899;font-size:0.8rem">
-                = {volumen_total:.1f} m³ / {altura_lleno:.2f} m</span>
-            </div>
-            """).strip()
+            area_html = (
+                "<div style='background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;"
+                "padding:0.65rem 1rem;font-size:0.87rem;color:#0d2347;margin-top:0.4rem'>"
+                "<span style='font-weight:700;font-size:0.72rem;color:#5a7899;"
+                "text-transform:none;display:block;margin-bottom:3px'>Área equivalente</span>"
+                f"<b>{area_equiv:.4f} m²</b>"
+                f"<span style='color:#5a7899;font-size:0.8rem'> = {volumen_total:.1f} m³ / {altura_lleno:.2f} m</span>"
+                "</div>"
+            )
 
             st.markdown(area_html, unsafe_allow_html=True)
 
@@ -1309,6 +1308,12 @@ def mostrar_calculadora_tanque():
         with st.expander("🎯 Nivel objetivo y demanda esperada", expanded=True):
             nivel_objetivo_default = min(max(2.00, altura_minima), altura_rebose)
 
+            if "tanq_nivel_objetivo" in st.session_state:
+                st.session_state.tanq_nivel_objetivo = min(
+                    max(st.session_state.tanq_nivel_objetivo, float(altura_minima)),
+                    float(altura_rebose)
+                )
+
             nivel_objetivo = st.number_input(
                 "Nivel objetivo del tanque (m)",
                 min_value=float(altura_minima),
@@ -1366,7 +1371,6 @@ def mostrar_calculadora_tanque():
         st.markdown("<div class='subtitulo-panel'>Resultados del análisis</div>", unsafe_allow_html=True)
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
 
-        # ── Validaciones ─────────────────────────────────────────────────────
         errores = []
 
         if altura_lleno <= 0:
@@ -1534,79 +1538,65 @@ def mostrar_calculadora_tanque():
             m = int(v) % 60
             return (f"{h} h " if h > 0 else "") + f"{m} min"
 
-        # ── Tarjeta rebose ───────────────────────────────────────────────────
+        # ── Tarjetas de límite ───────────────────────────────────────────────
         if hora_rebose_str:
             t_val = t_rebose_min or 0
             cr = "#e63946" if t_val < 60 else ("#f4a261" if t_val < 180 else "#2a9d8f")
             urgente_lbl = " (⚠ Actuar ahora)" if ajuste_rebose_urgente else ""
 
-            card_reb = f"""
-            <div style="background:linear-gradient(135deg,#fff5f5,#ffe8e8);
-                border-left:5px solid {cr};border-radius:14px;padding:0.9rem 1rem;">
-                <div style="font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px">
-                    Llegada a rebose ({altura_rebose:.2f} m)
-                </div>
-                <div style="font-size:1.45rem;font-weight:800;color:{cr}">🕐 {hora_rebose_str}</div>
-                <div style="font-size:0.82rem;color:#888;margin-top:3px">
-                    En {fmt_t(t_rebose_min)} desde {hora_actual_str}
-                </div>
-                <div style="font-size:0.82rem;font-weight:700;color:{cr};margin-top:6px;
-                    background:rgba(230,57,70,0.08);padding:4px 10px;border-radius:8px;display:inline-block">
-                    Ajustar antes de: {hora_ajuste_rebose_str or hora_actual_str}{urgente_lbl}
-                </div>
-            </div>
-            """
+            card_reb = (
+                f"<div style='background:linear-gradient(135deg,#fff5f5,#ffe8e8);"
+                f"border-left:5px solid {cr};border-radius:14px;padding:0.9rem 1rem;'>"
+                f"<div style='font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px'>"
+                f"Llegada a rebose ({altura_rebose:.2f} m)</div>"
+                f"<div style='font-size:1.45rem;font-weight:800;color:{cr}'>🕐 {hora_rebose_str}</div>"
+                f"<div style='font-size:0.82rem;color:#888;margin-top:3px'>"
+                f"En {fmt_t(t_rebose_min)} desde {hora_actual_str}</div>"
+                f"<div style='font-size:0.82rem;font-weight:700;color:{cr};margin-top:6px;"
+                f"background:rgba(230,57,70,0.08);padding:4px 10px;border-radius:8px;display:inline-block'>"
+                f"Ajustar antes de: {hora_ajuste_rebose_str or hora_actual_str}{urgente_lbl}</div>"
+                f"</div>"
+            )
         else:
-            card_reb = """
-            <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
-                border-radius:14px;padding:0.9rem 1rem;">
-                <div style="font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px">
-                    Llegada a rebose
-                </div>
-                <div style="font-size:1rem;color:#5a7899">
-                    No aplica con la demanda esperada.
-                </div>
-            </div>
-            """
+            card_reb = (
+                "<div style='background:#f8fbff;border-left:5px solid #b8d0e8;"
+                "border-radius:14px;padding:0.9rem 1rem;'>"
+                "<div style='font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px'>"
+                "Llegada a rebose</div>"
+                "<div style='font-size:1rem;color:#5a7899'>No aplica con la demanda esperada.</div>"
+                "</div>"
+            )
 
-        # ── Tarjeta mínimo ───────────────────────────────────────────────────
         if hora_minimo_str:
             t_val = t_minimo_min or 0
             cm = "#e63946" if t_val < 60 else ("#f4a261" if t_val < 180 else "#2a9d8f")
             urgente_lbl_m = " (⚠ Actuar ahora)" if ajuste_minimo_urgente else ""
 
-            card_min = f"""
-            <div style="background:linear-gradient(135deg,#fff8f0,#ffedd8);
-                border-left:5px solid {cm};border-radius:14px;padding:0.9rem 1rem;">
-                <div style="font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px">
-                    Llegada a mínimo ({altura_minima:.2f} m)
-                </div>
-                <div style="font-size:1.45rem;font-weight:800;color:{cm}">🕐 {hora_minimo_str}</div>
-                <div style="font-size:0.82rem;color:#888;margin-top:3px">
-                    En {fmt_t(t_minimo_min)} desde {hora_actual_str}
-                </div>
-                <div style="font-size:0.82rem;font-weight:700;color:{cm};margin-top:6px;
-                    background:rgba(244,162,97,0.12);padding:4px 10px;border-radius:8px;display:inline-block">
-                    Ajustar antes de: {hora_ajuste_minimo_str or hora_actual_str}{urgente_lbl_m}
-                </div>
-            </div>
-            """
+            card_min = (
+                f"<div style='background:linear-gradient(135deg,#fff8f0,#ffedd8);"
+                f"border-left:5px solid {cm};border-radius:14px;padding:0.9rem 1rem;'>"
+                f"<div style='font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px'>"
+                f"Llegada a mínimo ({altura_minima:.2f} m)</div>"
+                f"<div style='font-size:1.45rem;font-weight:800;color:{cm}'>🕐 {hora_minimo_str}</div>"
+                f"<div style='font-size:0.82rem;color:#888;margin-top:3px'>"
+                f"En {fmt_t(t_minimo_min)} desde {hora_actual_str}</div>"
+                f"<div style='font-size:0.82rem;font-weight:700;color:{cm};margin-top:6px;"
+                f"background:rgba(244,162,97,0.12);padding:4px 10px;border-radius:8px;display:inline-block'>"
+                f"Ajustar antes de: {hora_ajuste_minimo_str or hora_actual_str}{urgente_lbl_m}</div>"
+                f"</div>"
+            )
         else:
-            card_min = """
-            <div style="background:#f8fbff;border-left:5px solid #b8d0e8;
-                border-radius:14px;padding:0.9rem 1rem;">
-                <div style="font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px">
-                    Llegada a mínimo
-                </div>
-                <div style="font-size:1rem;color:#5a7899">
-                    No aplica con la demanda esperada.
-                </div>
-            </div>
-            """
+            card_min = (
+                "<div style='background:#f8fbff;border-left:5px solid #b8d0e8;"
+                "border-radius:14px;padding:0.9rem 1rem;'>"
+                "<div style='font-size:0.76rem;font-weight:700;color:#888;margin-bottom:4px'>"
+                "Llegada a mínimo</div>"
+                "<div style='font-size:1rem;color:#5a7899'>No aplica con la demanda esperada.</div>"
+                "</div>"
+            )
 
         # ── Recomendación de ajuste ──────────────────────────────────────────
         Q_entrada_sostener_Ls = caudal_salida_esperada_ls
-
         t_correccion_s = max(tiempo_correccion_min * 60, 60)
 
         Q_neto_correccion_Ls = (
@@ -1691,115 +1681,94 @@ def mostrar_calculadora_tanque():
                 f"Se está usando una salida esperada de {caudal_salida_esperada_ls:.2f} L/s.</span>"
             )
 
-        bloque_rec = f"""
-        <div style="background:linear-gradient(135deg,#ffffff,#f7fbff);
-            border:2px solid {color_rec};border-radius:18px;padding:1rem 1.2rem;">
+        bloque_rec = (
+            f"<div style='background:linear-gradient(135deg,#ffffff,#f7fbff);"
+            f"border:2px solid {color_rec};border-radius:18px;padding:1rem 1.2rem;'>"
 
-            <div style="font-size:1rem;font-weight:800;color:{color_rec};margin-bottom:0.8rem">
-                Recomendación considerando tiempo de recorrido PTAP
-            </div>
+            f"<div style='font-size:1rem;font-weight:800;color:{color_rec};margin-bottom:0.8rem'>"
+            f"Recomendación considerando tiempo de recorrido PTAP</div>"
 
-            <div style="background:rgba(255,255,255,0.88);border-radius:13px;
-                padding:0.75rem 0.95rem;margin-bottom:0.8rem;border:1px solid #dce9f7">
-                <div style="font-size:0.74rem;font-weight:700;color:#5a7899;margin-bottom:5px">
-                    Nivel futuro cuando llegue el ajuste
-                </div>
-                <div style="font-size:0.9rem;color:#0a1628;line-height:1.5">
-                    Nivel actual: <b>{altura_actual:.3f} m</b><br>
-                    Tendencia esperada: <b>{tendencia_proy_txt}</b><br>
-                    Caudal neto esperado: <b>{Q_neto_proyeccion_Ls:+.2f} L/s</b><br>
-                    Cambio durante {tiempo_recorrido_min} min:
-                    <b style="color:{color_rec}">{delta_h_recorrido:+.3f} m</b><br>
-                    Nivel cuando llegue el ajuste:
-                    <b style="color:{color_rec};font-size:1.08rem">{nivel_cuando_llega_ajuste:.3f} m</b><br>
-                    Nivel objetivo: <b>{nivel_objetivo:.3f} m</b>
-                    <span style="color:#5a7899">
-                    (banda: {nivel_objetivo_min:.3f} m a {nivel_objetivo_max:.3f} m)</span>
-                    {alerta_demanda}
-                </div>
-            </div>
+            "<div style='background:rgba(255,255,255,0.88);border-radius:13px;"
+            "padding:0.75rem 0.95rem;margin-bottom:0.8rem;border:1px solid #dce9f7'>"
+            "<div style='font-size:0.74rem;font-weight:700;color:#5a7899;margin-bottom:5px'>"
+            "Nivel futuro cuando llegue el ajuste</div>"
+            "<div style='font-size:0.9rem;color:#0a1628;line-height:1.5'>"
+            f"Nivel actual: <b>{altura_actual:.3f} m</b><br>"
+            f"Tendencia esperada: <b>{tendencia_proy_txt}</b><br>"
+            f"Caudal neto esperado: <b>{Q_neto_proyeccion_Ls:+.2f} L/s</b><br>"
+            f"Cambio durante {tiempo_recorrido_min} min: "
+            f"<b style='color:{color_rec}'>{delta_h_recorrido:+.3f} m</b><br>"
+            f"Nivel cuando llegue el ajuste: "
+            f"<b style='color:{color_rec};font-size:1.08rem'>{nivel_cuando_llega_ajuste:.3f} m</b><br>"
+            f"Nivel objetivo: <b>{nivel_objetivo:.3f} m</b> "
+            f"<span style='color:#5a7899'>(banda: {nivel_objetivo_min:.3f} m a {nivel_objetivo_max:.3f} m)</span>"
+            f"{alerta_demanda}"
+            "</div></div>"
 
-            <div style="background:rgba(255,255,255,0.88);border-radius:13px;
-                padding:0.75rem 0.95rem;margin-bottom:0.8rem;border:1px solid #dce9f7">
-                <div style="font-size:0.74rem;font-weight:700;color:#5a7899;margin-bottom:5px">
-                    Interpretación operativa
-                </div>
-                <div style="font-size:0.9rem;color:#0a1628;line-height:1.5">
-                    {texto_modo}
-                </div>
-            </div>
+            "<div style='background:rgba(255,255,255,0.88);border-radius:13px;"
+            "padding:0.75rem 0.95rem;margin-bottom:0.8rem;border:1px solid #dce9f7'>"
+            "<div style='font-size:0.74rem;font-weight:700;color:#5a7899;margin-bottom:5px'>"
+            "Interpretación operativa</div>"
+            f"<div style='font-size:0.9rem;color:#0a1628;line-height:1.5'>{texto_modo}</div>"
+            "</div>"
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem">
+            "<div style='display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem'>"
 
-                <div style="background:#f8fbff;border:2px solid #1a6fff;border-radius:14px;padding:0.8rem 0.95rem">
-                    <div style="font-size:0.72rem;font-weight:700;color:#1a6fff;margin-bottom:5px">
-                        Ajuste en planta
-                    </div>
-                    <div style="font-size:1.15rem;font-weight:800;color:#0d2347">
-                        {Q_entrada_recomendada_ajustada_Ls:.2f} L/s
-                    </div>
-                    <div style="font-size:0.82rem;color:#5a7899;line-height:1.45;margin-top:4px">
-                        Entrada actual planta: <b>{caudal_entrada_planta_actual:.2f} L/s</b><br>
-                        {texto_entrada}<br>
-                        El efecto se notará aprox. a las: <b>{hora_efecto_str}</b>
-                        {alerta_limite_planta}
-                    </div>
-                </div>
+            "<div style='background:#f8fbff;border:2px solid #1a6fff;border-radius:14px;padding:0.8rem 0.95rem'>"
+            "<div style='font-size:0.72rem;font-weight:700;color:#1a6fff;margin-bottom:5px'>Ajuste en planta</div>"
+            f"<div style='font-size:1.15rem;font-weight:800;color:#0d2347'>{Q_entrada_recomendada_ajustada_Ls:.2f} L/s</div>"
+            "<div style='font-size:0.82rem;color:#5a7899;line-height:1.45;margin-top:4px'>"
+            f"Entrada actual planta: <b>{caudal_entrada_planta_actual:.2f} L/s</b><br>"
+            f"{texto_entrada}<br>"
+            f"El efecto se notará aprox. a las: <b>{hora_efecto_str}</b>"
+            f"{alerta_limite_planta}"
+            "</div></div>"
 
-                <div style="background:#f8fbff;border:2px solid #6c63ff;border-radius:14px;padding:0.8rem 0.95rem">
-                    <div style="font-size:0.72rem;font-weight:700;color:#6c63ff;margin-bottom:5px">
-                        Ajuste inmediato de salida
-                    </div>
-                    <div style="font-size:1.15rem;font-weight:800;color:#0d2347">
-                        {Q_salida_inmediata_Ls:.2f} L/s
-                    </div>
-                    <div style="font-size:0.82rem;color:#5a7899;line-height:1.45;margin-top:4px">
-                        Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>
-                        {texto_salida}<br>
-                        Sirve para controlar mientras llega el ajuste de planta.
-                    </div>
-                </div>
+            "<div style='background:#f8fbff;border:2px solid #6c63ff;border-radius:14px;padding:0.8rem 0.95rem'>"
+            "<div style='font-size:0.72rem;font-weight:700;color:#6c63ff;margin-bottom:5px'>Ajuste inmediato de salida</div>"
+            f"<div style='font-size:1.15rem;font-weight:800;color:#0d2347'>{Q_salida_inmediata_Ls:.2f} L/s</div>"
+            "<div style='font-size:0.82rem;color:#5a7899;line-height:1.45;margin-top:4px'>"
+            f"Salida actual: <b>{caudal_salida_ls:.2f} L/s</b><br>"
+            f"{texto_salida}<br>"
+            "Sirve para controlar mientras llega el ajuste de planta."
+            "</div></div>"
 
-            </div>
+            "</div>"
 
-            <div style="background:rgba(42,157,143,0.08);border-left:5px solid #2a9d8f;
-                border-radius:12px;padding:0.75rem 0.95rem">
-                <div style="font-size:0.72rem;font-weight:700;color:#2a9d8f;margin-bottom:5px">
-                    Resultado esperado
-                </div>
-                <div style="font-size:0.86rem;color:#0a1628;line-height:1.5">
-                    Si se aplica el ajuste recomendado, el nivel estimado después de
-                    {tiempo_correccion_min} min de corrección será aproximadamente:
-                    <b>{nivel_final_estimado:.3f} m</b>.<br>
-                    Primero se calcula el nivel futuro cuando llegue el cambio y luego se decide
-                    si conviene sostener o corregir.
-                </div>
-            </div>
+            "<div style='background:rgba(42,157,143,0.08);border-left:5px solid #2a9d8f;"
+            "border-radius:12px;padding:0.75rem 0.95rem'>"
+            "<div style='font-size:0.72rem;font-weight:700;color:#2a9d8f;margin-bottom:5px'>Resultado esperado</div>"
+            "<div style='font-size:0.86rem;color:#0a1628;line-height:1.5'>"
+            f"Si se aplica el ajuste recomendado, el nivel estimado después de "
+            f"{tiempo_correccion_min} min de corrección será aproximadamente: "
+            f"<b>{nivel_final_estimado:.3f} m</b>.<br>"
+            "Primero se calcula el nivel futuro cuando llegue el cambio y luego se decide "
+            "si conviene sostener o corregir."
+            "</div></div>"
 
-        </div>
-        """
+            "</div>"
+        )
 
         # ── Render HTML principal ────────────────────────────────────────────
         css_iframe = (
-            '<!DOCTYPE html><html><head>'
-            '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">'
-            '<style>'
-            '* { box-sizing:border-box; margin:0; padding:0; }'
-            'body { font-family:Inter,sans-serif; background:transparent; padding:4px; overflow:hidden; }'
-            '.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1rem; }'
-            '.sec-title { font-size:0.8rem; font-weight:700; color:#5a7899; '
-            'letter-spacing:0.3px; margin-bottom:0.6rem; }'
-            '@media (max-width: 900px) { .grid2 { grid-template-columns:1fr; } }'
-            '</style></head><body>'
+            "<!DOCTYPE html><html><head>"
+            "<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>"
+            "<style>"
+            "* { box-sizing:border-box; margin:0; padding:0; }"
+            "body { font-family:Inter,sans-serif; background:transparent; padding:4px; overflow:hidden; }"
+            ".grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1rem; }"
+            ".sec-title { font-size:0.8rem; font-weight:700; color:#5a7899; letter-spacing:0.3px; margin-bottom:0.6rem; }"
+            "@media (max-width: 900px) { .grid2 { grid-template-columns:1fr; } }"
+            "</style></head><body>"
         )
 
         html_completo = (
             css_iframe
-            + '<div class="sec-title">🕐 Horas estimadas de llegada a límites</div>'
-            + '<div class="grid2"><div>' + card_reb + '</div><div>' + card_min + '</div></div>'
-            + '<div class="sec-title" style="margin-top:0.5rem">⚠ Recomendación de ajuste de caudal</div>'
+            + "<div class='sec-title'>🕐 Horas estimadas de llegada a límites</div>"
+            + "<div class='grid2'><div>" + card_reb + "</div><div>" + card_min + "</div></div>"
+            + "<div class='sec-title' style='margin-top:0.5rem'>⚠ Recomendación de ajuste de caudal</div>"
             + bloque_rec
-            + '</body></html>'
+            + "</body></html>"
         )
 
         tiene_rec = (
@@ -1807,7 +1776,7 @@ def mostrar_calculadora_tanque():
             and (t_rebose_min is not None or t_minimo_min is not None)
         )
 
-        altura_iframe = 900 if tiene_rec else 620
+        altura_iframe = 930 if tiene_rec else 660
         components.html(html_completo, height=altura_iframe, scrolling=False)
 
         # ── Visualización del tanque ─────────────────────────────────────────
@@ -2046,56 +2015,51 @@ def mostrar_calculadora_tanque():
         st.plotly_chart(fig, use_container_width=True)
 
         # ── Resumen y fórmulas ───────────────────────────────────────────────
-        # ── Resumen y fórmulas ───────────────────────────────────────────────
-signo = "+" if Q_neto_Ls >= 0 else ""
-signo_proy = "+" if Q_neto_proyeccion_Ls >= 0 else ""
+        signo = "+" if Q_neto_Ls >= 0 else ""
+        signo_proy = "+" if Q_neto_proyeccion_Ls >= 0 else ""
 
-resumen_html = (
-    '<div class="caja-rango">'
-    '<b>Resumen del balance</b><br>'
-    f'Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → '
-    f'{hora_actual_str} ({altura_actual:.2f} m) '
-    f'· Intervalo: {delta_t_min:.0f} min '
-    f'· Δh = {delta_h:+.4f} m<br><br>'
+        resumen_html = (
+            "<div class='caja-rango'>"
+            "<b>Resumen del balance</b><br>"
+            f"Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → {hora_actual_str} ({altura_actual:.2f} m) "
+            f"· Intervalo: {delta_t_min:.0f} min "
+            f"· Δh = {delta_h:+.4f} m<br><br>"
 
-    f'Q neto actual = <b>{signo}{Q_neto_Ls:.2f} L/s</b> '
-    f'· Entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s '
-    f'({Q_entrada_tanque_m3h:.1f} m³/h)</b> '
-    f'· Salida actual = {caudal_salida_ls:.2f} L/s '
-    f'({Q_salida_m3h:.1f} m³/h)<br><br>'
+            f"Q neto actual = <b>{signo}{Q_neto_Ls:.2f} L/s</b> "
+            f"· Entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s ({Q_entrada_tanque_m3h:.1f} m³/h)</b> "
+            f"· Salida actual = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)<br><br>"
 
-    f'Salida esperada = <b>{caudal_salida_esperada_ls:.2f} L/s</b> '
-    f'· Q neto esperado = <b>{signo_proy}{Q_neto_proyeccion_Ls:.2f} L/s</b> '
-    f'· Tiempo recorrido PTAP = {tiempo_recorrido_min} min<br><br>'
+            f"Salida esperada = <b>{caudal_salida_esperada_ls:.2f} L/s</b> "
+            f"· Q neto esperado = <b>{signo_proy}{Q_neto_proyeccion_Ls:.2f} L/s</b> "
+            f"· Tiempo recorrido PTAP = {tiempo_recorrido_min} min<br><br>"
 
-    f'Nivel cuando llegue el ajuste = <b>{nivel_cuando_llega_ajuste:.3f} m</b> '
-    f'· Nivel objetivo = {nivel_objetivo:.3f} m<br><br>'
+            f"Nivel cuando llegue el ajuste = <b>{nivel_cuando_llega_ajuste:.3f} m</b> "
+            f"· Nivel objetivo = {nivel_objetivo:.3f} m<br><br>"
 
-    f'<span style="color:#5a7899;font-size:0.85rem">ℹ {modo}</span>'
-    '</div>'
-)
+            f"<span style='color:#5a7899;font-size:0.85rem'>ℹ {modo}</span>"
+            "</div>"
+        )
 
-st.markdown(resumen_html, unsafe_allow_html=True)
+        st.markdown(resumen_html, unsafe_allow_html=True)
 
+        formulas_html = (
+            "<div class='caja-rango' style='border-left-color:#00c8ff'>"
+            "<b>Fórmulas usadas</b><br>"
+            "<span style='color:#3a5270'>"
+            "Área equivalente = Volumen / Altura lleno<br>"
+            "Q neto actual = Área × Δh / Δt<br>"
+            "Q entrada tanque = Q salida actual + Q neto actual<br>"
+            "Q neto esperado = Q entrada tanque - Q salida esperada<br>"
+            "Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área<br>"
+            "Para sostener: Q entrada recomendada ≈ Q salida esperada<br>"
+            "Para corregir: Q neto corrección = Área × (Nivel objetivo - Nivel futuro) / tiempo de corrección"
+            "</span>"
+            "</div>"
+        )
 
-formulas_html = (
-    '<div class="caja-rango" style="border-left-color:#00c8ff">'
-    '<b>Fórmulas usadas</b><br>'
-    '<span style="color:#3a5270">'
-    'Área equivalente = Volumen / Altura lleno<br>'
-    'Q neto actual = Área × Δh / Δt<br>'
-    'Q entrada tanque = Q salida actual + Q neto actual<br>'
-    'Q neto esperado = Q entrada tanque - Q salida esperada<br>'
-    'Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área<br>'
-    'Para sostener: Q entrada recomendada ≈ Q salida esperada<br>'
-    'Para corregir: Q neto corrección = Área × (Nivel objetivo - Nivel futuro) / tiempo de corrección'
-    '</span>'
-    '</div>'
-)
+        st.markdown(formulas_html, unsafe_allow_html=True)
 
-st.markdown(formulas_html, unsafe_allow_html=True)
- 
- 
+    st.markdown("</div>", unsafe_allow_html=True)
 # =========================================
 # FLUJO DE ACCESO
 # =========================================
