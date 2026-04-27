@@ -2046,51 +2046,54 @@ def mostrar_calculadora_tanque():
         st.plotly_chart(fig, use_container_width=True)
 
         # ── Resumen y fórmulas ───────────────────────────────────────────────
-        signo = "+" if Q_neto_Ls >= 0 else ""
-        signo_proy = "+" if Q_neto_proyeccion_Ls >= 0 else ""
+        # ── Resumen y fórmulas ───────────────────────────────────────────────
+signo = "+" if Q_neto_Ls >= 0 else ""
+signo_proy = "+" if Q_neto_proyeccion_Ls >= 0 else ""
 
-        resumen_html = dedent(f"""
-        <div class="caja-rango">
-            <b>Resumen del balance</b><br>
-            Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → {hora_actual_str} ({altura_actual:.2f} m)
-            · Intervalo: {delta_t_min:.0f} min
-            · Δh = {delta_h:+.4f} m<br>
+resumen_html = (
+    '<div class="caja-rango">'
+    '<b>Resumen del balance</b><br>'
+    f'Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → '
+    f'{hora_actual_str} ({altura_actual:.2f} m) '
+    f'· Intervalo: {delta_t_min:.0f} min '
+    f'· Δh = {delta_h:+.4f} m<br><br>'
 
-            Q neto actual = <b>{signo}{Q_neto_Ls:.2f} L/s</b>
-            · Entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s ({Q_entrada_tanque_m3h:.1f} m³/h)</b>
-            · Salida actual = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)<br>
+    f'Q neto actual = <b>{signo}{Q_neto_Ls:.2f} L/s</b> '
+    f'· Entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s '
+    f'({Q_entrada_tanque_m3h:.1f} m³/h)</b> '
+    f'· Salida actual = {caudal_salida_ls:.2f} L/s '
+    f'({Q_salida_m3h:.1f} m³/h)<br><br>'
 
-            Salida esperada = <b>{caudal_salida_esperada_ls:.2f} L/s</b>
-            · Q neto esperado = <b>{signo_proy}{Q_neto_proyeccion_Ls:.2f} L/s</b>
-            · Tiempo recorrido PTAP = {tiempo_recorrido_min} min<br>
+    f'Salida esperada = <b>{caudal_salida_esperada_ls:.2f} L/s</b> '
+    f'· Q neto esperado = <b>{signo_proy}{Q_neto_proyeccion_Ls:.2f} L/s</b> '
+    f'· Tiempo recorrido PTAP = {tiempo_recorrido_min} min<br><br>'
 
-            Nivel cuando llegue el ajuste = <b>{nivel_cuando_llega_ajuste:.3f} m</b>
-            · Nivel objetivo = {nivel_objetivo:.3f} m<br>
+    f'Nivel cuando llegue el ajuste = <b>{nivel_cuando_llega_ajuste:.3f} m</b> '
+    f'· Nivel objetivo = {nivel_objetivo:.3f} m<br><br>'
 
-            <span style="color:#5a7899;font-size:0.85rem">ℹ {modo}</span>
-        </div>
-        """).strip()
+    f'<span style="color:#5a7899;font-size:0.85rem">ℹ {modo}</span>'
+    '</div>'
+)
 
-        st.markdown(resumen_html, unsafe_allow_html=True)
+st.markdown(resumen_html, unsafe_allow_html=True)
 
-        formulas_html = dedent("""
-        <div class="caja-rango" style="border-left-color:#00c8ff">
-            <b>Fórmulas usadas</b><br>
-            <span style="color:#3a5270">
-                Área equivalente = Volumen / Altura lleno<br>
-                Q neto actual = Área × Δh / Δt<br>
-                Q entrada tanque = Q salida actual + Q neto actual<br>
-                Q neto esperado = Q entrada tanque - Q salida esperada<br>
-                Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área<br>
-                Para sostener: Q entrada recomendada ≈ Q salida esperada<br>
-                Para corregir: Q neto corrección = Área × (Nivel objetivo - Nivel futuro) / tiempo de corrección
-            </span>
-        </div>
-        """).strip()
 
-        st.markdown(formulas_html, unsafe_allow_html=True)
+formulas_html = (
+    '<div class="caja-rango" style="border-left-color:#00c8ff">'
+    '<b>Fórmulas usadas</b><br>'
+    '<span style="color:#3a5270">'
+    'Área equivalente = Volumen / Altura lleno<br>'
+    'Q neto actual = Área × Δh / Δt<br>'
+    'Q entrada tanque = Q salida actual + Q neto actual<br>'
+    'Q neto esperado = Q entrada tanque - Q salida esperada<br>'
+    'Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área<br>'
+    'Para sostener: Q entrada recomendada ≈ Q salida esperada<br>'
+    'Para corregir: Q neto corrección = Área × (Nivel objetivo - Nivel futuro) / tiempo de corrección'
+    '</span>'
+    '</div>'
+)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown(formulas_html, unsafe_allow_html=True)
  
  
 # =========================================
