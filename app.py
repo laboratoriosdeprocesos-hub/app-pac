@@ -1537,23 +1537,7 @@ def mostrar_calculadora_tanque():
             ajuste_minimo_urgente = False
 
         # ── Métricas principales ─────────────────────────────────────────────
-        m1, m2 = st.columns(2)
-        m1.metric("Intervalo entre lecturas", f"{delta_t_min:.0f} min")
-        m2.metric("Tendencia actual", tendencia_actual_txt)
-
-        m3, m4 = st.columns(2)
-        m3.metric("Variación de nivel", f"{delta_h:+.4f} m")
-        m4.metric("Caudal neto actual", f"{Q_neto_Ls:+.2f} L/s")
-
-        m5, m6 = st.columns(2)
-        m5.metric("Entrada estimada al tanque", f"{Q_entrada_tanque_Ls:.2f} L/s")
-        m6.metric("Salida esperada", f"{caudal_salida_esperada_ls:.2f} L/s")
-
-        m7, m8 = st.columns(2)
-        m7.metric("Tendencia esperada", tendencia_proy_txt)
-        m8.metric("Nivel cuando llegue ajuste", f"{nivel_cuando_llega_ajuste:.3f} m")
-
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+        st.markdown("div style='heigth:0.2rem'></div>", unsafe_allow_html=True)
 
         def fmt_t(v):
             if v is None:
