@@ -1345,7 +1345,7 @@ def generar_panel_resultados_html(
 <html>
 <head>
 <meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {{
   --azul:   #0a1e3d;
@@ -1355,15 +1355,15 @@ def generar_panel_resultados_html(
   --rojo:   #e63946;
   --naranja:#e07a30;
   --gris1:  #4a7a9b;
-  --mono:   'Share Tech Mono', monospace;
-  --titulo: 'Barlow Condensed', sans-serif;
-  --cuerpo: 'Barlow', sans-serif;
+  --mono:   'DM Mono', monospace;
+  --titulo: 'Outfit', sans-serif;
+  --cuerpo: 'DM Sans', sans-serif;
 }}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
-  background: linear-gradient(160deg, #f0f8ff 0%, #daeef8 35%, #c2e4f5 70%, #a8d8ee 100%);
+  background: linear-gradient(160deg, #0a1e3d 0%, #0b2a50 60%, #0a2244 100%);
   font-family: var(--cuerpo);
-  color: #d0e8f5;
+  color: #0a2244;
   min-height: 100vh;
   overflow-x: hidden;
 }}
@@ -1374,15 +1374,15 @@ body::before {{
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0,200,255,0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 85% 80%, rgba(0,200,160,0.05) 0%, transparent 60%);
+    radial-gradient(ellipse 60% 40% at 15% 20%, rgba(255,255,255,0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 85% 80%, rgba(0,150,180,0.12) 0%, transparent 60%);
   pointer-events: none;
 }}
 
 /* ── HEADER ── */
 .hdr {{
-  background: linear-gradient(90deg, #0d2e5a, #0f3868);
-  border-bottom: 2px solid rgba(0,200,255,0.2);
+  background: linear-gradient(90deg, #0077b6, #0096c7);
+  border-bottom: 2px solid rgba(255,255,255,0.25);
   padding: 10px 18px;
   display: flex;
   align-items: center;
@@ -1393,14 +1393,14 @@ body::before {{
   font-family: var(--titulo);
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--cyan);
+  color: #ffffff;
   letter-spacing: 2px;
   text-transform: uppercase;
 }}
 .hdr-sub {{
   font-family: var(--mono);
   font-size: 0.65rem;
-  color: var(--gris1);
+  color: rgba(255,255,255,0.75);
   letter-spacing: 1px;
 }}
 .hdr-time {{
@@ -1424,8 +1424,8 @@ body::before {{
 
 /* ── TANQUE ── */
 .tank-panel {{
-  background: rgba(13,46,90,0.6);
-  border: 1.5px solid rgba(0,200,255,0.15);
+  background: rgba(255,255,255,0.55);
+  border: 1.5px solid rgba(0,119,182,0.25);
   border-radius: 16px;
   padding: 12px 10px;
   display: flex;
@@ -1468,8 +1468,8 @@ body::before {{
   gap: 8px;
 }}
 .metric-card {{
-  background: rgba(13,46,90,0.55);
-  border: 1px solid rgba(0,200,255,0.12);
+  background: rgba(255,255,255,0.70);
+  border: 1px solid rgba(0,119,182,0.18);
   border-radius: 12px;
   padding: 10px 12px;
   position: relative;
@@ -1493,7 +1493,7 @@ body::before {{
 .m-label {{
   font-family: var(--mono);
   font-size: 0.6rem;
-  color: var(--gris1);
+  color: #4a7a9b;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   display: block;
