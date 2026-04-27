@@ -1134,7 +1134,7 @@ def mostrar_calculadora_tanque():
         unsafe_allow_html=True
     )
 
-    col_iz, col_der = st.columns([1.2, 1.4], gap="large")
+    col_iz, col_der = st.columns([1.0, 1.9], gap="medium")
 
     # ─────────────────────────────────────────────────────────────────────────
     # PANEL IZQUIERDO
@@ -1863,7 +1863,7 @@ def mostrar_calculadora_tanque():
             + "</body></html>"
         )
 
-        components.html(html_completo, height=1120, scrolling=False)
+        components.html(html_completo, height=1250, scrolling=False)
 
         # ── Visualización del tanque ─────────────────────────────────────────
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
