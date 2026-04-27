@@ -1776,12 +1776,12 @@ def mostrar_calculadora_tanque():
         t_correccion_s = max(tiempo_correccion_min * 60, 60)
 
         if nivel_cuando_llega_ajuste < nivel_objetivo_min:
-            modo_operativo = "corregir_subiendo"
             color_rec = "#f4a261"
             texto_modo = (
                 "El nivel futuro quedaría por debajo de la banda objetivo. "
-                "Se recomienda aumentar la entrada efectiva al tanque, pero si hay lavado, fuga o caudal "
-                "no contabilizado alto, el ajuste debe tomarse como referencia y confirmarse con nueva lectura."
+                "Se recomienda aumentar la entrada efectiva al tanque. "
+                "Si hay lavado, fuga o caudal no contabilizado alto, el ajuste debe tomarse como referencia "
+                "y confirmarse con una nueva lectura."
             )
 
             Q_neto_correccion_Ls = (
@@ -1791,7 +1791,6 @@ def mostrar_calculadora_tanque():
             Q_requerido_tanque_Ls = caudal_salida_esperada_ls + Q_neto_correccion_Ls
 
         elif nivel_cuando_llega_ajuste > nivel_objetivo_max:
-            modo_operativo = "corregir_bajando"
             color_rec = "#e63946"
             texto_modo = (
                 "El nivel futuro quedaría por encima de la banda objetivo. "
@@ -1806,7 +1805,6 @@ def mostrar_calculadora_tanque():
             Q_requerido_tanque_Ls = caudal_salida_esperada_ls + Q_neto_correccion_Ls
 
         else:
-            modo_operativo = "sostener"
             color_rec = "#2a9d8f"
 
             if abs(Q_neto_proyeccion_Ls) <= 2:
@@ -1883,8 +1881,6 @@ def mostrar_calculadora_tanque():
         # ─────────────────────────────────────────────────────────────────────
         # 7. RECOMENDACIÓN PARA VALVULERO
         # ─────────────────────────────────────────────────────────────────────
-        # La recomendación para valvulero busca equilibrar temporalmente:
-        # salida del tanque ≈ entrada efectiva estimada al tanque.
         Q_salida_valvulero_Ls = limitar_valor(
             Q_entrada_tanque_Ls,
             caudal_min_salida,
@@ -1892,7 +1888,6 @@ def mostrar_calculadora_tanque():
         )
 
         delta_salida_valvulero = Q_salida_valvulero_Ls - caudal_salida_ls
-
         accion_valvulero = texto_delta_salida(delta_salida_valvulero)
 
         if delta_salida_valvulero > 0.1:
@@ -1918,7 +1913,7 @@ def mostrar_calculadora_tanque():
             )
 
         # ─────────────────────────────────────────────────────────────────────
-        # HTML / VISUALIZACIÓN DE RESULTADOS
+        # ESTILOS DE RESULTADOS
         # ─────────────────────────────────────────────────────────────────────
         st.markdown(
             """
@@ -1927,103 +1922,110 @@ def mostrar_calculadora_tanque():
                 background: #ffffff;
                 border: 1px solid #dce9f7;
                 border-radius: 16px;
-                padding: 0.9rem 1rem;
+                padding: 0.85rem 0.95rem;
                 margin-bottom: 0.85rem;
                 box-shadow: 0 3px 14px rgba(10,22,40,0.05);
                 font-family: Inter, sans-serif;
+                overflow-wrap: break-word;
+                word-break: normal;
             }
             .tanque-titlex {
-                font-size: 0.88rem;
+                font-size: 0.82rem;
                 font-weight: 800;
                 color: #0b4f6c;
                 margin-bottom: 0.35rem;
             }
             .tanque-textx {
-                font-size: 0.94rem;
+                font-size: 0.86rem;
                 color: #0a1628;
-                line-height: 1.48;
+                line-height: 1.42;
             }
             .tanque-numberx {
-                font-size: 1.35rem;
+                font-size: 1.22rem;
                 font-weight: 800;
                 color: #0d2347;
                 line-height: 1.15;
                 margin: 0.15rem 0 0.35rem 0;
             }
-            .tanque-gridx {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 0.85rem;
-                margin-bottom: 0.85rem;
-            }
             .tanque-smallx {
-                font-size: 0.82rem;
+                font-size: 0.78rem;
                 color: #5a7899;
-                line-height: 1.4;
-            }
-            @media (max-width: 900px) {
-                .tanque-gridx {
-                    grid-template-columns: 1fr;
-                }
+                line-height: 1.35;
             }
             </style>
             """,
             unsafe_allow_html=True
         )
 
-        # Horas estimadas de llegada a límites
-        if hora_rebose_str:
-            color_reb = "#e63946" if (t_rebose_min or 0) < 60 else "#f4a261"
-            urgente_reb = " · Actuar ahora" if ajuste_rebose_urgente else ""
-            card_reb = f"""
-            <div class="tanque-cardx" style="border-left:5px solid {color_reb}">
-                <div class="tanque-titlex">Llegada a rebose ({altura_rebose:.2f} m)</div>
-                <div class="tanque-numberx" style="color:{color_reb}">🕐 {hora_rebose_str}</div>
-                <div class="tanque-textx">En {fmt_t(t_rebose_min)} desde {hora_actual_str}</div>
-                <div class="tanque-smallx"><b>Ajustar antes de:</b> {hora_ajuste_rebose_str or hora_actual_str}{urgente_reb}</div>
-            </div>
-            """
-        else:
-            card_reb = f"""
-            <div class="tanque-cardx" style="border-left:5px solid #b8d0e8">
-                <div class="tanque-titlex">Llegada a rebose</div>
-                <div class="tanque-textx">No aplica con la demanda esperada.</div>
-            </div>
-            """
-
-        if hora_minimo_str:
-            color_min = "#e63946" if (t_minimo_min or 0) < 60 else "#f4a261"
-            urgente_min = " · Actuar ahora" if ajuste_minimo_urgente else ""
-            card_min = f"""
-            <div class="tanque-cardx" style="border-left:5px solid {color_min}">
-                <div class="tanque-titlex">Llegada a mínimo ({altura_minima:.2f} m)</div>
-                <div class="tanque-numberx" style="color:{color_min}">🕐 {hora_minimo_str}</div>
-                <div class="tanque-textx">En {fmt_t(t_minimo_min)} desde {hora_actual_str}</div>
-                <div class="tanque-smallx"><b>Ajustar antes de:</b> {hora_ajuste_minimo_str or hora_actual_str}{urgente_min}</div>
-            </div>
-            """
-        else:
-            card_min = f"""
-            <div class="tanque-cardx" style="border-left:5px solid #b8d0e8">
-                <div class="tanque-titlex">Llegada a mínimo</div>
-                <div class="tanque-textx">No aplica con la demanda esperada.</div>
-            </div>
-            """
-
+        # ─────────────────────────────────────────────────────────────────────
+        # HORAS ESTIMADAS DE LLEGADA A LÍMITES
+        # ─────────────────────────────────────────────────────────────────────
         st.markdown(
-            f"""
+            """
             <div style="font-size:0.95rem;font-weight:800;color:#5a7899;margin-bottom:0.6rem">
                 🕐 Horas estimadas de llegada a límites
-            </div>
-            <div class="tanque-gridx">
-                {card_reb}
-                {card_min}
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # Bloque nivel futuro
+        col_reb, col_min = st.columns(2, gap="medium")
+
+        with col_reb:
+            if hora_rebose_str:
+                color_reb = "#e63946" if (t_rebose_min or 0) < 60 else "#f4a261"
+                urgente_reb = " · Actuar ahora" if ajuste_rebose_urgente else ""
+                st.markdown(
+                    f"""
+                    <div class="tanque-cardx" style="border-left:5px solid {color_reb}">
+                        <div class="tanque-titlex">Llegada a rebose ({altura_rebose:.2f} m)</div>
+                        <div class="tanque-numberx" style="color:{color_reb}">🕐 {hora_rebose_str}</div>
+                        <div class="tanque-textx">En {fmt_t(t_rebose_min)} desde {hora_actual_str}</div>
+                        <div class="tanque-smallx"><b>Ajustar antes de:</b> {hora_ajuste_rebose_str or hora_actual_str}{urgente_reb}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(
+                    """
+                    <div class="tanque-cardx" style="border-left:5px solid #b8d0e8">
+                        <div class="tanque-titlex">Llegada a rebose</div>
+                        <div class="tanque-textx">No aplica con la demanda esperada.</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+        with col_min:
+            if hora_minimo_str:
+                color_min = "#e63946" if (t_minimo_min or 0) < 60 else "#f4a261"
+                urgente_min = " · Actuar ahora" if ajuste_minimo_urgente else ""
+                st.markdown(
+                    f"""
+                    <div class="tanque-cardx" style="border-left:5px solid {color_min}">
+                        <div class="tanque-titlex">Llegada a mínimo ({altura_minima:.2f} m)</div>
+                        <div class="tanque-numberx" style="color:{color_min}">🕐 {hora_minimo_str}</div>
+                        <div class="tanque-textx">En {fmt_t(t_minimo_min)} desde {hora_actual_str}</div>
+                        <div class="tanque-smallx"><b>Ajustar antes de:</b> {hora_ajuste_minimo_str or hora_actual_str}{urgente_min}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(
+                    """
+                    <div class="tanque-cardx" style="border-left:5px solid #b8d0e8">
+                        <div class="tanque-titlex">Llegada a mínimo</div>
+                        <div class="tanque-textx">No aplica con la demanda esperada.</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+        # ─────────────────────────────────────────────────────────────────────
+        # NIVEL FUTURO
+        # ─────────────────────────────────────────────────────────────────────
         st.markdown(
             f"""
             <div class="tanque-cardx" style="border:2px solid {color_rec}">
@@ -2039,7 +2041,7 @@ def mostrar_calculadora_tanque():
                     <b>Caudal neto esperado:</b> {Q_neto_proyeccion_Ls:+.2f} L/s<br>
                     <b>Cambio durante {tiempo_recorrido_min} min:</b> {delta_h_recorrido:+.3f} m<br>
                     <b>Nivel cuando llegue el ajuste:</b>
-                    <span style="font-size:1.25rem;font-weight:800;color:{color_rec}">{nivel_cuando_llega_ajuste:.3f} m</span><br>
+                    <span style="font-size:1.18rem;font-weight:800;color:{color_rec}">{nivel_cuando_llega_ajuste:.3f} m</span><br>
                     <b>Nivel objetivo:</b> {nivel_objetivo:.3f} m
                     <span style="color:#5a7899">(banda: {nivel_objetivo_min:.3f} m a {nivel_objetivo_max:.3f} m)</span>
                 </div>
@@ -2048,7 +2050,9 @@ def mostrar_calculadora_tanque():
             unsafe_allow_html=True
         )
 
-        # Interpretación
+        # ─────────────────────────────────────────────────────────────────────
+        # INTERPRETACIÓN
+        # ─────────────────────────────────────────────────────────────────────
         st.markdown(
             f"""
             <div class="tanque-cardx">
@@ -2059,7 +2063,9 @@ def mostrar_calculadora_tanque():
             unsafe_allow_html=True
         )
 
-        # Lavados, fugas y caudal no contabilizado
+        # ─────────────────────────────────────────────────────────────────────
+        # LAVADOS / FUGAS
+        # ─────────────────────────────────────────────────────────────────────
         if hay_lavado:
             if lavado_horas_validas:
                 if lavado_afecta_resultado:
@@ -2137,7 +2143,9 @@ def mostrar_calculadora_tanque():
             unsafe_allow_html=True
         )
 
-        # Relación planta tanque
+        # ─────────────────────────────────────────────────────────────────────
+        # RELACIÓN PLANTA → TANQUE
+        # ─────────────────────────────────────────────────────────────────────
         relacion_obs_txt = f"{relacion_observada:.3f}" if relacion_observada_valida else "No disponible"
         relacion_obs_pct = f"{relacion_observada * 100:.1f}%" if relacion_observada_valida else "No disponible"
 
@@ -2158,37 +2166,61 @@ def mostrar_calculadora_tanque():
             unsafe_allow_html=True
         )
 
-        # Recomendación caudal requerido y planta
-        st.markdown(
-            f"""
-            <div class="tanque-gridx">
+        # ─────────────────────────────────────────────────────────────────────
+        # CAUDAL REQUERIDO Y PLANTA
+        # IMPORTANTE: NO usar HTML grid aquí para evitar que se muestre el código en pantalla.
+        # ─────────────────────────────────────────────────────────────────────
+        col_req, col_planta = st.columns(2, gap="medium")
+
+        with col_req:
+            st.markdown(
+                f"""
                 <div class="tanque-cardx" style="border:2px solid #2a9d8f">
-                    <div class="tanque-titlex" style="color:#2a9d8f">Caudal requerido al tanque</div>
-                    <div class="tanque-numberx">{Q_requerido_tanque_Ls:.2f} L/s</div>
+                    <div class="tanque-titlex" style="color:#2a9d8f">
+                        Caudal requerido al tanque
+                    </div>
+                    <div class="tanque-numberx">
+                        {Q_requerido_tanque_Ls:.2f} L/s
+                    </div>
                     <div class="tanque-textx">
-                        Entrada actual estimada al tanque: <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>
-                        Salida esperada: <b>{caudal_salida_esperada_ls:.2f} L/s</b><br>
+                        Entrada actual estimada al tanque:
+                        <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>
+                        Salida esperada:
+                        <b>{caudal_salida_esperada_ls:.2f} L/s</b><br>
                         Este valor es lo que debería llegar al tanque para sostener o corregir el nivel.
                     </div>
                 </div>
+                """,
+                unsafe_allow_html=True
+            )
 
+        with col_planta:
+            st.markdown(
+                f"""
                 <div class="tanque-cardx" style="border:2px solid #1a6fff">
-                    <div class="tanque-titlex" style="color:#1a6fff">Caudal recomendado en planta</div>
-                    <div class="tanque-numberx">{Q_planta_recomendado_Ls:.2f} L/s</div>
+                    <div class="tanque-titlex" style="color:#1a6fff">
+                        Caudal recomendado en planta
+                    </div>
+                    <div class="tanque-numberx">
+                        {Q_planta_recomendado_Ls:.2f} L/s
+                    </div>
                     <div class="tanque-textx">
-                        Entrada actual planta: <b>{caudal_entrada_planta_actual:.2f} L/s</b><br>
+                        Entrada actual planta:
+                        <b>{caudal_entrada_planta_actual:.2f} L/s</b><br>
                         <b>{texto_entrada}</b><br>
-                        El efecto se notará aprox. a las: <b>{hora_efecto_str}</b>
+                        El efecto se notará aprox. a las:
+                        <b>{hora_efecto_str}</b>
                         {alerta_limite_planta}
                         {alerta_ajuste_limitado}
                     </div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+                """,
+                unsafe_allow_html=True
+            )
 
-        # Valvulero
+        # ─────────────────────────────────────────────────────────────────────
+        # VALVULERO
+        # ─────────────────────────────────────────────────────────────────────
         if mostrar_recomendacion_valvulero:
             st.markdown(
                 f"""
@@ -2204,7 +2236,7 @@ def mostrar_calculadora_tanque():
                         Entrada efectiva estimada al tanque: <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>
                         Salida actual del tanque: <b>{caudal_salida_ls:.2f} L/s</b><br>
                         Diferencia actual: <b>{delta_salida_valvulero:+.2f} L/s</b><br>
-                        <span style="color:#5a7899;font-size:0.86rem">
+                        <span style="color:#5a7899;font-size:0.82rem">
                         Este valor no es una orden automática. Es una referencia para comunicar al valvulero
                         cuánto podría abrir o cerrar la salida mientras se refleja el ajuste hecho en planta.
                         </span>
@@ -2215,7 +2247,9 @@ def mostrar_calculadora_tanque():
                 unsafe_allow_html=True
             )
 
-        # Resultado esperado
+        # ─────────────────────────────────────────────────────────────────────
+        # RESULTADO ESPERADO
+        # ─────────────────────────────────────────────────────────────────────
         st.markdown(
             f"""
             <div class="tanque-cardx" style="background:rgba(42,157,143,0.08);border-left:5px solid #2a9d8f">
