@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import streamlit.components.v1 as components
 from pathlib import Path
 from datetime import datetime, timedelta
+from textwrap import dedent
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
  
@@ -1114,6 +1115,7 @@ def mostrar_calculadora_pac():
 # CALCULADORA DE TANQUE DE AGUA
 # =========================================
 def mostrar_calculadora_tanque():
+    from textwrap import dedent
 
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
     st.markdown(
@@ -1158,19 +1160,18 @@ def mostrar_calculadora_tanque():
 
             area_equiv = volumen_total / altura_lleno if altura_lleno > 0 else 0.0
 
-            st.markdown(
-                f"""
-                <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
-                    padding:0.65rem 1rem;font-size:0.87rem;color:#0d2347;margin-top:0.4rem">
-                    <span style="font-weight:700;font-size:0.72rem;color:#5a7899;
-                    text-transform:none;display:block;margin-bottom:3px">Área equivalente</span>
-                    <b>{area_equiv:.4f} m²</b>
-                    <span style="color:#5a7899;font-size:0.8rem">
-                    = {volumen_total:.1f} m³ / {altura_lleno:.2f} m</span>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            area_html = dedent(f"""
+            <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
+                padding:0.65rem 1rem;font-size:0.87rem;color:#0d2347;margin-top:0.4rem">
+                <span style="font-weight:700;font-size:0.72rem;color:#5a7899;
+                text-transform:none;display:block;margin-bottom:3px">Área equivalente</span>
+                <b>{area_equiv:.4f} m²</b>
+                <span style="color:#5a7899;font-size:0.8rem">
+                = {volumen_total:.1f} m³ / {altura_lleno:.2f} m</span>
+            </div>
+            """).strip()
+
+            st.markdown(area_html, unsafe_allow_html=True)
 
         with st.expander("⚙️ Límites operativos", expanded=True):
             altura_rebose = st.number_input(
@@ -2048,39 +2049,34 @@ def mostrar_calculadora_tanque():
         signo = "+" if Q_neto_Ls >= 0 else ""
         signo_proy = "+" if Q_neto_proyeccion_Ls >= 0 else ""
 
-        st.markdown(
-            f"""
-            <div class="caja-rango">
-                <b>Resumen del balance</b><br>
-                Lecturas: {hora_antes_str} ({altura_antes:.2f} m) &rarr;
-                {hora_actual_str} ({altura_actual:.2f} m)
-                &middot; Intervalo: {delta_t_min:.0f} min
-                &middot; Δh = {delta_h:+.4f} m<br>
+        resumen_html = dedent(f"""
+        <div class="caja-rango">
+            <b>Resumen del balance</b><br>
+            Lecturas: {hora_antes_str} ({altura_antes:.2f} m) → {hora_actual_str} ({altura_actual:.2f} m)
+            · Intervalo: {delta_t_min:.0f} min
+            · Δh = {delta_h:+.4f} m<br>
 
-                Q neto actual = <b>{signo}{Q_neto_Ls:.2f} L/s</b>
-                &middot; Entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s
-                ({Q_entrada_tanque_m3h:.1f} m³/h)</b>
-                &middot; Salida actual = {caudal_salida_ls:.2f} L/s
-                ({Q_salida_m3h:.1f} m³/h)<br>
+            Q neto actual = <b>{signo}{Q_neto_Ls:.2f} L/s</b>
+            · Entrada tanque = <b>{Q_entrada_tanque_Ls:.2f} L/s ({Q_entrada_tanque_m3h:.1f} m³/h)</b>
+            · Salida actual = {caudal_salida_ls:.2f} L/s ({Q_salida_m3h:.1f} m³/h)<br>
 
-                Salida esperada = <b>{caudal_salida_esperada_ls:.2f} L/s</b>
-                &middot; Q neto esperado = <b>{signo_proy}{Q_neto_proyeccion_Ls:.2f} L/s</b>
-                &middot; Tiempo recorrido PTAP = {tiempo_recorrido_min} min<br>
+            Salida esperada = <b>{caudal_salida_esperada_ls:.2f} L/s</b>
+            · Q neto esperado = <b>{signo_proy}{Q_neto_proyeccion_Ls:.2f} L/s</b>
+            · Tiempo recorrido PTAP = {tiempo_recorrido_min} min<br>
 
-                Nivel cuando llegue el ajuste = <b>{nivel_cuando_llega_ajuste:.3f} m</b>
-                &middot; Nivel objetivo = {nivel_objetivo:.3f} m<br>
+            Nivel cuando llegue el ajuste = <b>{nivel_cuando_llega_ajuste:.3f} m</b>
+            · Nivel objetivo = {nivel_objetivo:.3f} m<br>
 
-                <span style="color:#5a7899;font-size:0.85rem">ℹ {modo}</span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            <span style="color:#5a7899;font-size:0.85rem">ℹ {modo}</span>
+        </div>
+        """).strip()
 
-        st.markdown(
-            """
-            <div class="caja-rango" style="border-left-color:#00c8ff">
-                <b>Fórmulas usadas</b><br>
-                <span style="color:#3a5270">
+        st.markdown(resumen_html, unsafe_allow_html=True)
+
+        formulas_html = dedent("""
+        <div class="caja-rango" style="border-left-color:#00c8ff">
+            <b>Fórmulas usadas</b><br>
+            <span style="color:#3a5270">
                 Área equivalente = Volumen / Altura lleno<br>
                 Q neto actual = Área × Δh / Δt<br>
                 Q entrada tanque = Q salida actual + Q neto actual<br>
@@ -2088,11 +2084,11 @@ def mostrar_calculadora_tanque():
                 Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área<br>
                 Para sostener: Q entrada recomendada ≈ Q salida esperada<br>
                 Para corregir: Q neto corrección = Área × (Nivel objetivo - Nivel futuro) / tiempo de corrección
-                </span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            </span>
+        </div>
+        """).strip()
+
+        st.markdown(formulas_html, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
  
