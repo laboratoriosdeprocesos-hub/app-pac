@@ -1114,27 +1114,7 @@ def mostrar_calculadora_pac():
 # =========================================
 # CALCULADORA DE TANQUE DE AGUA
 # =========================================
-[4:36 p. m., 27/4/2026] Robert: def mostrar_calculadora_tanque():
-
-    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='etiqueta'>🏗️ Calculadora de tanque de agua</div>",
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        Esta herramienta estima el balance hidráulico del tanque, identifica caudal no contabilizado
-        por lavados, fugas o pérdidas, y entrega una recomendación operativa corta para planta y valvulero.
-        """
-    )
-
-    col_iz, col_der = st.columns([1.0, 1.7], gap="large")
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # FUNCIONES INTERNAS
-…
-[4:36 p. m., 27/4/2026] Robert: # =========================================
+# =========================================
 # CALCULADORA DE TANQUE DE AGUA
 # =========================================
 def mostrar_calculadora_tanque():
