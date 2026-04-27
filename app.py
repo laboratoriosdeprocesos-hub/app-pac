@@ -1114,6 +1114,29 @@ def mostrar_calculadora_pac():
 # =========================================
 # CALCULADORA DE TANQUE DE AGUA
 # =========================================
+[4:36 p. m., 27/4/2026] Robert: def mostrar_calculadora_tanque():
+
+    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='etiqueta'>🏗️ Calculadora de tanque de agua</div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        Esta herramienta estima el balance hidráulico del tanque, identifica caudal no contabilizado
+        por lavados, fugas o pérdidas, y entrega una recomendación operativa corta para planta y valvulero.
+        """
+    )
+
+    col_iz, col_der = st.columns([1.0, 1.7], gap="large")
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # FUNCIONES INTERNAS
+…
+[4:36 p. m., 27/4/2026] Robert: # =========================================
+# CALCULADORA DE TANQUE DE AGUA
+# =========================================
 def mostrar_calculadora_tanque():
 
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
@@ -1124,20 +1147,15 @@ def mostrar_calculadora_tanque():
 
     st.markdown(
         """
-        <p style="color:#5a7899;font-size:0.92rem;margin-bottom:1rem;line-height:1.55">
-        Ingresa los datos del tanque, lecturas de nivel y caudales operativos.
-        La herramienta estima el balance hidráulico, el caudal real de entrada al tanque,
-        la posible influencia de lavados, fugas o pérdidas no medidas, y genera una recomendación
-        para entrada a planta y una referencia informativa para valvulero.
-        </p>
-        """,
-        unsafe_allow_html=True
+        Esta herramienta estima el balance hidráulico del tanque, identifica caudal no contabilizado
+        por lavados, fugas o pérdidas, y entrega una recomendación operativa corta para planta y valvulero.
+        """
     )
 
-    col_iz, col_der = st.columns([1.0, 1.9], gap="medium")
+    col_iz, col_der = st.columns([1.0, 1.7], gap="large")
 
     # ─────────────────────────────────────────────────────────────────────────
-    # HELPERS INTERNOS
+    # FUNCIONES INTERNAS
     # ─────────────────────────────────────────────────────────────────────────
     def rangos_dia(inicio, fin):
         if inicio is None or fin is None:
@@ -1148,13 +1166,16 @@ def mostrar_calculadora_tanque():
 
         if fin >= inicio:
             return [(inicio, fin)]
+
         return [(inicio, 1440), (0, fin)]
 
     def solape_minutos(inicio_a, fin_a, inicio_b, fin_b):
         total = 0
+
         for a1, a2 in rangos_dia(inicio_a, fin_a):
             for b1, b2 in rangos_dia(inicio_b, fin_b):
                 total += max(0, min(a2, b2) - max(a1, b1))
+
         return total
 
     def obtener_relacion_por_franja(minuto_actual):
@@ -1188,8 +1209,20 @@ def mostrar_calculadora_tanque():
             return f"Reducir salida del tanque en {abs(delta):.2f} L/s"
         return "Mantener salida actual del tanque"
 
+    def formato_horas(v):
+        if v is None:
+            return "No aplica"
+
+        h = int(v) // 60
+        m = int(v) % 60
+
+        if h > 0:
+            return f"{h} h {m} min"
+
+        return f"{m} min"
+
     # ─────────────────────────────────────────────────────────────────────────
-    # PANEL IZQUIERDO
+    # PANEL IZQUIERDO — DATOS
     # ─────────────────────────────────────────────────────────────────────────
     with col_iz:
 
@@ -1214,18 +1247,9 @@ def mostrar_calculadora_tanque():
 
             area_equiv = volumen_total / altura_lleno if altura_lleno > 0 else 0.0
 
-            st.markdown(
-                f"""
-                <div style="background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;
-                padding:0.65rem 1rem;font-size:0.86rem;color:#0d2347;margin-top:0.4rem">
-                    <span style="font-weight:700;font-size:0.72rem;color:#5a7899;
-                    display:block;margin-bottom:3px">Área equivalente</span>
-                    <b>{area_equiv:.4f} m²</b>
-                    <span style="color:#5a7899;font-size:0.8rem">
-                    = {volumen_total:.1f} m³ / {altura_lleno:.2f} m</span>
-                </div>
-                """,
-                unsafe_allow_html=True
+            st.info(
+                f"Área equivalente: *{area_equiv:.4f} m²* "
+                f"= {volumen_total:.1f} m³ / {altura_lleno:.2f} m"
             )
 
         with st.expander("⚙️ Límites operativos", expanded=True):
@@ -1280,9 +1304,9 @@ def mostrar_calculadora_tanque():
 
         with st.expander("🚰 Caudales", expanded=True):
             st.info(
-                "*Entrada a la planta ≠ entrada al tanque.* "
-                "Por pérdidas, lavados, purgas, fugas, almacenamiento en proceso o tiempo hidráulico, "
-                "al tanque puede llegar menos agua que la que entra a la planta."
+                "Entrada a planta ≠ entrada al tanque. "
+                "Por pérdidas, lavados, fugas, purgas, almacenamiento en proceso o tiempo hidráulico, "
+                "al tanque puede llegar menos agua que la que entra a planta."
             )
 
             caudal_max_planta = st.number_input(
@@ -1311,9 +1335,8 @@ def mostrar_calculadora_tanque():
                 format="%.2f",
                 key="tanq_caudal_planta_referencia",
                 help=(
-                    "Es el caudal de entrada a planta que, por el tiempo de recorrido, probablemente "
-                    "originó el cambio observado en el tanque. Si el recorrido es 45 min y analizas "
-                    "el tanque de 04:50 a 05:20, usa idealmente el promedio de planta entre 04:05 y 04:35."
+                    "Es el caudal de planta que probablemente originó el cambio observado en el tanque, "
+                    "considerando el tiempo de recorrido PTAP."
                 )
             )
 
@@ -1324,6 +1347,7 @@ def mostrar_calculadora_tanque():
             )
 
             caudal_entrada_manual_ls = None
+
             if usar_entrada_manual:
                 caudal_entrada_manual_ls = st.number_input(
                     "Caudal de entrada al tanque (L/s)",
@@ -1369,10 +1393,11 @@ def mostrar_calculadora_tanque():
                 value=45,
                 step=1,
                 key="tanq_tiempo_recorrido",
-                help="Tiempo desde que ajustas en planta hasta que el cambio llega al tanque."
+                help="Tiempo desde que se ajusta en planta hasta que el cambio llega al tanque."
             )
 
         with st.expander("🎯 Nivel objetivo y demanda esperada", expanded=True):
+
             nivel_objetivo_default = min(max(2.80, altura_minima), altura_rebose)
 
             if "tanq_nivel_objetivo" in st.session_state:
@@ -1427,12 +1452,6 @@ def mostrar_calculadora_tanque():
                 caudal_salida_esperada_ls = caudal_salida_ls
 
         with st.expander("🌙 Lavados, fugas o pérdidas no medidas", expanded=True):
-            st.info(
-                "Activa esta sección cuando haya lavado de filtros, sedimentadores, floculadores, "
-                "purgas o sospecha de fuga. Esto ayuda a interpretar el caudal que entra a planta "
-                "pero no se refleja en el tanque."
-            )
-
             hay_lavado = st.checkbox(
                 "Hay lavado de filtro o estructura",
                 value=False,
@@ -1459,15 +1478,17 @@ def mostrar_calculadora_tanque():
                     key="tanq_tipo_lavado"
                 )
 
-                c_lav1, c_lav2 = st.columns(2)
-                with c_lav1:
+                col_lav1, col_lav2 = st.columns(2)
+
+                with col_lav1:
                     hora_ini_lavado_txt = st.text_input(
                         "Hora inicio lavado (HH:MM)",
                         value="",
                         key="tanq_hora_ini_lavado",
                         placeholder="Ej: 22:30"
                     )
-                with c_lav2:
+
+                with col_lav2:
                     hora_fin_lavado_txt = st.text_input(
                         "Hora fin lavado (HH:MM)",
                         value="",
@@ -1506,11 +1527,7 @@ def mostrar_calculadora_tanque():
             limitar_ajuste_por_incertidumbre = st.checkbox(
                 "Limitar ajuste de planta cuando hay alta incertidumbre",
                 value=True,
-                key="tanq_limitar_ajuste_incertidumbre",
-                help=(
-                    "Si hay lavado, fuga o caudal no contabilizado alto, evita recomendar cambios demasiado grandes "
-                    "con una sola lectura."
-                )
+                key="tanq_limitar_ajuste_incertidumbre"
             )
 
             max_ajuste_seguro_ls = st.number_input(
@@ -1523,7 +1540,7 @@ def mostrar_calculadora_tanque():
             )
 
     # ─────────────────────────────────────────────────────────────────────────
-    # PANEL DERECHO
+    # PANEL DERECHO — CÁLCULOS Y RESULTADOS
     # ─────────────────────────────────────────────────────────────────────────
     with col_der:
 
@@ -1553,6 +1570,7 @@ def mostrar_calculadora_tanque():
         if errores:
             for e in errores:
                 st.error(e)
+
             st.markdown("</div>", unsafe_allow_html=True)
             return
 
@@ -1574,18 +1592,18 @@ def mostrar_calculadora_tanque():
         delta_h = altura_actual - altura_antes
 
         # ─────────────────────────────────────────────────────────────────────
-        # 1. BALANCE ACTUAL DEL TANQUE
+        # BALANCE ACTUAL
         # ─────────────────────────────────────────────────────────────────────
         if usar_entrada_manual and caudal_entrada_manual_ls is not None:
             Q_entrada_tanque_Ls = caudal_entrada_manual_ls
             Q_neto_Ls = Q_entrada_tanque_Ls - caudal_salida_ls
             Q_neto_m3s = Q_neto_Ls / 1000
-            modo = "Entrada al tanque ingresada manualmente"
+            modo_entrada = "Entrada al tanque ingresada manualmente"
         else:
             Q_neto_m3s = area_equiv * delta_h / delta_t_s
             Q_neto_Ls = Q_neto_m3s * 1000
             Q_entrada_tanque_Ls = caudal_salida_ls + Q_neto_Ls
-            modo = "Entrada al tanque estimada a partir del cambio de nivel"
+            modo_entrada = "Entrada al tanque estimada a partir del cambio de nivel"
 
         if Q_neto_Ls > 0.01:
             tendencia_actual = "subiendo"
@@ -1598,7 +1616,7 @@ def mostrar_calculadora_tanque():
             tendencia_actual_txt = "➡️ Estable"
 
         # ─────────────────────────────────────────────────────────────────────
-        # 2. PROYECCIÓN HASTA QUE LLEGUE EL AJUSTE
+        # PROYECCIÓN HASTA QUE LLEGUE EL AJUSTE
         # ─────────────────────────────────────────────────────────────────────
         t_recorrido_s = tiempo_recorrido_min * 60
         hora_efecto_str = minutos_a_hora_futura(min_actual, tiempo_recorrido_min)
@@ -1627,7 +1645,7 @@ def mostrar_calculadora_tanque():
         nivel_objetivo_max = nivel_objetivo + banda_control
 
         # ─────────────────────────────────────────────────────────────────────
-        # 3. LAVADOS, FUGAS Y CAUDAL NO CONTABILIZADO
+        # LAVADOS / FUGAS / PÉRDIDAS
         # ─────────────────────────────────────────────────────────────────────
         min_ini_lavado = None
         min_fin_lavado = None
@@ -1657,18 +1675,30 @@ def mostrar_calculadora_tanque():
                 )
 
                 solape_lavado_lectura_min = solape_minutos(
-                    min_antes, min_actual, min_ini_lavado, min_fin_lavado
+                    min_antes,
+                    min_actual,
+                    min_ini_lavado,
+                    min_fin_lavado
                 )
 
                 solape_lavado_periodo_planta_min = solape_minutos(
-                    min_planta_inicio, min_planta_fin, min_ini_lavado, min_fin_lavado
+                    min_planta_inicio,
+                    min_planta_fin,
+                    min_ini_lavado,
+                    min_fin_lavado
                 )
 
                 solape_lavado_futuro_min = solape_minutos(
-                    min_futuro_inicio, min_futuro_fin, min_ini_lavado, min_fin_lavado
+                    min_futuro_inicio,
+                    min_futuro_fin,
+                    min_ini_lavado,
+                    min_fin_lavado
                 )
 
-        caudal_no_contabilizado_Ls = max(0.0, caudal_planta_referencia - Q_entrada_tanque_Ls)
+        caudal_no_contabilizado_Ls = max(
+            0.0,
+            caudal_planta_referencia - Q_entrada_tanque_Ls
+        )
 
         porcentaje_no_contabilizado = (
             caudal_no_contabilizado_Ls / caudal_planta_referencia * 100
@@ -1676,12 +1706,18 @@ def mostrar_calculadora_tanque():
         )
 
         lavado_afecta_resultado = (
-            hay_lavado and lavado_horas_validas and
-            (solape_lavado_lectura_min > 0 or solape_lavado_periodo_planta_min > 0)
+            hay_lavado
+            and lavado_horas_validas
+            and (
+                solape_lavado_lectura_min > 0
+                or solape_lavado_periodo_planta_min > 0
+            )
         )
 
         lavado_afecta_futuro = (
-            hay_lavado and lavado_horas_validas and solape_lavado_futuro_min > 0
+            hay_lavado
+            and lavado_horas_validas
+            and solape_lavado_futuro_min > 0
         )
 
         if conoce_caudal_lavado and caudal_lavado_estimado > 0 and lavado_horas_validas:
@@ -1690,15 +1726,19 @@ def mostrar_calculadora_tanque():
             volumen_lavado_m3 = None
 
         caudal_no_contabilizado_alto = (
-            caudal_no_contabilizado_Ls > 80 or porcentaje_no_contabilizado > 35
+            caudal_no_contabilizado_Ls > 80
+            or porcentaje_no_contabilizado > 35
         )
 
         incertidumbre_alta = (
-            caudal_no_contabilizado_alto or lavado_afecta_resultado or lavado_afecta_futuro or posible_fuga
+            caudal_no_contabilizado_alto
+            or lavado_afecta_resultado
+            or lavado_afecta_futuro
+            or posible_fuga
         )
 
         # ─────────────────────────────────────────────────────────────────────
-        # 4. RELACIÓN PLANTA → TANQUE
+        # RELACIÓN PLANTA → TANQUE
         # ─────────────────────────────────────────────────────────────────────
         relacion_franja, nombre_franja = obtener_relacion_por_franja(min_actual)
 
@@ -1707,7 +1747,10 @@ def mostrar_calculadora_tanque():
         else:
             relacion_observada = np.nan
 
-        relacion_observada_valida = np.isfinite(relacion_observada) and relacion_observada > 0
+        relacion_observada_valida = (
+            np.isfinite(relacion_observada)
+            and relacion_observada > 0
+        )
 
         if relacion_observada_valida:
             relacion_operativa = relacion_observada
@@ -1716,11 +1759,8 @@ def mostrar_calculadora_tanque():
             relacion_operativa = relacion_franja
             fuente_relacion = f"Relación de referencia por franja {nombre_franja}"
 
-        if incertidumbre_alta:
-            fuente_relacion += " · baja confianza por evento/pérdida"
-
         # ─────────────────────────────────────────────────────────────────────
-        # 5. TIEMPOS DE LLEGADA A LÍMITES
+        # LLEGADA A LÍMITES
         # ─────────────────────────────────────────────────────────────────────
         hora_rebose_str = None
         hora_minimo_str = None
@@ -1729,95 +1769,61 @@ def mostrar_calculadora_tanque():
 
         if Q_neto_proyeccion_m3s > 0 and (altura_rebose - altura_actual) > 0:
             t_rebose_min = (
-                area_equiv * (altura_rebose - altura_actual) / Q_neto_proyeccion_m3s
+                area_equiv
+                * (altura_rebose - altura_actual)
+                / Q_neto_proyeccion_m3s
             ) / 60
+
             hora_rebose_str = minutos_a_hora_futura(min_actual, t_rebose_min)
 
         if Q_neto_proyeccion_m3s < 0 and (altura_actual - altura_minima) > 0:
             t_minimo_min = (
-                area_equiv * (altura_actual - altura_minima) / abs(Q_neto_proyeccion_m3s)
+                area_equiv
+                * (altura_actual - altura_minima)
+                / abs(Q_neto_proyeccion_m3s)
             ) / 60
+
             hora_minimo_str = minutos_a_hora_futura(min_actual, t_minimo_min)
 
-        if t_rebose_min is not None:
-            t_ajuste_rebose_min = t_rebose_min - tiempo_recorrido_min
-            if t_ajuste_rebose_min <= 0:
-                hora_ajuste_rebose_str = hora_actual_str
-                ajuste_rebose_urgente = True
-            else:
-                hora_ajuste_rebose_str = minutos_a_hora_futura(min_actual, t_ajuste_rebose_min)
-                ajuste_rebose_urgente = False
-        else:
-            hora_ajuste_rebose_str = None
-            ajuste_rebose_urgente = False
-
-        if t_minimo_min is not None:
-            t_ajuste_minimo_min = t_minimo_min - tiempo_recorrido_min
-            if t_ajuste_minimo_min <= 0:
-                hora_ajuste_minimo_str = hora_actual_str
-                ajuste_minimo_urgente = True
-            else:
-                hora_ajuste_minimo_str = minutos_a_hora_futura(min_actual, t_ajuste_minimo_min)
-                ajuste_minimo_urgente = False
-        else:
-            hora_ajuste_minimo_str = None
-            ajuste_minimo_urgente = False
-
-        def fmt_t(v):
-            if v is None:
-                return "—"
-            h = int(v) // 60
-            m = int(v) % 60
-            return (f"{h} h " if h > 0 else "") + f"{m} min"
-
         # ─────────────────────────────────────────────────────────────────────
-        # 6. RECOMENDACIÓN DE ENTRADA A PLANTA
+        # CAUDAL REQUERIDO Y RECOMENDACIÓN EN PLANTA
         # ─────────────────────────────────────────────────────────────────────
         t_correccion_s = max(tiempo_correccion_min * 60, 60)
 
         if nivel_cuando_llega_ajuste < nivel_objetivo_min:
-            color_rec = "#f4a261"
-            texto_modo = (
-                "El nivel futuro quedaría por debajo de la banda objetivo. "
-                "Se recomienda aumentar la entrada efectiva al tanque. "
-                "Si hay lavado, fuga o caudal no contabilizado alto, el ajuste debe tomarse como referencia "
-                "y confirmarse con una nueva lectura."
-            )
+            estado_operativo = "Nivel por debajo del objetivo"
+            accion_operativa = "corregir subiendo"
+            color_estado = "orange"
 
             Q_neto_correccion_Ls = (
-                area_equiv * (nivel_objetivo - nivel_cuando_llega_ajuste) / t_correccion_s
+                area_equiv
+                * (nivel_objetivo - nivel_cuando_llega_ajuste)
+                / t_correccion_s
             ) * 1000
 
             Q_requerido_tanque_Ls = caudal_salida_esperada_ls + Q_neto_correccion_Ls
 
         elif nivel_cuando_llega_ajuste > nivel_objetivo_max:
-            color_rec = "#e63946"
-            texto_modo = (
-                "El nivel futuro quedaría por encima de la banda objetivo. "
-                "Se recomienda reducir la entrada efectiva al tanque o coordinar mayor salida, "
-                "según condición operativa."
-            )
+            estado_operativo = "Nivel por encima del objetivo"
+            accion_operativa = "corregir bajando"
+            color_estado = "red"
 
             Q_neto_correccion_Ls = (
-                area_equiv * (nivel_objetivo - nivel_cuando_llega_ajuste) / t_correccion_s
+                area_equiv
+                * (nivel_objetivo - nivel_cuando_llega_ajuste)
+                / t_correccion_s
             ) * 1000
 
             Q_requerido_tanque_Ls = caudal_salida_esperada_ls + Q_neto_correccion_Ls
 
         else:
-            color_rec = "#2a9d8f"
+            estado_operativo = "Nivel dentro de la banda aceptable"
+            accion_operativa = "sostener nivel"
+            color_estado = "green"
 
             if abs(Q_neto_proyeccion_Ls) <= 2:
-                texto_modo = (
-                    "El nivel futuro quedaría dentro de la banda objetivo y el caudal neto es bajo. "
-                    "La recomendación principal es mantener la condición actual y continuar monitoreando."
-                )
                 Q_requerido_tanque_Ls = Q_entrada_tanque_Ls
             else:
-                texto_modo = (
-                    "El nivel futuro quedaría dentro de la banda aceptable, pero el tanque mantiene tendencia "
-                    "de cambio. Para sostener el nivel, la entrada efectiva al tanque debe acercarse a la salida esperada."
-                )
                 Q_requerido_tanque_Ls = caudal_salida_esperada_ls
 
         Q_requerido_tanque_Ls = max(0.0, Q_requerido_tanque_Ls)
@@ -1828,58 +1834,43 @@ def mostrar_calculadora_tanque():
             Q_planta_requerido_Ls = caudal_entrada_planta_actual
 
         Q_planta_requerido_Ls = max(0.0, Q_planta_requerido_Ls)
-        Q_planta_recomendado_sin_limite_Ls = min(Q_planta_requerido_Ls, caudal_max_planta)
+        Q_planta_sin_limite_Ls = min(Q_planta_requerido_Ls, caudal_max_planta)
 
-        delta_entrada_planta_sin_limite = (
-            Q_planta_recomendado_sin_limite_Ls - caudal_entrada_planta_actual
-        )
+        delta_entrada_sin_limite = Q_planta_sin_limite_Ls - caudal_entrada_planta_actual
 
         if incertidumbre_alta and limitar_ajuste_por_incertidumbre:
-            delta_limitado = limitar_valor(
-                delta_entrada_planta_sin_limite,
+            delta_entrada_limitado = limitar_valor(
+                delta_entrada_sin_limite,
                 -max_ajuste_seguro_ls,
                 max_ajuste_seguro_ls
             )
 
             Q_planta_recomendado_Ls = limitar_valor(
-                caudal_entrada_planta_actual + delta_limitado,
+                caudal_entrada_planta_actual + delta_entrada_limitado,
                 0.0,
                 caudal_max_planta
             )
 
-            ajuste_limitado = abs(delta_limitado - delta_entrada_planta_sin_limite) > 0.1
+            ajuste_limitado = abs(delta_entrada_limitado - delta_entrada_sin_limite) > 0.1
+
         else:
-            Q_planta_recomendado_Ls = Q_planta_recomendado_sin_limite_Ls
+            Q_planta_recomendado_Ls = Q_planta_sin_limite_Ls
             ajuste_limitado = False
 
         delta_entrada_planta = Q_planta_recomendado_Ls - caudal_entrada_planta_actual
+        texto_entrada = texto_delta_entrada(delta_entrada_planta)
 
         Q_tanque_post_ajuste_Ls = Q_planta_recomendado_Ls * relacion_operativa
         Q_neto_post_ajuste_Ls = Q_tanque_post_ajuste_Ls - caudal_salida_esperada_ls
 
         nivel_final_estimado = nivel_cuando_llega_ajuste + (
-            (Q_neto_post_ajuste_Ls / 1000) * t_correccion_s / area_equiv
+            (Q_neto_post_ajuste_Ls / 1000)
+            * t_correccion_s
+            / area_equiv
         )
 
-        texto_entrada = texto_delta_entrada(delta_entrada_planta)
-
-        alerta_limite_planta = ""
-        if Q_planta_requerido_Ls > caudal_max_planta:
-            alerta_limite_planta = (
-                f"<br><small style='color:#e63946'>⚠ El caudal calculado para lograr el objetivo sería "
-                f"{Q_planta_requerido_Ls:.2f} L/s, pero el máximo configurado es "
-                f"{caudal_max_planta:.2f} L/s.</small>"
-            )
-
-        alerta_ajuste_limitado = ""
-        if ajuste_limitado:
-            alerta_ajuste_limitado = (
-                f"<br><small style='color:#e63946'>⚠ Por alta incertidumbre, el ajuste se limitó a "
-                f"{max_ajuste_seguro_ls:.2f} L/s por ciclo. Confirme con nueva lectura antes de aumentar más.</small>"
-            )
-
         # ─────────────────────────────────────────────────────────────────────
-        # 7. RECOMENDACIÓN PARA VALVULERO
+        # RECOMENDACIÓN PARA VALVULERO
         # ─────────────────────────────────────────────────────────────────────
         Q_salida_valvulero_Ls = limitar_valor(
             Q_entrada_tanque_Ls,
@@ -1888,619 +1879,409 @@ def mostrar_calculadora_tanque():
         )
 
         delta_salida_valvulero = Q_salida_valvulero_Ls - caudal_salida_ls
-        accion_valvulero = texto_delta_salida(delta_salida_valvulero)
+        texto_salida = texto_delta_salida(delta_salida_valvulero)
 
-        if delta_salida_valvulero > 0.1:
-            color_valvulero = "#1a6fff"
-        elif delta_salida_valvulero < -0.1:
-            color_valvulero = "#f4a261"
+        # ─────────────────────────────────────────────────────────────────────
+        # PANEL COMPACTO PARA OPERADOR
+        # ─────────────────────────────────────────────────────────────────────
+        st.subheader("📌 Recomendación operativa")
+
+        with st.container(border=True):
+            if incertidumbre_alta:
+                st.warning(
+                    "Hay alta incertidumbre por lavado, fuga, pérdida no medida o caudal no contabilizado alto. "
+                    "Use la recomendación como referencia y confirme con una nueva lectura."
+                )
+
+            c1, c2, c3 = st.columns(3)
+
+            with c1:
+                st.metric("Nivel actual", f"{altura_actual:.3f} m")
+                st.metric("Nivel cuando llegue ajuste", f"{nivel_cuando_llega_ajuste:.3f} m")
+
+            with c2:
+                st.metric("Entrada estimada al tanque", f"{Q_entrada_tanque_Ls:.2f} L/s")
+                st.metric("Salida esperada", f"{caudal_salida_esperada_ls:.2f} L/s")
+
+            with c3:
+                st.metric("Caudal recomendado planta", f"{Q_planta_recomendado_Ls:.2f} L/s")
+                st.metric("Ajuste en planta", f"{delta_entrada_planta:+.2f} L/s")
+
+            st.markdown("---")
+
+            st.markdown(f"### Acción principal en planta")
+            st.success(
+                f"{texto_entrada}. "
+                f"Pasar de {caudal_entrada_planta_actual:.2f} L/s a "
+                f"{Q_planta_recomendado_Ls:.2f} L/s. "
+                f"El efecto se notará aproximadamente a las {hora_efecto_str}."
+            )
+
+            if ajuste_limitado:
+                st.warning(
+                    f"El ajuste fue limitado a ±{max_ajuste_seguro_ls:.2f} L/s por alta incertidumbre. "
+                    "Realice una nueva lectura antes de aumentar más el cambio."
+                )
+
+            if Q_planta_requerido_Ls > caudal_max_planta:
+                st.warning(
+                    f"El cálculo ideal requiere {Q_planta_requerido_Ls:.2f} L/s, "
+                    f"pero el máximo configurado de planta es {caudal_max_planta:.2f} L/s."
+                )
+
+            if mostrar_recomendacion_valvulero:
+                st.markdown("### Referencia para valvulero")
+                st.info(
+                    f"{texto_salida}. "
+                    f"Pasar de {caudal_salida_ls:.2f} L/s a "
+                    f"{Q_salida_valvulero_Ls:.2f} L/s. "
+                    "Esta es una referencia temporal para sostener el nivel mientras llega el ajuste de planta."
+                )
+
+            st.markdown("### Resultado esperado")
+            st.write(
+                f"Si se aplica el ajuste recomendado, la entrada efectiva estimada al tanque sería "
+                f"*{Q_tanque_post_ajuste_Ls:.2f} L/s* y el nivel estimado después de "
+                f"*{tiempo_correccion_min} min* sería aproximadamente *{nivel_final_estimado:.3f} m*."
+            )
+
+        # ─────────────────────────────────────────────────────────────────────
+        # ALERTAS BREVES
+        # ─────────────────────────────────────────────────────────────────────
+        st.subheader("⚠️ Alertas rápidas")
+
+        if caudal_no_contabilizado_alto:
+            st.error(
+                f"Caudal no contabilizado alto: {caudal_no_contabilizado_Ls:.2f} L/s "
+                f"({porcentaje_no_contabilizado:.1f}% del caudal de referencia). "
+                "Revise lavado no reportado, fuga, purga o retención hidráulica."
+            )
         else:
-            color_valvulero = "#2a9d8f"
-
-        alerta_valvulero = ""
-        if Q_salida_valvulero_Ls <= caudal_min_salida and Q_entrada_tanque_Ls < caudal_min_salida:
-            alerta_valvulero = (
-                f"<br><small style='color:#e63946'>⚠ La entrada efectiva estimada al tanque "
-                f"({Q_entrada_tanque_Ls:.2f} L/s) está por debajo del mínimo de salida configurado "
-                f"({caudal_min_salida:.2f} L/s). Revise antes de cerrar más.</small>"
+            st.success(
+                f"Caudal no contabilizado dentro de rango de revisión: "
+                f"{caudal_no_contabilizado_Ls:.2f} L/s "
+                f"({porcentaje_no_contabilizado:.1f}%)."
             )
 
-        if Q_salida_valvulero_Ls >= caudal_max_salida and Q_entrada_tanque_Ls > caudal_max_salida:
-            alerta_valvulero = (
-                f"<br><small style='color:#e63946'>⚠ La entrada efectiva estimada al tanque "
-                f"({Q_entrada_tanque_Ls:.2f} L/s) supera el máximo de salida configurado "
-                f"({caudal_max_salida:.2f} L/s).</small>"
-            )
-
-        # ─────────────────────────────────────────────────────────────────────
-        # ESTILOS DE RESULTADOS
-        # ─────────────────────────────────────────────────────────────────────
-        st.markdown(
-            """
-            <style>
-            .tanque-cardx {
-                background: #ffffff;
-                border: 1px solid #dce9f7;
-                border-radius: 16px;
-                padding: 0.85rem 0.95rem;
-                margin-bottom: 0.85rem;
-                box-shadow: 0 3px 14px rgba(10,22,40,0.05);
-                font-family: Inter, sans-serif;
-                overflow-wrap: break-word;
-                word-break: normal;
-            }
-            .tanque-titlex {
-                font-size: 0.82rem;
-                font-weight: 800;
-                color: #0b4f6c;
-                margin-bottom: 0.35rem;
-            }
-            .tanque-textx {
-                font-size: 0.86rem;
-                color: #0a1628;
-                line-height: 1.42;
-            }
-            .tanque-numberx {
-                font-size: 1.22rem;
-                font-weight: 800;
-                color: #0d2347;
-                line-height: 1.15;
-                margin: 0.15rem 0 0.35rem 0;
-            }
-            .tanque-smallx {
-                font-size: 0.78rem;
-                color: #5a7899;
-                line-height: 1.35;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # ─────────────────────────────────────────────────────────────────────
-        # HORAS ESTIMADAS DE LLEGADA A LÍMITES
-        # ─────────────────────────────────────────────────────────────────────
-        st.markdown(
-            """
-            <div style="font-size:0.95rem;font-weight:800;color:#5a7899;margin-bottom:0.6rem">
-                🕐 Horas estimadas de llegada a límites
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        col_reb, col_min = st.columns(2, gap="medium")
-
-        with col_reb:
-            if hora_rebose_str:
-                color_reb = "#e63946" if (t_rebose_min or 0) < 60 else "#f4a261"
-                urgente_reb = " · Actuar ahora" if ajuste_rebose_urgente else ""
-                st.markdown(
-                    f"""
-                    <div class="tanque-cardx" style="border-left:5px solid {color_reb}">
-                        <div class="tanque-titlex">Llegada a rebose ({altura_rebose:.2f} m)</div>
-                        <div class="tanque-numberx" style="color:{color_reb}">🕐 {hora_rebose_str}</div>
-                        <div class="tanque-textx">En {fmt_t(t_rebose_min)} desde {hora_actual_str}</div>
-                        <div class="tanque-smallx"><b>Ajustar antes de:</b> {hora_ajuste_rebose_str or hora_actual_str}{urgente_reb}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            else:
-                st.markdown(
-                    """
-                    <div class="tanque-cardx" style="border-left:5px solid #b8d0e8">
-                        <div class="tanque-titlex">Llegada a rebose</div>
-                        <div class="tanque-textx">No aplica con la demanda esperada.</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-        with col_min:
-            if hora_minimo_str:
-                color_min = "#e63946" if (t_minimo_min or 0) < 60 else "#f4a261"
-                urgente_min = " · Actuar ahora" if ajuste_minimo_urgente else ""
-                st.markdown(
-                    f"""
-                    <div class="tanque-cardx" style="border-left:5px solid {color_min}">
-                        <div class="tanque-titlex">Llegada a mínimo ({altura_minima:.2f} m)</div>
-                        <div class="tanque-numberx" style="color:{color_min}">🕐 {hora_minimo_str}</div>
-                        <div class="tanque-textx">En {fmt_t(t_minimo_min)} desde {hora_actual_str}</div>
-                        <div class="tanque-smallx"><b>Ajustar antes de:</b> {hora_ajuste_minimo_str or hora_actual_str}{urgente_min}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            else:
-                st.markdown(
-                    """
-                    <div class="tanque-cardx" style="border-left:5px solid #b8d0e8">
-                        <div class="tanque-titlex">Llegada a mínimo</div>
-                        <div class="tanque-textx">No aplica con la demanda esperada.</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-        # ─────────────────────────────────────────────────────────────────────
-        # NIVEL FUTURO
-        # ─────────────────────────────────────────────────────────────────────
-        st.markdown(
-            f"""
-            <div class="tanque-cardx" style="border:2px solid {color_rec}">
-                <div class="tanque-titlex" style="color:{color_rec}">
-                    Recomendación considerando tiempo de recorrido PTAP
-                </div>
-                <div class="tanque-textx">
-                    <b>Nivel actual:</b> {altura_actual:.3f} m<br>
-                    <b>Lectura:</b> {hora_antes_str} ({altura_antes:.3f} m) → {hora_actual_str} ({altura_actual:.3f} m)<br>
-                    <b>Variación:</b> {delta_h:+.4f} m en {delta_t_min:.0f} min<br>
-                    <b>Entrada efectiva estimada al tanque:</b> {Q_entrada_tanque_Ls:.2f} L/s<br>
-                    <b>Salida esperada:</b> {caudal_salida_esperada_ls:.2f} L/s<br>
-                    <b>Caudal neto esperado:</b> {Q_neto_proyeccion_Ls:+.2f} L/s<br>
-                    <b>Cambio durante {tiempo_recorrido_min} min:</b> {delta_h_recorrido:+.3f} m<br>
-                    <b>Nivel cuando llegue el ajuste:</b>
-                    <span style="font-size:1.18rem;font-weight:800;color:{color_rec}">{nivel_cuando_llega_ajuste:.3f} m</span><br>
-                    <b>Nivel objetivo:</b> {nivel_objetivo:.3f} m
-                    <span style="color:#5a7899">(banda: {nivel_objetivo_min:.3f} m a {nivel_objetivo_max:.3f} m)</span>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # ─────────────────────────────────────────────────────────────────────
-        # INTERPRETACIÓN
-        # ─────────────────────────────────────────────────────────────────────
-        st.markdown(
-            f"""
-            <div class="tanque-cardx">
-                <div class="tanque-titlex">Interpretación operativa</div>
-                <div class="tanque-textx">{texto_modo}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # ─────────────────────────────────────────────────────────────────────
-        # LAVADOS / FUGAS
-        # ─────────────────────────────────────────────────────────────────────
         if hay_lavado:
             if lavado_horas_validas:
                 if lavado_afecta_resultado:
-                    color_evento = "#f4a261"
-                    texto_lavado = (
-                        f"El evento <b>{tipo_lavado}</b> coincide con la lectura del tanque o con el periodo "
-                        f"de planta asociado por tiempo de recorrido. La recomendación tiene menor confianza."
+                    st.warning(
+                        f"El evento '{tipo_lavado}' coincide con el intervalo analizado o con el periodo "
+                        f"de planta asociado. La recomendación tiene menor confianza."
                     )
                 elif lavado_afecta_futuro:
-                    color_evento = "#f4a261"
-                    texto_lavado = (
-                        f"El evento <b>{tipo_lavado}</b> puede afectar la proyección futura. "
-                        f"Confirme con nueva lectura después del lavado."
+                    st.warning(
+                        f"El evento '{tipo_lavado}' puede afectar la proyección futura. "
+                        "Confirme con nueva lectura después del lavado."
                     )
                 else:
-                    color_evento = "#2a9d8f"
-                    texto_lavado = (
-                        f"El evento <b>{tipo_lavado}</b> no coincide con el intervalo analizado."
+                    st.info(
+                        f"El evento '{tipo_lavado}' no coincide directamente con el intervalo analizado."
                     )
 
-                texto_horas_lavado = (
-                    f"Horario lavado: <b>{minutos_a_hora_str(min_ini_lavado)} a {minutos_a_hora_str(min_fin_lavado)}</b><br>"
-                    f"Duración: <b>{dur_lavado_min:.0f} min</b><br>"
-                    f"Solape con lectura: <b>{solape_lavado_lectura_min:.0f} min</b><br>"
-                    f"Solape con periodo planta asociado: <b>{solape_lavado_periodo_planta_min:.0f} min</b><br>"
+                if volumen_lavado_m3 is not None:
+                    st.caption(
+                        f"Volumen aproximado de lavado: {volumen_lavado_m3:.1f} m³."
+                    )
+            else:
+                st.warning(
+                    "Se indicó lavado, pero las horas de inicio o fin no son válidas."
                 )
 
-                if volumen_lavado_m3 is not None:
-                    texto_horas_lavado += f"Volumen aproximado de lavado: <b>{volumen_lavado_m3:.1f} m³</b><br>"
-            else:
-                color_evento = "#e63946"
-                texto_lavado = "Se indicó lavado, pero las horas de inicio o fin no son válidas."
-                texto_horas_lavado = ""
-        else:
-            color_evento = "#e63946" if caudal_no_contabilizado_alto or posible_fuga else "#5a7899"
-            texto_lavado = (
-                "No se registró lavado para este análisis. Si el caudal no contabilizado es alto, "
-                "revise lavados no reportados, purgas, fugas, retención hidráulica o errores de medición."
-            )
-            texto_horas_lavado = ""
-
-        alerta_evento = ""
         if posible_fuga:
-            alerta_evento += (
-                "<br><span style='color:#e63946;font-weight:800'>"
-                "Se marcó posible fuga o pérdida no medida. Revise esta condición antes de aplicar ajustes grandes.</span>"
+            st.error(
+                "Se marcó posible fuga o pérdida no medida. Revise esta condición antes de aplicar ajustes grandes."
             )
 
-        if caudal_no_contabilizado_alto:
-            alerta_evento += (
-                "<br><span style='color:#e63946;font-weight:800'>"
-                "⚠ Caudal no contabilizado alto. La recomendación puede estar afectada por lavado, fuga, purga "
-                "o agua retenida en el proceso.</span>"
+        # ─────────────────────────────────────────────────────────────────────
+        # DETALLES TÉCNICOS COMPACTOS
+        # ─────────────────────────────────────────────────────────────────────
+        with st.expander("📊 Ver detalles técnicos del cálculo", expanded=False):
+
+            d1, d2, d3 = st.columns(3)
+
+            with d1:
+                st.metric("Intervalo", f"{delta_t_min:.0f} min")
+                st.metric("Variación nivel", f"{delta_h:+.4f} m")
+                st.metric("Tendencia actual", tendencia_actual_txt)
+
+            with d2:
+                st.metric("Q neto actual", f"{Q_neto_Ls:+.2f} L/s")
+                st.metric("Q neto esperado", f"{Q_neto_proyeccion_Ls:+.2f} L/s")
+                st.metric("Cambio por recorrido", f"{delta_h_recorrido:+.3f} m")
+
+            with d3:
+                relacion_obs_txt = (
+                    f"{relacion_observada:.3f}"
+                    if relacion_observada_valida
+                    else "No disponible"
+                )
+
+                st.metric("Relación observada", relacion_obs_txt)
+                st.metric("Relación usada", f"{relacion_operativa:.3f}")
+                st.metric("Franja referencia", nombre_franja)
+
+            st.write("*Lecturas:*")
+            st.write(
+                f"{hora_antes_str} ({altura_antes:.3f} m) → "
+                f"{hora_actual_str} ({altura_actual:.3f} m)"
             )
 
-        st.markdown(
-            f"""
-            <div class="tanque-cardx" style="border:2px solid {color_evento}">
-                <div class="tanque-titlex" style="color:{color_evento}">
-                    Lavados, fugas o caudal no contabilizado
-                </div>
-                <div class="tanque-textx">
-                    <b>Caudal planta de referencia:</b> {caudal_planta_referencia:.2f} L/s<br>
-                    <b>Entrada estimada al tanque:</b> {Q_entrada_tanque_Ls:.2f} L/s<br>
-                    <b>Caudal no contabilizado estimado:</b>
-                    <span style="font-weight:800;color:{color_evento}">
-                    {caudal_no_contabilizado_Ls:.2f} L/s</span>
-                    <span style="color:#5a7899">({porcentaje_no_contabilizado:.1f}% del caudal de referencia)</span><br>
-                    {texto_horas_lavado}
-                    <br>{texto_lavado}
-                    {alerta_evento}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.write("*Relación planta → tanque:*")
+            st.write(
+                f"Caudal planta de referencia: *{caudal_planta_referencia:.2f} L/s*"
+            )
+            st.write(
+                f"Entrada estimada al tanque: *{Q_entrada_tanque_Ls:.2f} L/s*"
+            )
+            st.write(
+                f"Relación usada: *{relacion_operativa:.3f}*. "
+                f"Fuente: {fuente_relacion}."
+            )
 
-        # ─────────────────────────────────────────────────────────────────────
-        # RELACIÓN PLANTA → TANQUE
-        # ─────────────────────────────────────────────────────────────────────
-        relacion_obs_txt = f"{relacion_observada:.3f}" if relacion_observada_valida else "No disponible"
-        relacion_obs_pct = f"{relacion_observada * 100:.1f}%" if relacion_observada_valida else "No disponible"
+            st.write("*Llegada a límites:*")
+            st.write(
+                f"Rebose: *{hora_rebose_str if hora_rebose_str else 'No aplica'}* "
+                f"({formato_horas(t_rebose_min)})"
+            )
+            st.write(
+                f"Mínimo: *{hora_minimo_str if hora_minimo_str else 'No aplica'}* "
+                f"({formato_horas(t_minimo_min)})"
+            )
 
-        st.markdown(
-            f"""
-            <div class="tanque-cardx">
-                <div class="tanque-titlex">Relación efectiva planta → tanque</div>
-                <div class="tanque-textx">
-                    <b>Relación observada:</b> {relacion_obs_txt}
-                    <span style="color:#5a7899">({relacion_obs_pct} de la planta llegó al tanque, según esta lectura)</span><br>
-                    <b>Relación de referencia por franja:</b> {relacion_franja:.3f}
-                    <span style="color:#5a7899">({nombre_franja})</span><br>
-                    <b>Relación usada para recomendar:</b> {relacion_operativa:.3f}<br>
-                    <span style="color:#5a7899">{fuente_relacion}</span>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.write("*Fórmulas principales:*")
+            st.code(
+                """
+Área equivalente = Volumen / Altura lleno
 
-        # ─────────────────────────────────────────────────────────────────────
-        # CAUDAL REQUERIDO Y PLANTA
-        # IMPORTANTE: NO usar HTML grid aquí para evitar que se muestre el código en pantalla.
-        # ─────────────────────────────────────────────────────────────────────
-        col_req, col_planta = st.columns(2, gap="medium")
+Q neto actual = Área × Δh / Δt
 
-        with col_req:
-            st.markdown(
-                f"""
-                <div class="tanque-cardx" style="border:2px solid #2a9d8f">
-                    <div class="tanque-titlex" style="color:#2a9d8f">
-                        Caudal requerido al tanque
-                    </div>
-                    <div class="tanque-numberx">
-                        {Q_requerido_tanque_Ls:.2f} L/s
-                    </div>
-                    <div class="tanque-textx">
-                        Entrada actual estimada al tanque:
-                        <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>
-                        Salida esperada:
-                        <b>{caudal_salida_esperada_ls:.2f} L/s</b><br>
-                        Este valor es lo que debería llegar al tanque para sostener o corregir el nivel.
-                    </div>
-                </div>
+Q entrada tanque = Q salida actual + Q neto actual
+
+Caudal no contabilizado = Caudal planta referencia - Entrada estimada tanque
+
+Relación planta-tanque = Entrada estimada tanque / Caudal planta referencia
+
+Caudal recomendado planta = Caudal requerido al tanque / Relación planta-tanque
+
+Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área
                 """,
-                unsafe_allow_html=True
+                language="text"
             )
-
-        with col_planta:
-            st.markdown(
-                f"""
-                <div class="tanque-cardx" style="border:2px solid #1a6fff">
-                    <div class="tanque-titlex" style="color:#1a6fff">
-                        Caudal recomendado en planta
-                    </div>
-                    <div class="tanque-numberx">
-                        {Q_planta_recomendado_Ls:.2f} L/s
-                    </div>
-                    <div class="tanque-textx">
-                        Entrada actual planta:
-                        <b>{caudal_entrada_planta_actual:.2f} L/s</b><br>
-                        <b>{texto_entrada}</b><br>
-                        El efecto se notará aprox. a las:
-                        <b>{hora_efecto_str}</b>
-                        {alerta_limite_planta}
-                        {alerta_ajuste_limitado}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        # ─────────────────────────────────────────────────────────────────────
-        # VALVULERO
-        # ─────────────────────────────────────────────────────────────────────
-        if mostrar_recomendacion_valvulero:
-            st.markdown(
-                f"""
-                <div class="tanque-cardx" style="border:2px solid {color_valvulero}">
-                    <div class="tanque-titlex" style="color:{color_valvulero}">
-                        Recomendación informativa para valvulero
-                    </div>
-                    <div class="tanque-numberx">{Q_salida_valvulero_Ls:.2f} L/s</div>
-                    <div class="tanque-textx">
-                        <b>{accion_valvulero}</b><br>
-                        Pasar de <b>{caudal_salida_ls:.2f} L/s</b> a
-                        <b>{Q_salida_valvulero_Ls:.2f} L/s</b>.<br><br>
-                        Entrada efectiva estimada al tanque: <b>{Q_entrada_tanque_Ls:.2f} L/s</b><br>
-                        Salida actual del tanque: <b>{caudal_salida_ls:.2f} L/s</b><br>
-                        Diferencia actual: <b>{delta_salida_valvulero:+.2f} L/s</b><br>
-                        <span style="color:#5a7899;font-size:0.82rem">
-                        Este valor no es una orden automática. Es una referencia para comunicar al valvulero
-                        cuánto podría abrir o cerrar la salida mientras se refleja el ajuste hecho en planta.
-                        </span>
-                        {alerta_valvulero}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        # ─────────────────────────────────────────────────────────────────────
-        # RESULTADO ESPERADO
-        # ─────────────────────────────────────────────────────────────────────
-        st.markdown(
-            f"""
-            <div class="tanque-cardx" style="background:rgba(42,157,143,0.08);border-left:5px solid #2a9d8f">
-                <div class="tanque-titlex" style="color:#2a9d8f">Resultado esperado</div>
-                <div class="tanque-textx">
-                    Si se aplica el ajuste recomendado, la entrada efectiva estimada al tanque sería
-                    <b>{Q_tanque_post_ajuste_Ls:.2f} L/s</b>.<br>
-                    El nivel estimado después de {tiempo_correccion_min} min de corrección sería aproximadamente:
-                    <b>{nivel_final_estimado:.3f} m</b>.<br>
-                    Cuando hay lavado, fugas o caudal no contabilizado alto, la recomendación debe tomarse como referencia
-                    y confirmarse con una nueva lectura del nivel.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
         # ─────────────────────────────────────────────────────────────────────
         # VISUALIZACIÓN DEL TANQUE
         # ─────────────────────────────────────────────────────────────────────
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-        st.markdown("*🏗️ Visualización del tanque*")
+        with st.expander("🏗️ Visualización del tanque", expanded=False):
+            tanque_html = generar_tanque_svg(
+                h_actual=altura_actual,
+                h_rebose=altura_rebose,
+                h_minima=altura_minima,
+                h_lleno=altura_lleno,
+                hora_actual_str=hora_actual_str,
+                hora_rebose_str=hora_rebose_str,
+                hora_minimo_str=hora_minimo_str,
+                tendencia=tendencia_proy,
+                Q_neto_Ls=Q_neto_proyeccion_Ls,
+            )
 
-        tanque_html = generar_tanque_svg(
-            h_actual=altura_actual,
-            h_rebose=altura_rebose,
-            h_minima=altura_minima,
-            h_lleno=altura_lleno,
-            hora_actual_str=hora_actual_str,
-            hora_rebose_str=hora_rebose_str,
-            hora_minimo_str=hora_minimo_str,
-            tendencia=tendencia_proy,
-            Q_neto_Ls=Q_neto_proyeccion_Ls,
-        )
-
-        components.html(tanque_html, height=780, scrolling=False)
-
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+            components.html(tanque_html, height=780, scrolling=False)
 
         # ─────────────────────────────────────────────────────────────────────
-        # GRÁFICA DE PROYECCIÓN
+        # GRÁFICA
         # ─────────────────────────────────────────────────────────────────────
-        st.markdown("*📈 Proyección del nivel — próximas 6 horas*")
+        with st.expander("📈 Proyección del nivel — próximas 6 horas", expanded=False):
 
-        pasos_min = list(range(0, 361, 10))
-        horas_proj = [minutos_a_hora_futura(min_actual, p) for p in pasos_min]
+            pasos_min = list(range(0, 361, 10))
+            horas_proj = [minutos_a_hora_futura(min_actual, p) for p in pasos_min]
 
-        niv_proj = [
-            round(
-                max(
-                    0.0,
-                    min(
-                        altura_rebose * 1.05,
-                        altura_actual + Q_neto_proyeccion_m3s * (p * 60) / area_equiv
+            niv_proj = [
+                round(
+                    max(
+                        0.0,
+                        min(
+                            altura_rebose * 1.05,
+                            altura_actual + Q_neto_proyeccion_m3s * (p * 60) / area_equiv
+                        )
+                    ),
+                    4
+                )
+                for p in pasos_min
+            ]
+
+            y_max = max(altura_rebose * 1.13, max(niv_proj) * 1.08)
+
+            fig = go.Figure()
+
+            fig.add_hrect(
+                y0=altura_rebose,
+                y1=y_max,
+                fillcolor="rgba(230,57,70,0.07)",
+                line_width=0
+            )
+
+            fig.add_hrect(
+                y0=0,
+                y1=altura_minima,
+                fillcolor="rgba(244,162,97,0.07)",
+                line_width=0
+            )
+
+            fig.add_shape(
+                type="line",
+                x0=0,
+                x1=1,
+                xref="paper",
+                y0=altura_rebose,
+                y1=altura_rebose,
+                line=dict(color="#e63946", width=2, dash="dash")
+            )
+
+            fig.add_shape(
+                type="line",
+                x0=0,
+                x1=1,
+                xref="paper",
+                y0=altura_minima,
+                y1=altura_minima,
+                line=dict(color="#f4a261", width=2, dash="dash")
+            )
+
+            fig.add_trace(go.Scatter(
+                x=horas_proj,
+                y=niv_proj,
+                mode="lines",
+                name="Nivel proyectado con demanda esperada",
+                line=dict(color="#1a6fff", width=3, shape="spline"),
+                fill="tozeroy",
+                fillcolor="rgba(26,111,255,0.07)"
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=[hora_actual_str],
+                y=[altura_actual],
+                mode="markers",
+                name=f"Nivel actual {altura_actual:.2f} m",
+                marker=dict(
+                    size=14,
+                    color="#00e5c0",
+                    line=dict(color="#0a1628", width=2)
+                )
+            ))
+
+            niv_aj = []
+
+            for p in pasos_min:
+                if p < tiempo_recorrido_min:
+                    h_aj = altura_actual + Q_neto_proyeccion_m3s * (p * 60) / area_equiv
+                else:
+                    h_aj = nivel_cuando_llega_ajuste + (
+                        (Q_neto_post_ajuste_Ls / 1000)
+                        * ((p - tiempo_recorrido_min) * 60)
+                        / area_equiv
                     )
-                ),
-                4
-            )
-            for p in pasos_min
-        ]
 
-        y_max = max(altura_rebose * 1.13, max(niv_proj) * 1.08)
-
-        fig = go.Figure()
-
-        fig.add_hrect(
-            y0=altura_rebose,
-            y1=y_max,
-            fillcolor="rgba(230,57,70,0.07)",
-            line_width=0
-        )
-
-        fig.add_hrect(
-            y0=0,
-            y1=altura_minima,
-            fillcolor="rgba(244,162,97,0.07)",
-            line_width=0
-        )
-
-        fig.add_shape(
-            type="line",
-            x0=0,
-            x1=1,
-            xref="paper",
-            y0=altura_rebose,
-            y1=altura_rebose,
-            line=dict(color="#e63946", width=2, dash="dash")
-        )
-
-        fig.add_shape(
-            type="line",
-            x0=0,
-            x1=1,
-            xref="paper",
-            y0=altura_minima,
-            y1=altura_minima,
-            line=dict(color="#f4a261", width=2, dash="dash")
-        )
-
-        fig.add_trace(go.Scatter(
-            x=horas_proj,
-            y=niv_proj,
-            mode="lines",
-            name="Nivel proyectado con demanda esperada",
-            line=dict(color="#1a6fff", width=3, shape="spline"),
-            fill="tozeroy",
-            fillcolor="rgba(26,111,255,0.07)"
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=[hora_actual_str],
-            y=[altura_actual],
-            mode="markers",
-            name=f"Nivel actual {altura_actual:.2f} m",
-            marker=dict(
-                size=14,
-                color="#00e5c0",
-                line=dict(color="#0a1628", width=2)
-            )
-        ))
-
-        niv_aj = []
-        for p in pasos_min:
-            if p < tiempo_recorrido_min:
-                h_aj = altura_actual + Q_neto_proyeccion_m3s * (p * 60) / area_equiv
-            else:
-                h_aj = nivel_cuando_llega_ajuste + (
-                    (Q_neto_post_ajuste_Ls / 1000)
-                    * ((p - tiempo_recorrido_min) * 60)
-                    / area_equiv
+                niv_aj.append(
+                    round(max(0.0, min(altura_rebose * 1.05, h_aj)), 4)
                 )
 
-            niv_aj.append(
-                round(max(0.0, min(altura_rebose * 1.05, h_aj)), 4)
-            )
-
-        fig.add_trace(go.Scatter(
-            x=horas_proj,
-            y=niv_aj,
-            mode="lines",
-            name="Con ajuste recomendado",
-            line=dict(color=color_rec, width=2.5, dash="dash", shape="spline"),
-            fill="tozeroy",
-            fillcolor="rgba(108,99,255,0.03)"
-        ))
-
-        fig.add_shape(
-            type="line",
-            x0=hora_efecto_str,
-            x1=hora_efecto_str,
-            y0=0,
-            y1=y_max,
-            line=dict(color=color_rec, width=1.5, dash="dot")
-        )
-
-        fig.add_annotation(
-            x=hora_efecto_str,
-            y=y_max * 0.93,
-            text=f"Efecto ajuste<br>{hora_efecto_str}",
-            showarrow=False,
-            font=dict(color=color_rec, size=10),
-            bgcolor="rgba(255,255,255,0.85)",
-            bordercolor=color_rec,
-            borderwidth=1,
-            borderpad=4
-        )
-
-        if hora_rebose_str:
             fig.add_trace(go.Scatter(
-                x=[hora_rebose_str],
-                y=[altura_rebose],
-                mode="markers",
-                name=f"Rebose {hora_rebose_str}",
-                marker=dict(
-                    size=13,
-                    color="#e63946",
-                    line=dict(color="white", width=2),
-                    symbol="x-open-dot"
-                )
+                x=horas_proj,
+                y=niv_aj,
+                mode="lines",
+                name="Con ajuste recomendado",
+                line=dict(color="#2a9d8f", width=2.5, dash="dash", shape="spline"),
+                fill="tozeroy",
+                fillcolor="rgba(42,157,143,0.04)"
             ))
 
-        if hora_minimo_str:
-            fig.add_trace(go.Scatter(
-                x=[hora_minimo_str],
-                y=[altura_minima],
-                mode="markers",
-                name=f"Mínimo {hora_minimo_str}",
-                marker=dict(
-                    size=13,
-                    color="#f4a261",
-                    line=dict(color="white", width=2),
-                    symbol="x-open-dot"
-                )
-            ))
+            fig.add_shape(
+                type="line",
+                x0=hora_efecto_str,
+                x1=hora_efecto_str,
+                y0=0,
+                y1=y_max,
+                line=dict(color="#2a9d8f", width=1.5, dash="dot")
+            )
 
-        tick_vals = [horas_proj[i] for i, p in enumerate(pasos_min) if p % 30 == 0]
-
-        fig.update_layout(
-            plot_bgcolor="white",
-            paper_bgcolor="white",
-            font=dict(family="Inter", color="#0a1628", size=12),
-            xaxis=dict(
-                title="Hora del día",
-                gridcolor="#e8f0fe",
-                linecolor="#dce9f7",
-                tickangle=-30,
-                tickvals=tick_vals,
-                tickfont=dict(size=11)
-            ),
-            yaxis=dict(
-                title="Altura (m)",
-                gridcolor="#e8f0fe",
-                linecolor="#dce9f7",
-                range=[0, y_max],
-                tickfont=dict(size=11)
-            ),
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.03,
-                xanchor="left",
-                x=0,
-                bgcolor="rgba(255,255,255,0.9)",
-                bordercolor="#dce9f7",
+            fig.add_annotation(
+                x=hora_efecto_str,
+                y=y_max * 0.93,
+                text=f"Efecto ajuste<br>{hora_efecto_str}",
+                showarrow=False,
+                font=dict(color="#2a9d8f", size=10),
+                bgcolor="rgba(255,255,255,0.85)",
+                bordercolor="#2a9d8f",
                 borderwidth=1,
-                font=dict(size=11)
-            ),
-            margin=dict(l=20, r=120, t=20, b=60),
-            height=430
-        )
+                borderpad=4
+            )
 
-        st.plotly_chart(fig, use_container_width=True)
+            if hora_rebose_str:
+                fig.add_trace(go.Scatter(
+                    x=[hora_rebose_str],
+                    y=[altura_rebose],
+                    mode="markers",
+                    name=f"Rebose {hora_rebose_str}",
+                    marker=dict(
+                        size=13,
+                        color="#e63946",
+                        line=dict(color="white", width=2),
+                        symbol="x-open-dot"
+                    )
+                ))
 
-        formulas_html = (
-            "<div class='caja-rango' style='border-left-color:#00c8ff'>"
-            "<b>Fórmulas usadas</b><br>"
-            "<span style='color:#3a5270'>"
-            "Área equivalente = Volumen / Altura lleno<br>"
-            "Q neto actual = Área × Δh / Δt<br>"
-            "Q entrada tanque = Q salida actual + Q neto actual<br>"
-            "Caudal no contabilizado = Caudal planta de referencia - Entrada estimada al tanque<br>"
-            "Relación planta–tanque = Entrada estimada al tanque / Caudal promedio de planta asociado a esta lectura<br>"
-            "Caudal requerido al tanque = Salida esperada ± corrección por nivel objetivo<br>"
-            "Caudal recomendado en planta = Caudal requerido al tanque / Relación planta–tanque<br>"
-            "Recomendación para valvulero = ajustar salida hacia la entrada efectiva estimada al tanque<br>"
-            "Nivel futuro = Nivel actual + [(Q neto esperado / 1000) × tiempo recorrido] / Área<br>"
-            "</span>"
-            "</div>"
-        )
+            if hora_minimo_str:
+                fig.add_trace(go.Scatter(
+                    x=[hora_minimo_str],
+                    y=[altura_minima],
+                    mode="markers",
+                    name=f"Mínimo {hora_minimo_str}",
+                    marker=dict(
+                        size=13,
+                        color="#f4a261",
+                        line=dict(color="white", width=2),
+                        symbol="x-open-dot"
+                    )
+                ))
 
-        st.markdown(formulas_html, unsafe_allow_html=True)
+            tick_vals = [horas_proj[i] for i, p in enumerate(pasos_min) if p % 30 == 0]
+
+            fig.update_layout(
+                plot_bgcolor="white",
+                paper_bgcolor="white",
+                font=dict(family="Inter", color="#0a1628", size=12),
+                xaxis=dict(
+                    title="Hora del día",
+                    gridcolor="#e8f0fe",
+                    linecolor="#dce9f7",
+                    tickangle=-30,
+                    tickvals=tick_vals,
+                    tickfont=dict(size=11)
+                ),
+                yaxis=dict(
+                    title="Altura (m)",
+                    gridcolor="#e8f0fe",
+                    linecolor="#dce9f7",
+                    range=[0, y_max],
+                    tickfont=dict(size=11)
+                ),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.03,
+                    xanchor="left",
+                    x=0,
+                    bgcolor="rgba(255,255,255,0.9)",
+                    bordercolor="#dce9f7",
+                    borderwidth=1,
+                    font=dict(size=11)
+                ),
+                margin=dict(l=20, r=120, t=20, b=60),
+                height=430
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 # =========================================
