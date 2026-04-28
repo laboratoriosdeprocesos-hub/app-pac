@@ -2074,7 +2074,7 @@ body {{
           </div>
           <div class="rs">
             <span class="rs-lbl">Q neto despues del ajuste</span>
-            <span class="rs-val" style="color:{color:post}">{signo_naj}{Q_neto_post_ajuste_Ls:.2f} L/s</span>
+            <span class="rs-val" style="color:{color_post}">{signo_naj}{Q_neto_post_ajuste_Ls:.2f} L/s</span>
           </div>
         </div>
       </div>
