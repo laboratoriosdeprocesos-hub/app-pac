@@ -1180,12 +1180,19 @@ def generar_panel_resultados_html(
         agua_c1, agua_c2 = "#1a6fff", "#00c8ff"
 
     # ── Color de tendencia ───────────────────────────────────────────────────
-    if tendencia_proy == "subiendo":
-        tend_color = "#1a7a5a"; tend_icon = "▲"; tend_txt = "SUBIENDO"
-    elif tendencia_proy == "bajando":
-        tend_color = "#c0392b"; tend_icon = "▼"; tend_txt = "BAJANDO"
-    else:
-        tend_color = "#4a7899"; tend_icon = "●"; tend_txt = "ESTABLE"
+    def color_tendencia_por_q(q):
+        if q>0.01:
+            return "#00c8a0", "▲"; "SUBIENDO"
+        elif q< -0.01:
+            return "#e64946", "▼"; "BAJANDO"
+        elif q< -0.01:
+            return "#8ab4cc", "●"; "ESTABLE"
+    color_actual, icon_actual, txt_actual = color_tendencia_por_q(Q_neto_Ls)
+    color_post, icon_post, txt_post = color_tendencia_por_q(Q_neto_post_ajuste_Ls)
+    # Esta tendencia se usa para el tanque y la proyección antes de que llegue el ajuste
+    tend_color = color_actual
+    tend_icon = icon_actual
+    tend_txt = txt_actual
 
     # ── Accion recomendada ───────────────────────────────────────────────────
     if delta_entrada_planta > 0.5:
@@ -2004,7 +2011,8 @@ body {{
       <div class="tl-det">
         Nivel cuando llega ajuste: <span class="vc">{nivel_cuando_llega_ajuste:.3f} m</span>
         &nbsp;&middot;&nbsp; Objetivo: <span class="vg">{nivel_objetivo:.2f} m</span>
-        &nbsp;&middot;&nbsp; Estimado post-corrección: <span class="va">{nivel_final_estimado:.3f} m</span>
+        &nbsp;·&nbsp; Nivel después del ajuste: <span style="color:{color_post};font-weight:700">{nivel_final_estimado:.3f} m</span>
+        &nbsp;·&nbsp; Q neto post-ajuste: <span style="color:{color_post};font-weight:700">{signo_naj}{Q_neto_post_ajuste_Ls:.2f} L/s</span>
         &nbsp;&middot;&nbsp; Q neto esperado: <span style="color:{tend_color};font-weight:700">{signo_naj}{Q_neto_post_ajuste_Ls:.2f} L/s</span>
       </div>
     </div>
@@ -2058,8 +2066,8 @@ body {{
             <span class="rs-val" style="color:{accion_color}">{nivel_final_estimado:.3f} m</span>
           </div>
           <div class="rs">
-            <span class="rs-lbl">Q neto esperado</span>
-            <span class="rs-val" style="color:{tend_color}">{signo_qn}{Q_neto_proyeccion_Ls:.2f} L/s</span>
+            <span class="rs-lbl">Q neto despues del ajuste</span>
+            <span class="rs-val" style="color:{color:post}">{signo_naj}{Q_neto_post_ajuste_Ls:.2f} L/s</span>
           </div>
         </div>
       </div>
@@ -2227,7 +2235,7 @@ def mostrar_calculadora_tanque():
             )
             caudal_max_planta = st.number_input(
                 "Caudal máximo de la planta (L/s)",
-                min_value=1.0, value=230.0, step=1.0, format="%.2f", key="tanq_caudal_max_planta"
+                min_value=1.0, value=220.0, step=1.0, format="%.2f", key="tanq_caudal_max_planta"
             )
             caudal_entrada_planta_actual = st.number_input(
                 "Caudal actual de entrada a planta (L/s)",
@@ -2255,11 +2263,11 @@ def mostrar_calculadora_tanque():
             )
             caudal_min_salida = st.number_input(
                 "Caudal mínimo de salida (L/s)",
-                min_value=0.0, value=80.0, step=1.0, format="%.2f", key="tanq_caudal_min_salida"
+                min_value=0.0, value=0.0, step=1.0, format="%.2f", key="tanq_caudal_min_salida"
             )
             caudal_max_salida = st.number_input(
                 "Caudal máximo de salida (L/s)",
-                min_value=0.0, value=300.0, step=1.0, format="%.2f", key="tanq_caudal_max_salida"
+                min_value=0.0, value=200.0, step=1.0, format="%.2f", key="tanq_caudal_max_salida"
             )
 
         with st.expander("⏱️ Tiempo de recorrido PTAP", expanded=True):
@@ -2513,9 +2521,14 @@ def mostrar_calculadora_tanque():
         delta_entrada_planta = Q_planta_recomendado_Ls - caudal_entrada_planta_actual
         texto_entrada = texto_delta_entrada(delta_entrada_planta)
 
+        # ── Resultado después de que el ajuste de planta llega al tanque ───────
         Q_tanque_post_ajuste_Ls = Q_planta_recomendado_Ls * relacion_operativa
-        Q_neto_post_ajuste_Ls   = Q_tanque_post_ajuste_Ls - caudal_salida_esperada_ls
-        nivel_final_estimado    = nivel_cuando_llega_ajuste + (
+
+        Q_neto_post_ajuste_Ls = Q_tanque_post_ajuste_Ls - caudal_salida_esperada_ls
+
+        nivel_final_estimado = nivel_cuando_llega_ajuste + (
+            (Q_neto_post_ajuste_Ls / 1000) * t_correccion_s / area_equiv
+        )
             (Q_neto_post_ajuste_Ls / 1000) * t_correccion_s / area_equiv)
 
         Q_salida_valvulero_Ls = limitar_valor(Q_entrada_tanque_Ls, caudal_min_salida, caudal_max_salida)
