@@ -2529,8 +2529,7 @@ def mostrar_calculadora_tanque():
         nivel_final_estimado = nivel_cuando_llega_ajuste + (
             (Q_neto_post_ajuste_Ls / 1000) * t_correccion_s / area_equiv
         )
-            (Q_neto_post_ajuste_Ls / 1000) * t_correccion_s / area_equiv)
-
+   
         Q_salida_valvulero_Ls = limitar_valor(Q_entrada_tanque_Ls, caudal_min_salida, caudal_max_salida)
         delta_salida_valvulero = Q_salida_valvulero_Ls - caudal_salida_ls
         texto_salida = texto_delta_salida(delta_salida_valvulero)
