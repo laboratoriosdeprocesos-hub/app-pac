@@ -1182,11 +1182,11 @@ def generar_panel_resultados_html(
     # ── Color de tendencia ───────────────────────────────────────────────────
     def color_tendencia_por_q(q):
         if q>0.01:
-            return "#00c8a0", "▲"; "SUBIENDO"
+            return "#00c8a0", "▲", "SUBIENDO"
         elif q< -0.01:
-            return "#e64946", "▼"; "BAJANDO"
+            return "#e64946", "▼", "BAJANDO"
         elif q< -0.01:
-            return "#8ab4cc", "●"; "ESTABLE"
+            return "#8ab4cc", "●", "ESTABLE"
     color_actual, icon_actual, txt_actual = color_tendencia_por_q(Q_neto_Ls)
     color_post, icon_post, txt_post = color_tendencia_por_q(Q_neto_post_ajuste_Ls)
     # Esta tendencia se usa para el tanque y la proyección antes de que llegue el ajuste
