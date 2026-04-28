@@ -1846,7 +1846,7 @@ body {{
         <!-- Línea rebose -->
         <line x1="{TX-5}" y1="{y_rebose:.1f}" x2="{TX+TW+5}" y2="{y_rebose:.1f}"
               stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.9"/>
-        <text x="{TX+TW+8}" y="{y_rebose+4:.1f}" font-size="7.5"
+        <text x="{TX+TW+18}" y="{y_rebose+4:.1f}" font-size="7.5"
               font-family="Inter,sans-serif" fill="#dc2626" font-weight="700">
           REB {altura_rebose:.2f}m
         </text>
@@ -1854,7 +1854,7 @@ body {{
         <!-- Línea mínima -->
         <line x1="{TX-5}" y1="{y_minima:.1f}" x2="{TX+TW+5}" y2="{y_minima:.1f}"
               stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.9"/>
-        <text x="{TX+TW+8}" y="{y_minima+4:.1f}" font-size="7.5"
+        <text x="{TX+TW+18}" y="{y_minima+4:.1f}" font-size="7.5"
               font-family="Inter,sans-serif" fill="#ea580c" font-weight="700">
           MIN {altura_minima:.2f}m
         </text>
@@ -1862,7 +1862,7 @@ body {{
         <!-- Línea objetivo -->
         <line x1="{TX-5}" y1="{y_obj:.1f}" x2="{TX+TW+5}" y2="{y_obj:.1f}"
               stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.8"/>
-        <text x="{TX+TW+8}" y="{y_obj+4:.1f}" font-size="7.5"
+        <text x="{TX+TW+18}" y="{y_obj+4:.1f}" font-size="7.5"
               font-family="Inter,sans-serif" fill="#16a34a" font-weight="700">
           OBJ {nivel_objetivo:.2f}m
         </text>
