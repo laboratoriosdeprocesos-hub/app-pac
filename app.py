@@ -2558,7 +2558,7 @@ def mostrar_calculadora_tanque():
             relacion_observada=rel_obs_display,
         )
 
-        components.html(panel_html, height=1060, scrolling=False)
+        components.html(panel_html, height=1260, scrolling=False)
 
         # ── Gráfica Plotly (expandible) ──────────────────────────────────────
         with st.expander("📈 Proyección del nivel — próximas 6 horas", expanded=False):
