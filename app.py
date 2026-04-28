@@ -1114,22 +1114,6 @@ def mostrar_calculadora_pac():
 # =========================================
 # PANEL DE RESULTADOS HTML — PTAP STYLE
 # =========================================
-
-# =============================================================================
-# REEMPLAZA COMPLETAMENTE ESTAS DOS SECCIONES EN TU app.py:
-#   1. La función generar_panel_resultados_html(...)
-#   2. La línea: components.html(panel_html, height=1020, scrolling=True)
-#      por:      components.html(panel_html, height=1060, scrolling=False)
-#
-# CAMBIOS PRINCIPALES:
-#   - Fondo claro (#f0f6ff / blanco) en lugar de azul oscuro -> mejor lectura
-#   - Todos los textos en colores oscuros con contraste WCAG AA correcto
-#   - Grid responsive que cabe sin scroll en pantallas normales
-#   - Corregido bug: "color:#3a4a7a)" tenia parentesis de mas
-#   - Tamano de fuente ligeramente mayor en etiquetas
-#   - Tarjetas con sombra suave en lugar de fondo translucido oscuro
-# =============================================================================
-
 def generar_panel_resultados_html(
     altura_actual, altura_antes, altura_lleno,
     altura_rebose, altura_minima, nivel_objetivo, banda_control,
