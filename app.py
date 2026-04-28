@@ -2183,7 +2183,7 @@ def mostrar_calculadora_tanque():
         with st.expander("⚙️ Límites operativos", expanded=True):
             altura_rebose = st.number_input(
                 "Altura límite de rebose (m)",
-                min_value=0.01, value=2.85, step=0.01, format="%.2f", key="tanq_altura_rebose"
+                min_value=0.01, value=2.82, step=0.01, format="%.2f", key="tanq_altura_rebose"
             )
             altura_minima = st.number_input(
                 "Altura mínima operativa (m)",
@@ -2192,14 +2192,14 @@ def mostrar_calculadora_tanque():
 
         with st.expander("🕐 Lecturas de nivel", expanded=True):
             hora_antes_txt = st.text_input(
-                "Hora lectura anterior (HH:MM)", value="04:50", key="tanq_hora_antes"
+                "Hora lectura anterior (HH:MM)", value="04:40", key="tanq_hora_antes"
             )
             altura_antes = st.number_input(
                 "Altura lectura anterior (m)",
                 min_value=0.0, value=2.85, step=0.01, format="%.2f", key="tanq_altura_antes"
             )
             hora_actual_txt = st.text_input(
-                "Hora lectura actual (HH:MM)", value="05:20", key="tanq_hora_actual"
+                "Hora lectura actual (HH:MM)", value="05:40", key="tanq_hora_actual"
             )
             altura_actual = st.number_input(
                 "Altura lectura actual (m)",
@@ -2217,7 +2217,7 @@ def mostrar_calculadora_tanque():
             )
             caudal_entrada_planta_actual = st.number_input(
                 "Caudal actual de entrada a planta (L/s)",
-                min_value=0.0, value=214.46, step=0.5, format="%.2f", key="tanq_caudal_entrada_planta_actual"
+                min_value=0.0, value=213.5, step=0.5, format="%.2f", key="tanq_caudal_entrada_planta_actual"
             )
             caudal_planta_referencia = st.number_input(
                 "Caudal promedio de planta para esta lectura (L/s)",
@@ -2237,7 +2237,7 @@ def mostrar_calculadora_tanque():
                 )
             caudal_salida_ls = st.number_input(
                 "Caudal de salida del tanque (L/s)",
-                min_value=0.0, value=120.0, step=0.5, format="%.2f", key="tanq_caudal_salida"
+                min_value=0.0, value=150.0, step=0.5, format="%.2f", key="tanq_caudal_salida"
             )
             caudal_min_salida = st.number_input(
                 "Caudal mínimo de salida (L/s)",
