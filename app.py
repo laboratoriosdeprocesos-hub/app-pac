@@ -1208,6 +1208,15 @@ def generar_panel_resultados_html(
     signo_qn = "+" if Q_neto_Ls >= 0 else ""
     signo_da = "+" if delta_entrada_planta >= 0 else ""
     signo_naj = "+" if Q_neto_post_ajuste_Ls >= 0 else ""
+    if Q_neto_post_ajuste_Ls > 0.05:
+        color_q_post = "#1a7a5a"
+        txt_q_post = "SUBIENDO"
+    elif Q_neto_post_ajuste_Ls < -0.05:
+        color_q_post = "#c0392b"
+        txt_q_post = "BAJANDO"
+    else:
+        color_q_post = "#4a7899"
+        txt_q_post = "ESTABLE"
 
     rebose_txt = hora_rebose_str if hora_rebose_str else "No aplica"
     minimo_txt = hora_minimo_str if hora_minimo_str else "No aplica"
@@ -2060,7 +2069,7 @@ body {{
           </div>
           <div class="rs">
             <span class="rs-lbl">Q neto esperado</span>
-            <span class="rs-val" style="color:{tend_color}">{signo_qn}{Q_neto_proyeccion_Ls:.2f} L/s</span>
+            <span class="rs-val" style="color:{color_q_post}">{signo_q_post}{Q_neto_post_ajuste_Ls:.2f} L/s</span>
           </div>
         </div>
       </div>
@@ -2477,8 +2486,7 @@ def mostrar_calculadora_tanque():
             estado_operativo = "Nivel dentro de la banda aceptable"
             accion_operativa = "sostener nivel"
             color_estado     = "green"
-            Q_requerido_tanque_Ls  = (Q_entrada_tanque_Ls if abs(Q_neto_proyeccion_Ls) <= 2
-                                      else caudal_salida_esperada_ls)
+            Q_requerido_tanque_Ls  = caudal_salida_esperada_ls
 
         Q_requerido_tanque_Ls = max(0.0, Q_requerido_tanque_Ls)
         Q_planta_requerido_Ls = (Q_requerido_tanque_Ls / relacion_operativa
