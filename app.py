@@ -1286,7 +1286,7 @@ def generar_panel_resultados_html(
         )
 
     # ── SVG del tanque ────────────────────────────────────────────────────────
-    TW, TH, TX, TY = 115, 390, 70, 35
+    TW, TH, TX, TY = 115, 110, 70, 35
     TB = TY + TH
 
     def nivel_y(p):
