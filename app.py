@@ -1800,8 +1800,8 @@ body {{
       </div>
       <div class="nivel-badge">{nivel_label}</div>
 
-      <svg viewBox="0 0 310 380" xmlns="http://www.w3.org/2000/svg"
-           style="width:100%;max-width:310px;overflow:visible">
+      <svg viewBox="0 0 280 380" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;max-width:280px;overflow:visible">
         <defs>
           <linearGradient id="gAg" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="{agua_c2}" stop-opacity="0.95"/>
