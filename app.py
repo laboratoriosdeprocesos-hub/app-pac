@@ -1208,6 +1208,8 @@ def generar_panel_resultados_html(
     signo_qn = "+" if Q_neto_Ls >= 0 else ""
     signo_da = "+" if delta_entrada_planta >= 0 else ""
     signo_naj = "+" if Q_neto_post_ajuste_Ls >= 0 else ""
+    signo_q_post = "+" if Q_neto_post_ajuste_Ls >= 0 else ""
+    
     if Q_neto_post_ajuste_Ls > 0.05:
         color_q_post = "#1a7a5a"
         txt_q_post = "SUBIENDO"
