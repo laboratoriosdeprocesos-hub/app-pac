@@ -3025,6 +3025,493 @@ def mostrar_panel_scada_tanques():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+
+# =========================================
+# DESPACHO OPERATIVO DE TANQUES
+# =========================================
+def mostrar_despacho_operativo():
+    """
+    Simulador de decisión operativa para saber si se puede despachar agua,
+    cuánto caudal es seguro despachar, y en cuánto tiempo se llenan o vacían
+    los tanques con la condición actual y con la condición recomendada.
+
+    IMPORTANTE: No controla válvulas reales. Solo apoya la decisión operativa.
+    Toda maniobra debe ser autorizada por Director de Producción y Tratamiento
+    o Valvulero, según el instructivo SGI-PYT-INS-070.
+    """
+
+    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>🚦 Despacho operativo · abrir, cerrar o mantener válvulas</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='texto-panel'>Este panel responde lo que necesitas en operación: "
+        "<b>si se puede despachar agua</b>, <b>cuánto caudal se puede enviar</b>, "
+        "<b>si conviene abrir, cerrar o mantener válvulas</b> y <b>en cuánto tiempo se llena o se vacía cada tanque</b>. "
+        "No acciona válvulas reales; genera una recomendación para revisar con el Director de Producción y Tratamiento o Valvulero.</div>",
+        unsafe_allow_html=True,
+    )
+
+    def clamp(v, lo, hi):
+        return max(lo, min(float(v), hi))
+
+    def q_to_m3h(q_ls):
+        return float(q_ls) * 3.6
+
+    def fmt_tiempo(horas):
+        if horas is None or not np.isfinite(horas):
+            return "No aplica"
+        if horas < 0:
+            return "No aplica"
+        h = int(horas)
+        m = int(round((horas - h) * 60))
+        if m == 60:
+            h += 1
+            m = 0
+        if h <= 0:
+            return f"{m} min"
+        return f"{h} h {m:02d} min"
+
+    def tiempo_a_limite(vol_actual, cap, q_neto_ls, min_pct, alto_pct=100.0):
+        """Retorna tiempo a llenar o mínimo operativo según el signo del neto."""
+        vol_actual = float(vol_actual)
+        cap = max(float(cap), 0.0001)
+        q_m3h = q_to_m3h(q_neto_ls)
+        v_min = cap * min_pct / 100.0
+        v_alto = cap * alto_pct / 100.0
+        if abs(q_m3h) < 0.0001:
+            return "Estable", "No aplica", None
+        if q_m3h > 0:
+            horas = max(0, (v_alto - vol_actual) / q_m3h)
+            return "Subiendo", fmt_tiempo(horas), horas
+        horas = max(0, (vol_actual - v_min) / abs(q_m3h))
+        return "Bajando", fmt_tiempo(horas), horas
+
+    def estado_volumen(vol, cap, min_pct, objetivo_pct, alto_pct):
+        cap = max(float(cap), 0.0001)
+        pct = vol / cap * 100.0
+        if pct <= min_pct:
+            return pct, "Crítico bajo", "🔴"
+        if pct < objetivo_pct - 10:
+            return pct, "Bajo", "🟠"
+        if pct >= alto_pct:
+            return pct, "Alto / riesgo rebose", "🔴"
+        if pct > objetivo_pct + 10:
+            return pct, "Alto controlado", "🟡"
+        return pct, "Normal", "🟢"
+
+    def eval_tanque(nombre, vol, cap, q_in, q_out, min_pct, objetivo_pct, alto_pct):
+        q_neto = float(q_in) - float(q_out)
+        pct, estado, icono = estado_volumen(vol, cap, min_pct, objetivo_pct, alto_pct)
+        tendencia, t_limite, horas_limite = tiempo_a_limite(vol, cap, q_neto, min_pct, alto_pct)
+        return {
+            "Tanque": nombre,
+            "Volumen (m³)": float(vol),
+            "Capacidad (m³)": float(cap),
+            "%": pct,
+            "Entrada (L/s)": float(q_in),
+            "Salida (L/s)": float(q_out),
+            "Balance (L/s)": q_neto,
+            "Cambio (m³/h)": q_to_m3h(q_neto),
+            "Estado": f"{icono} {estado}",
+            "Tendencia": tendencia,
+            "Tiempo a límite": t_limite,
+            "_horas_limite": horas_limite,
+        }
+
+    def requerimiento_entrada_destino(vol, cap, q_salida, horizonte_h, objetivo_pct, alto_pct):
+        """
+        Caudal de entrada requerido para llevar o sostener el tanque cerca del objetivo.
+        Si está muy alto, permite reducir entrada para que baje hacia objetivo.
+        """
+        cap = max(float(cap), 0.0001)
+        objetivo = cap * objetivo_pct / 100.0
+        vol = float(vol)
+        q_salida = float(q_salida)
+        horizonte_h = max(float(horizonte_h), 0.25)
+        q_obj = q_salida + (objetivo - vol) / (3.6 * horizonte_h)
+        pct = vol / cap * 100.0
+        if pct >= alto_pct:
+            # Si está alto, prioriza cerrar/reducir entrada, pero sin dejar necesariamente en cero si hay demanda alta.
+            q_obj = min(q_obj, q_salida * 0.70)
+        return max(0.0, q_obj)
+
+    def repartir_por_necesidad(reqs, limite_total):
+        """Reparte un caudal máximo entre destinos según requerimiento relativo."""
+        limite_total = max(0.0, float(limite_total))
+        suma = sum(max(0.0, r["q_req_lim"]) for r in reqs)
+        if suma <= 0:
+            for r in reqs:
+                r["q_rec"] = 0.0
+            return reqs
+        if suma <= limite_total:
+            for r in reqs:
+                r["q_rec"] = max(0.0, r["q_req_lim"])
+            return reqs
+        for r in reqs:
+            r["q_rec"] = max(0.0, r["q_req_lim"]) / suma * limite_total
+        return reqs
+
+    planta_login = st.session_state.get("planta_usuario", "Diviso")
+    index_modo = 0 if planta_login == "Diviso" else 1
+
+    col_top1, col_top2, col_top3 = st.columns([0.9, 0.8, 1.2], gap="medium")
+    with col_top1:
+        modo = st.radio("Sistema a evaluar", ["Diviso", "Caldas"], index=index_modo, horizontal=True, key="desp_modo")
+    with col_top2:
+        horizonte_h = st.number_input("Horizonte de análisis (horas)", min_value=0.25, value=6.0, step=0.5, format="%.2f", key="desp_horizonte")
+    with col_top3:
+        st.info("Usa el horizonte para preguntar: ¿con estos caudales, qué pasa en las próximas horas?")
+
+    with st.expander("⚙️ Criterios de decisión", expanded=False):
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            min_pct = st.number_input("Mínimo operativo (%)", min_value=1.0, max_value=80.0, value=30.0, step=1.0, key="desp_min_pct")
+        with c2:
+            objetivo_pct = st.number_input("Nivel objetivo (%)", min_value=10.0, max_value=95.0, value=70.0, step=1.0, key="desp_obj_pct")
+        with c3:
+            alto_pct = st.number_input("Alto / rebose operativo (%)", min_value=50.0, max_value=100.0, value=90.0, step=1.0, key="desp_alto_pct")
+        with c4:
+            margen_ls = st.number_input("Margen estable (L/s)", min_value=0.0, value=5.0, step=1.0, key="desp_margen")
+        st.caption("Puedes ajustar estos porcentajes cuando SERVAF defina límites reales por SCADA o regla física de cada tanque.")
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # DIVISO → CUNDUY / MALVINAS
+    # ═══════════════════════════════════════════════════════════════════════════
+    if modo == "Diviso":
+        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+        st.markdown("<div class='titulo-seccion-resultado'>1) Tanques fuente: Diviso 4400 m³ + 1100 m³</div>", unsafe_allow_html=True)
+
+        d1, d2, d3, d4 = st.columns(4)
+        with d1:
+            vol_4400 = st.number_input("Volumen actual tanque 4400 (m³)", min_value=0.0, value=2729.94, step=10.0, format="%.2f", key="desp_vol_4400")
+            cap_4400 = st.number_input("Capacidad tanque 4400 (m³)", min_value=1.0, value=4400.0, step=10.0, format="%.2f", key="desp_cap_4400")
+        with d2:
+            vol_1100 = st.number_input("Volumen actual tanque 1100 (m³)", min_value=0.0, value=1043.39, step=10.0, format="%.2f", key="desp_vol_1100")
+            cap_1100 = st.number_input("Capacidad tanque 1100 (m³)", min_value=1.0, value=1100.0, step=10.0, format="%.2f", key="desp_cap_1100")
+        with d3:
+            q_prod_diviso = st.number_input("Entrada / producción total Diviso (L/s)", min_value=0.0, value=350.0, step=1.0, format="%.2f", key="desp_q_prod_diviso")
+            q_salida_diviso_actual = st.number_input("Salida total actual desde Diviso (L/s)", min_value=0.0, value=312.43, step=1.0, format="%.2f", key="desp_q_sal_diviso")
+        with d4:
+            q_otras_salidas = st.number_input("Otras salidas no dirigidas a Cunduy/Malvinas (L/s)", min_value=0.0, value=0.0, step=1.0, format="%.2f", key="desp_q_otras_diviso")
+            q_limite_conduccion = st.number_input("Límite máximo de conducción/despacho (L/s)", min_value=1.0, value=450.0, step=5.0, format="%.2f", key="desp_q_limite_diviso")
+
+        vol_diviso = vol_4400 + vol_1100
+        cap_diviso = cap_4400 + cap_1100
+        pct_diviso, estado_diviso, icono_diviso = estado_volumen(vol_diviso, cap_diviso, min_pct, objetivo_pct, alto_pct)
+        reserva_diviso_ls = max(0.0, (vol_diviso - cap_diviso * min_pct / 100.0) / (3.6 * horizonte_h))
+        q_total_seguro_salida = clamp(q_prod_diviso + reserva_diviso_ls, 0.0, q_limite_conduccion)
+        q_seguro_para_destinos = max(0.0, q_total_seguro_salida - q_otras_salidas)
+        q_destinos_actual_aprox = max(0.0, q_salida_diviso_actual - q_otras_salidas)
+        q_extra_disponible = q_seguro_para_destinos - q_destinos_actual_aprox
+
+        st.markdown("<div class='titulo-seccion-resultado'>2) Tanques destino: Cunduy y Malvinas</div>", unsafe_allow_html=True)
+        c_col, m_col = st.columns(2, gap="large")
+        with c_col:
+            st.markdown("<div class='bloque-mini'><div class='titulo-mini'>Tanque Cunduy</div>", unsafe_allow_html=True)
+            vol_cunduy = st.number_input("Volumen actual Cunduy (m³)", min_value=0.0, value=2145.74, step=10.0, format="%.2f", key="desp_vol_cunduy")
+            cap_cunduy = st.number_input("Capacidad operativa Cunduy (m³)", min_value=1.0, value=3000.0, step=10.0, format="%.2f", key="desp_cap_cunduy")
+            q_ent_cunduy_actual = st.number_input("Caudal actual hacia Cunduy (L/s)", min_value=0.0, value=111.36, step=1.0, format="%.2f", key="desp_q_ent_cunduy")
+            q_sal_cunduy = st.number_input("Salida / demanda Cunduy (L/s)", min_value=0.0, value=130.22, step=1.0, format="%.2f", key="desp_q_sal_cunduy")
+            q_max_cunduy = st.number_input("Máximo permitido a Cunduy (L/s)", min_value=0.0, value=220.0, step=5.0, format="%.2f", key="desp_q_max_cunduy")
+            st.markdown("</div>", unsafe_allow_html=True)
+        with m_col:
+            st.markdown("<div class='bloque-mini'><div class='titulo-mini'>Tanque Malvinas</div>", unsafe_allow_html=True)
+            vol_malvinas = st.number_input("Volumen actual Malvinas (m³)", min_value=0.0, value=1726.11, step=10.0, format="%.2f", key="desp_vol_malvinas")
+            cap_malvinas = st.number_input("Capacidad operativa Malvinas (m³)", min_value=1.0, value=4000.0, step=10.0, format="%.2f", key="desp_cap_malvinas")
+            q_ent_malvinas_actual = st.number_input("Caudal actual hacia Malvinas (L/s)", min_value=0.0, value=183.78, step=1.0, format="%.2f", key="desp_q_ent_malvinas")
+            q_sal_malvinas_base = st.number_input("Salida principal Malvinas (L/s)", min_value=0.0, value=154.19, step=1.0, format="%.2f", key="desp_q_sal_malvinas")
+            sumar_ramales = st.checkbox("Sumar Ángeles, Comfaca y Andes como salidas", value=True, key="desp_sumar_ramales_malvinas")
+            if sumar_ramales:
+                r1, r2, r3 = st.columns(3)
+                with r1:
+                    q_angeles = st.number_input("Ángeles (L/s)", min_value=0.0, value=11.55, step=0.5, format="%.2f", key="desp_q_angeles")
+                with r2:
+                    q_comfaca = st.number_input("Comfaca / Villa Susana (L/s)", min_value=0.0, value=3.22, step=0.5, format="%.2f", key="desp_q_comfaca")
+                with r3:
+                    q_andes = st.number_input("Andes Altos 6'' (L/s)", min_value=0.0, value=8.72, step=0.5, format="%.2f", key="desp_q_andes")
+            else:
+                q_angeles = q_comfaca = q_andes = 0.0
+            q_sal_malvinas = q_sal_malvinas_base + q_angeles + q_comfaca + q_andes
+            q_max_malvinas = st.number_input("Máximo permitido a Malvinas (L/s)", min_value=0.0, value=260.0, step=5.0, format="%.2f", key="desp_q_max_malvinas")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        # Requerimientos por destino para llegar al objetivo en el horizonte.
+        req_cunduy = requerimiento_entrada_destino(vol_cunduy, cap_cunduy, q_sal_cunduy, horizonte_h, objetivo_pct, alto_pct)
+        req_malvinas = requerimiento_entrada_destino(vol_malvinas, cap_malvinas, q_sal_malvinas, horizonte_h, objetivo_pct, alto_pct)
+
+        reqs = [
+            {"nombre": "Cunduy", "q_actual": q_ent_cunduy_actual, "q_req": req_cunduy, "q_req_lim": min(req_cunduy, q_max_cunduy), "q_max": q_max_cunduy},
+            {"nombre": "Malvinas", "q_actual": q_ent_malvinas_actual, "q_req": req_malvinas, "q_req_lim": min(req_malvinas, q_max_malvinas), "q_max": q_max_malvinas},
+        ]
+        reqs = repartir_por_necesidad(reqs, q_seguro_para_destinos)
+        q_rec_cunduy = next(r["q_rec"] for r in reqs if r["nombre"] == "Cunduy")
+        q_rec_malvinas = next(r["q_rec"] for r in reqs if r["nombre"] == "Malvinas")
+        q_total_recomendado_destinos = q_rec_cunduy + q_rec_malvinas
+        q_salida_diviso_recomendada = q_total_recomendado_destinos + q_otras_salidas
+
+        # Evaluación actual y propuesta.
+        # Distribución automática de caudales de Diviso 4400/1100 por capacidad para estimar tiempos individuales.
+        frac_4400 = cap_4400 / max(cap_diviso, 0.0001)
+        frac_1100 = cap_1100 / max(cap_diviso, 0.0001)
+        eval_4400_actual = eval_tanque("Diviso 4400 actual", vol_4400, cap_4400, q_prod_diviso * frac_4400, q_salida_diviso_actual * frac_4400, min_pct, objetivo_pct, alto_pct)
+        eval_1100_actual = eval_tanque("Diviso 1100 actual", vol_1100, cap_1100, q_prod_diviso * frac_1100, q_salida_diviso_actual * frac_1100, min_pct, objetivo_pct, alto_pct)
+        eval_diviso_actual = eval_tanque("Diviso total actual", vol_diviso, cap_diviso, q_prod_diviso, q_salida_diviso_actual, min_pct, objetivo_pct, alto_pct)
+        eval_cunduy_actual = eval_tanque("Cunduy actual", vol_cunduy, cap_cunduy, q_ent_cunduy_actual, q_sal_cunduy, min_pct, objetivo_pct, alto_pct)
+        eval_malvinas_actual = eval_tanque("Malvinas actual", vol_malvinas, cap_malvinas, q_ent_malvinas_actual, q_sal_malvinas, min_pct, objetivo_pct, alto_pct)
+
+        eval_4400_prop = eval_tanque("Diviso 4400 recomendado", vol_4400, cap_4400, q_prod_diviso * frac_4400, q_salida_diviso_recomendada * frac_4400, min_pct, objetivo_pct, alto_pct)
+        eval_1100_prop = eval_tanque("Diviso 1100 recomendado", vol_1100, cap_1100, q_prod_diviso * frac_1100, q_salida_diviso_recomendada * frac_1100, min_pct, objetivo_pct, alto_pct)
+        eval_diviso_prop = eval_tanque("Diviso total recomendado", vol_diviso, cap_diviso, q_prod_diviso, q_salida_diviso_recomendada, min_pct, objetivo_pct, alto_pct)
+        eval_cunduy_prop = eval_tanque("Cunduy recomendado", vol_cunduy, cap_cunduy, q_rec_cunduy, q_sal_cunduy, min_pct, objetivo_pct, alto_pct)
+        eval_malvinas_prop = eval_tanque("Malvinas recomendado", vol_malvinas, cap_malvinas, q_rec_malvinas, q_sal_malvinas, min_pct, objetivo_pct, alto_pct)
+
+        # Mensaje de decisión central.
+        cunduy_pct = vol_cunduy / max(cap_cunduy, 0.0001) * 100
+        malvinas_pct = vol_malvinas / max(cap_malvinas, 0.0001) * 100
+        destinos_bajos = (cunduy_pct < objetivo_pct - 5) or (malvinas_pct < objetivo_pct - 5)
+        destinos_altos = (cunduy_pct >= alto_pct) and (malvinas_pct >= alto_pct)
+        fuente_baja = pct_diviso <= min_pct
+        fuente_alta = pct_diviso >= alto_pct
+
+        if fuente_baja:
+            decision = "CERRAR O REDUCIR SALIDAS DESDE DIVISO"
+            color_decision = "#e63946"
+            detalle_decision = f"Diviso está en {pct_diviso:.1f}%. Prioriza recuperar nivel. Salida segura total estimada: {q_total_seguro_salida:.2f} L/s."
+        elif q_salida_diviso_actual > q_total_seguro_salida + margen_ls:
+            decision = "REDUCIR DESPACHO DESDE DIVISO"
+            color_decision = "#e76f51"
+            detalle_decision = f"La salida actual ({q_salida_diviso_actual:.2f} L/s) supera la salida segura estimada ({q_total_seguro_salida:.2f} L/s)."
+        elif destinos_bajos and q_extra_disponible > margen_ls:
+            decision = "PUEDE ABRIR / AUMENTAR DESPACHO DESDE DIVISO"
+            color_decision = "#2a9d8f"
+            detalle_decision = f"Hay margen aproximado de +{q_extra_disponible:.2f} L/s hacia Cunduy/Malvinas sin bajar Diviso del mínimo en {horizonte_h:.1f} h."
+        elif destinos_altos or fuente_alta:
+            decision = "MANTENER O REDUCIR SI HAY RIESGO DE REBOSE"
+            color_decision = "#f4a261"
+            detalle_decision = "Revisa si los destinos o Diviso están altos. Evita seguir llenando tanques con riesgo de rebose."
+        else:
+            decision = "MANTENER DESPACHO Y SEGUIMIENTO"
+            color_decision = "#1a6fff"
+            detalle_decision = "No se observa una necesidad fuerte de abrir o cerrar con los datos ingresados."
+
+        st.markdown(f"""
+        <div style="background:white;border-left:7px solid {color_decision};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
+            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
+            <div style="font-size:1.35rem;font-weight:900;color:{color_decision};margin:0.2rem 0">{decision}</div>
+            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle_decision}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Volumen Diviso", f"{vol_diviso:,.2f} m³", f"{pct_diviso:.1f}%")
+        r2.metric("Despacho seguro total", f"{q_total_seguro_salida:.2f} L/s")
+        r3.metric("Disponible hacia C/M", f"{q_seguro_para_destinos:.2f} L/s")
+        r4.metric("Ajuste vs actual", f"{q_extra_disponible:+.2f} L/s")
+
+        st.markdown("<div class='titulo-seccion-resultado'>Caudal recomendado por destino</div>", unsafe_allow_html=True)
+        reco_df = pd.DataFrame([
+            {
+                "Destino": "Cunduy",
+                "Caudal actual (L/s)": q_ent_cunduy_actual,
+                "Caudal requerido al objetivo (L/s)": req_cunduy,
+                "Caudal recomendado (L/s)": q_rec_cunduy,
+                "Ajuste recomendado (L/s)": q_rec_cunduy - q_ent_cunduy_actual,
+                "Volumen actual (%)": cunduy_pct,
+                "Acción": "Abrir / aumentar" if q_rec_cunduy > q_ent_cunduy_actual + margen_ls else ("Cerrar / reducir" if q_rec_cunduy < q_ent_cunduy_actual - margen_ls else "Mantener"),
+            },
+            {
+                "Destino": "Malvinas",
+                "Caudal actual (L/s)": q_ent_malvinas_actual,
+                "Caudal requerido al objetivo (L/s)": req_malvinas,
+                "Caudal recomendado (L/s)": q_rec_malvinas,
+                "Ajuste recomendado (L/s)": q_rec_malvinas - q_ent_malvinas_actual,
+                "Volumen actual (%)": malvinas_pct,
+                "Acción": "Abrir / aumentar" if q_rec_malvinas > q_ent_malvinas_actual + margen_ls else ("Cerrar / reducir" if q_rec_malvinas < q_ent_malvinas_actual - margen_ls else "Mantener"),
+            },
+        ])
+        st.dataframe(reco_df.style.format({
+            "Caudal actual (L/s)": "{:.2f}",
+            "Caudal requerido al objetivo (L/s)": "{:.2f}",
+            "Caudal recomendado (L/s)": "{:.2f}",
+            "Ajuste recomendado (L/s)": "{:+.2f}",
+            "Volumen actual (%)": "{:.1f}%",
+        }), use_container_width=True)
+
+        st.markdown("<div class='titulo-seccion-resultado'>Tiempos de llenado/vaciado</div>", unsafe_allow_html=True)
+        tiempos_df = pd.DataFrame([
+            eval_4400_actual, eval_1100_actual, eval_diviso_actual, eval_cunduy_actual, eval_malvinas_actual,
+            eval_4400_prop, eval_1100_prop, eval_diviso_prop, eval_cunduy_prop, eval_malvinas_prop,
+        ])
+        tiempos_df = tiempos_df.drop(columns=["_horas_limite"])
+        st.dataframe(tiempos_df.style.format({
+            "Volumen (m³)": "{:,.2f}",
+            "Capacidad (m³)": "{:,.2f}",
+            "%": "{:.1f}%",
+            "Entrada (L/s)": "{:.2f}",
+            "Salida (L/s)": "{:.2f}",
+            "Balance (L/s)": "{:+.2f}",
+            "Cambio (m³/h)": "{:+.2f}",
+        }), use_container_width=True)
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(name="Volumen actual", x=["Diviso", "Cunduy", "Malvinas"], y=[vol_diviso, vol_cunduy, vol_malvinas]))
+        fig.add_trace(go.Bar(name="Capacidad", x=["Diviso", "Cunduy", "Malvinas"], y=[cap_diviso, cap_cunduy, cap_malvinas], opacity=0.35))
+        fig.update_layout(
+            title="Volumen actual vs capacidad operativa",
+            barmode="overlay",
+            height=360,
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            margin=dict(l=20, r=20, t=50, b=20),
+            yaxis_title="m³",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        no_contabilizado = (q_ent_cunduy_actual + q_ent_malvinas_actual + q_otras_salidas) - q_salida_diviso_actual
+        if abs(no_contabilizado) > margen_ls:
+            st.warning(
+                f"Diferencia entre salida Diviso y entradas registradas en destinos: {no_contabilizado:+.2f} L/s. "
+                "Puede ser retardo hidráulico, lectura SCADA en tiempos diferentes, pérdidas o una salida no incluida."
+            )
+
+        st.markdown("""
+        <div class="caja-rango" style="border-left-color:#00c8ff">
+        <b>Cómo leer este resultado</b><br>
+        • <b>Despacho seguro total</b>: caudal máximo aproximado que Diviso puede sacar durante el horizonte sin bajar del mínimo operativo, limitado por conducción.<br>
+        • <b>Caudal recomendado por destino</b>: entrada sugerida hacia Cunduy y Malvinas para acercarlos al nivel objetivo.<br>
+        • Si aparece <b>cerrar/reducir</b>, no significa cerrar todo: significa bajar gradualmente la salida hasta el valor recomendado y verificar tendencia.
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CALDAS → SECTORES / SALIDAS
+    # ═══════════════════════════════════════════════════════════════════════════
+    else:
+        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+        st.markdown("<div class='titulo-seccion-resultado'>Tanque PTAP Caldas · decisión de apertura o cierre de salidas</div>", unsafe_allow_html=True)
+
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            vol_caldas = st.number_input("Volumen actual Caldas (m³)", min_value=0.0, value=950.0, step=10.0, format="%.2f", key="desp_vol_caldas")
+            cap_caldas = st.number_input("Capacidad Caldas (m³)", min_value=1.0, value=1365.0, step=10.0, format="%.2f", key="desp_cap_caldas")
+        with c2:
+            q_entrada_caldas = st.number_input("Entrada estimada / producción a tanque (L/s)", min_value=0.0, value=170.0, step=1.0, format="%.2f", key="desp_q_ent_caldas")
+            q_salida_caldas = st.number_input("Salida total actual Caldas (L/s)", min_value=0.0, value=160.0, step=1.0, format="%.2f", key="desp_q_sal_caldas")
+        with c3:
+            q_limite_salida_caldas = st.number_input("Límite máximo salida Caldas (L/s)", min_value=1.0, value=230.0, step=5.0, format="%.2f", key="desp_q_lim_caldas")
+            considerar_sectores = st.checkbox("Distribuir salida por sectores", value=True, key="desp_sectores_caldas")
+        with c4:
+            pct_caldas, estado_caldas, icono_caldas = estado_volumen(vol_caldas, cap_caldas, min_pct, objetivo_pct, alto_pct)
+            st.metric("Estado Caldas", f"{pct_caldas:.1f}%", estado_caldas)
+
+        if considerar_sectores:
+            s1, s2, s3, s4, s5 = st.columns(5)
+            with s1:
+                q_centro = st.number_input("Centro (L/s)", min_value=0.0, value=40.0, step=1.0, format="%.2f", key="desp_q_centro")
+            with s2:
+                q_ciudadela1 = st.number_input("Ciudadela I (L/s)", min_value=0.0, value=35.0, step=1.0, format="%.2f", key="desp_q_ciudadela1")
+            with s3:
+                q_ciudadela2 = st.number_input("Ciudadela II (L/s)", min_value=0.0, value=35.0, step=1.0, format="%.2f", key="desp_q_ciudadela2")
+            with s4:
+                q_heliconias = st.number_input("Heliconias (L/s)", min_value=0.0, value=25.0, step=1.0, format="%.2f", key="desp_q_heliconias")
+            with s5:
+                q_acolsure = st.number_input("Acolsure (L/s)", min_value=0.0, value=25.0, step=1.0, format="%.2f", key="desp_q_acolsure")
+            q_salida_caldas = q_centro + q_ciudadela1 + q_ciudadela2 + q_heliconias + q_acolsure
+            st.caption(f"Salida total calculada por sectores: {q_salida_caldas:.2f} L/s")
+
+        reserva_caldas_ls = max(0.0, (vol_caldas - cap_caldas * min_pct / 100.0) / (3.6 * horizonte_h))
+        q_salida_segura_caldas = clamp(q_entrada_caldas + reserva_caldas_ls, 0.0, q_limite_salida_caldas)
+        q_extra_caldas = q_salida_segura_caldas - q_salida_caldas
+        q_req_obj_caldas = requerimiento_entrada_destino(vol_caldas, cap_caldas, 0.0, horizonte_h, objetivo_pct, alto_pct)
+
+        if pct_caldas <= min_pct:
+            decision = "CERRAR O REDUCIR SALIDAS DE CALDAS"
+            color_decision = "#e63946"
+            detalle = f"El tanque está en {pct_caldas:.1f}%. Prioriza recuperar nivel. Salida segura estimada: {q_salida_segura_caldas:.2f} L/s."
+            q_salida_recomendada = min(q_salida_caldas, q_salida_segura_caldas)
+        elif q_salida_caldas > q_salida_segura_caldas + margen_ls:
+            decision = "REDUCIR SALIDA DE CALDAS"
+            color_decision = "#e76f51"
+            detalle = f"La salida actual ({q_salida_caldas:.2f} L/s) supera la salida segura estimada ({q_salida_segura_caldas:.2f} L/s)."
+            q_salida_recomendada = q_salida_segura_caldas
+        elif pct_caldas >= alto_pct and q_extra_caldas > margen_ls:
+            decision = "PUEDE ABRIR / AUMENTAR SALIDAS DE CALDAS"
+            color_decision = "#2a9d8f"
+            detalle = f"El tanque está alto ({pct_caldas:.1f}%). Puede aumentar salida hasta aprox. {q_salida_segura_caldas:.2f} L/s, de forma gradual."
+            q_salida_recomendada = q_salida_segura_caldas
+        elif q_extra_caldas > margen_ls and pct_caldas > objetivo_pct:
+            decision = "PUEDE AUMENTAR MODERADAMENTE SALIDAS"
+            color_decision = "#2a9d8f"
+            detalle = f"Hay margen aproximado de +{q_extra_caldas:.2f} L/s sin bajar del mínimo en {horizonte_h:.1f} h."
+            q_salida_recomendada = min(q_salida_caldas + q_extra_caldas, q_limite_salida_caldas)
+        else:
+            decision = "MANTENER SALIDAS Y SEGUIMIENTO"
+            color_decision = "#1a6fff"
+            detalle = "El balance no exige abrir ni cerrar con fuerza. Mantén seguimiento de nivel, salidas y producción."
+            q_salida_recomendada = q_salida_caldas
+
+        eval_caldas_actual = eval_tanque("Caldas actual", vol_caldas, cap_caldas, q_entrada_caldas, q_salida_caldas, min_pct, objetivo_pct, alto_pct)
+        eval_caldas_prop = eval_tanque("Caldas recomendado", vol_caldas, cap_caldas, q_entrada_caldas, q_salida_recomendada, min_pct, objetivo_pct, alto_pct)
+
+        st.markdown(f"""
+        <div style="background:white;border-left:7px solid {color_decision};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
+            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
+            <div style="font-size:1.35rem;font-weight:900;color:{color_decision};margin:0.2rem 0">{decision}</div>
+            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Volumen Caldas", f"{vol_caldas:,.2f} m³", f"{pct_caldas:.1f}%")
+        m2.metric("Salida actual", f"{q_salida_caldas:.2f} L/s")
+        m3.metric("Salida segura", f"{q_salida_segura_caldas:.2f} L/s")
+        m4.metric("Ajuste sugerido", f"{q_salida_recomendada - q_salida_caldas:+.2f} L/s")
+
+        tabla_caldas = pd.DataFrame([eval_caldas_actual, eval_caldas_prop]).drop(columns=["_horas_limite"])
+        st.dataframe(tabla_caldas.style.format({
+            "Volumen (m³)": "{:,.2f}",
+            "Capacidad (m³)": "{:,.2f}",
+            "%": "{:.1f}%",
+            "Entrada (L/s)": "{:.2f}",
+            "Salida (L/s)": "{:.2f}",
+            "Balance (L/s)": "{:+.2f}",
+            "Cambio (m³/h)": "{:+.2f}",
+        }), use_container_width=True)
+
+        if considerar_sectores and q_salida_caldas > 0:
+            factor = q_salida_recomendada / q_salida_caldas if q_salida_caldas > 0 else 0.0
+            sectores_df = pd.DataFrame([
+                {"Sector": "Centro", "Salida actual (L/s)": q_centro, "Salida recomendada proporcional (L/s)": q_centro * factor},
+                {"Sector": "Ciudadela I", "Salida actual (L/s)": q_ciudadela1, "Salida recomendada proporcional (L/s)": q_ciudadela1 * factor},
+                {"Sector": "Ciudadela II", "Salida actual (L/s)": q_ciudadela2, "Salida recomendada proporcional (L/s)": q_ciudadela2 * factor},
+                {"Sector": "Heliconias", "Salida actual (L/s)": q_heliconias, "Salida recomendada proporcional (L/s)": q_heliconias * factor},
+                {"Sector": "Acolsure", "Salida actual (L/s)": q_acolsure, "Salida recomendada proporcional (L/s)": q_acolsure * factor},
+            ])
+            st.markdown("<div class='titulo-seccion-resultado'>Distribución proporcional sugerida por sector</div>", unsafe_allow_html=True)
+            st.dataframe(sectores_df.style.format({
+                "Salida actual (L/s)": "{:.2f}",
+                "Salida recomendada proporcional (L/s)": "{:.2f}",
+            }), use_container_width=True)
+
+        st.markdown("""
+        <div class="caja-rango" style="border-left-color:#00c8ff">
+        <b>Nota para Caldas</b><br>
+        Como la entrada al tanque no tiene macromedidor, la entrada debe estimarse con producción, cambio de nivel y salidas macromedidas. Si la entrada estimada no es confiable, confirma con lectura física o tendencia SCADA antes de maniobrar.
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="caja-rango" style="border-left-color:#e63946">
+    <b>Advertencia operativa</b><br>
+    Esta pantalla es de apoyo al análisis. Las maniobras de válvulas deben hacerse lentamente, con autorización y registrando la novedad cuando aplique. Si hay lectura incoherente, fuga, caída rápida de nivel o posible afectación de continuidad, se debe reportar y verificar en campo.
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_despacho"):
+        st.session_state.vista = "menu"
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # =========================================
 # FLUJO DE ACCESO
 # =========================================
@@ -3059,7 +3546,7 @@ st.markdown(f"""
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
  
 with st.expander("Menú principal", expanded=False):
-    m1, m2, m3, m4, m5 = st.columns([1, 1, 1, 1, 0.75])
+    m1, m2, m3, m4, m5, m6 = st.columns([1, 1, 1, 1, 1, 0.75])
  
     with m1:
         st.markdown("""
@@ -3117,6 +3604,19 @@ with st.expander("Menú principal", expanded=False):
         st.markdown("""
         <div class="menu-card">
             <span class="menu-icon"></span>
+            <div class="menu-titulo">Despacho operativo</div>
+            <div class="menu-texto">Indica si puede abrir, cerrar o mantener válvulas y calcula caudal seguro y tiempos de llenado o vaciado.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+        if st.button("Entrar a despacho operativo", use_container_width=True, key="btn_ir_despacho"):
+            st.session_state.vista = "despacho"
+            st.rerun()
+
+    with m6:
+        st.markdown("""
+        <div class="menu-card">
+            <span class="menu-icon"></span>
             <div class="menu-titulo">Sesión activa</div>
             <div class="menu-texto">Cierra la sesión y vuelve al acceso principal.</div>
         </div>
@@ -3147,6 +3647,10 @@ if st.session_state.vista == "tanque":
 
 if st.session_state.vista == "scada":
     mostrar_panel_scada_tanques()
+    st.stop()
+
+if st.session_state.vista == "despacho":
+    mostrar_despacho_operativo()
     st.stop()
  
 if st.session_state.vista != "recomendacion":
