@@ -3981,113 +3981,206 @@ st.markdown(f"""
  
  
 # =========================================
-# MENU DINAMICO
+# MENÚ PROFESIONAL OPTIMIZADO
 # =========================================
-st.markdown("<div class='bloque'>", unsafe_allow_html=True)
- 
-with st.expander("Menú principal", expanded=False):
-    m1, m2, m3, m4, m5, m6, m7 = st.columns([1, 1, 1, 1, 1, 1, 0.75])
- 
-    with m1:
-        st.markdown("""
-        <div class="menu-card">
-            <span class="menu-icon"></span>
-            <div class="menu-titulo">Recomendación PAC</div>
-            <div class="menu-texto">Consulta casos históricos similares y genera dosis sugeridas para prueba de jarras.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        if st.button("Entrar a recomendación PAC", use_container_width=True, key="btn_ir_recomendacion"):
+MENU_PROFESIONAL_CSS = """
+<style>
+.menu-pro-shell {
+    padding: 0.95rem 1.15rem 1.05rem 1.15rem !important;
+    margin-bottom: 1rem !important;
+}
+.menu-pro-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.15rem 0.2rem 0.8rem 0.2rem;
+    border-bottom: 1px solid #e4edf8;
+    margin-bottom: 0.85rem;
+}
+.menu-pro-title {
+    font-size: 1.08rem;
+    font-weight: 850;
+    color: #0a1628;
+    letter-spacing: -0.01em;
+}
+.menu-pro-subtitle {
+    color: #5a7899;
+    font-size: 0.84rem;
+    margin-top: 0.15rem;
+    line-height: 1.35;
+}
+.menu-pro-active {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e8f4ff, #f3f9ff);
+    border: 1px solid #cde3ff;
+    color: #0d2347;
+    border-radius: 999px;
+    padding: 0.42rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.menu-pro-group {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid #dce9f7;
+    border-radius: 18px;
+    padding: 0.85rem 0.95rem 0.95rem 0.95rem;
+    box-shadow: 0 5px 18px rgba(10,22,40,0.055);
+    min-height: 118px;
+    margin-bottom: 0.2rem;
+}
+.menu-pro-group-title {
+    font-size: 0.91rem;
+    font-weight: 850;
+    color: #0b4f6c;
+    text-transform: uppercase;
+    letter-spacing: 0.045em;
+    margin-bottom: 0.2rem;
+}
+.menu-pro-group-text {
+    color: #5a7899;
+    font-size: 0.80rem;
+    line-height: 1.42;
+    min-height: 2.1rem;
+    margin-bottom: 0.55rem;
+}
+.menu-pro-mini-note {
+    background: #f3f8ff;
+    color: #486681;
+    border: 1px dashed #c8def5;
+    border-radius: 12px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    margin-top: 0.55rem;
+}
+.menu-pro-shell .stButton > button {
+    min-height: 40px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+    padding: 0.35rem 0.55rem !important;
+    box-shadow: 0 4px 14px rgba(26,111,255,0.15) !important;
+}
+.menu-pro-shell .stButton > button[kind="secondary"] {
+    box-shadow: 0 3px 10px rgba(10,22,40,0.055) !important;
+}
+@media (max-width: 900px) {
+    .menu-pro-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .menu-pro-active {
+        white-space: normal;
+    }
+}
+</style>
+"""
+st.markdown(MENU_PROFESIONAL_CSS, unsafe_allow_html=True)
+
+
+def nombre_vista_actual(vista):
+    nombres = {
+        "menu": "Inicio",
+        "recomendacion": "Recomendación PAC",
+        "calculadora": "Calculadora PAC",
+        "tanque": "Calculadora de tanque",
+        "scada": "Panel SCADA",
+        "despacho": "Despacho operativo",
+        "documentos": "Documentos del sistema",
+    }
+    return nombres.get(vista, "Inicio")
+
+
+st.markdown("<div class='bloque menu-pro-shell'>", unsafe_allow_html=True)
+st.markdown(f"""
+<div class="menu-pro-header">
+    <div>
+        <div class="menu-pro-title">Centro de control operativo</div>
+        <div class="menu-pro-subtitle">Accesos organizados por proceso. El menú queda compacto para no ocupar espacio en las pantallas de resultados.</div>
+    </div>
+    <div class="menu-pro-active">Vista actual: {nombre_vista_actual(st.session_state.vista)}</div>
+</div>
+""", unsafe_allow_html=True)
+
+col_pac, col_hid, col_doc, col_sesion = st.columns([1.05, 1.45, 1.05, 0.85], gap="medium")
+
+with col_pac:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">💧 PAC y laboratorio</div>
+        <div class="menu-pro-group-text">Consulta datos históricos, calcula consumos y apoya la prueba de jarras.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    b1, b2 = st.columns(2, gap="small")
+    with b1:
+        if st.button("Recomendación", use_container_width=True, key="btn_ir_recomendacion", type="primary" if st.session_state.vista == "recomendacion" else "secondary"):
             st.session_state.vista = "recomendacion"
             st.rerun()
- 
-    with m2:
-        st.markdown("""
-        <div class="menu-card">
-            <span class="menu-icon"></span>
-            <div class="menu-titulo">Calculadora PAC</div>
-            <div class="menu-texto">Calcula consumos de PAC, descenso de nivel y altura estimada del tanque de PAC.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        if st.button("Entrar a calculadora PAC", use_container_width=True, key="btn_ir_calculadora"):
+    with b2:
+        if st.button("Calculadora PAC", use_container_width=True, key="btn_ir_calculadora", type="primary" if st.session_state.vista == "calculadora" else "secondary"):
             st.session_state.vista = "calculadora"
             st.rerun()
- 
-    with m3:
-        st.markdown("""
-        <div class="menu-card">
-            <span class="menu-icon"></span>
-            <div class="menu-titulo">Calculadora de Tanque</div>
-            <div class="menu-texto">Estima caudal de entrada, balance hídrico y hora exacta de rebose o mínimo operativo.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        if st.button("Entrar a calculadora de tanque", use_container_width=True, key="btn_ir_tanque"):
+
+with col_hid:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">🏗️ Tanques, SCADA y despacho</div>
+        <div class="menu-pro-group-text">Evalúa niveles, volúmenes, entradas, salidas, válvulas y tiempos de llenado o vaciado.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    h1, h2, h3 = st.columns(3, gap="small")
+    with h1:
+        if st.button("Tanques", use_container_width=True, key="btn_ir_tanque", type="primary" if st.session_state.vista == "tanque" else "secondary"):
             st.session_state.vista = "tanque"
             st.rerun()
- 
-    with m4:
-        st.markdown("""
-        <div class="menu-card">
-            <span class="menu-icon"></span>
-            <div class="menu-titulo">Panel SCADA</div>
-            <div class="menu-texto">Interpreta niveles, volúmenes, presiones, entradas, salidas y tendencias del sistema.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        if st.button("Entrar a panel SCADA", use_container_width=True, key="btn_ir_scada"):
+    with h2:
+        if st.button("Panel SCADA", use_container_width=True, key="btn_ir_scada", type="primary" if st.session_state.vista == "scada" else "secondary"):
             st.session_state.vista = "scada"
             st.rerun()
-
-    with m5:
-        st.markdown("""
-        <div class="menu-card">
-            <span class="menu-icon"></span>
-            <div class="menu-titulo">Despacho operativo</div>
-            <div class="menu-texto">Indica si puede abrir, cerrar o mantener válvulas y calcula caudal seguro y tiempos de llenado o vaciado.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        if st.button("Entrar a despacho operativo", use_container_width=True, key="btn_ir_despacho"):
+    with h3:
+        if st.button("Despacho", use_container_width=True, key="btn_ir_despacho", type="primary" if st.session_state.vista == "despacho" else "secondary"):
             st.session_state.vista = "despacho"
             st.rerun()
 
-    with m6:
-        st.markdown("""
-        <div class="menu-card">
-            <span class="menu-icon"></span>
-            <div class="menu-titulo">Documentos</div>
-            <div class="menu-texto">Consulta instructivos PDF con PIN, descárgalos y agrega nuevos documentos.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        if st.button("Entrar a documentos", use_container_width=True, key="btn_ir_documentos"):
-            st.session_state.vista = "documentos"
-            st.rerun()
+with col_doc:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">📄 Documentos</div>
+        <div class="menu-pro-group-text">Consulta instructivos PDF con PIN, visualiza páginas y descarga archivos.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Abrir documentos", use_container_width=True, key="btn_ir_documentos", type="primary" if st.session_state.vista == "documentos" else "secondary"):
+        st.session_state.vista = "documentos"
+        st.rerun()
+    st.markdown("<div class='menu-pro-mini-note'>Usuario: PIN 1234 · Admin: carga y eliminación de PDF.</div>", unsafe_allow_html=True)
 
-    with m7:
-        st.markdown("""
-        <div class="menu-card">
-            <span class="menu-icon"></span>
-            <div class="menu-titulo">Sesión activa</div>
-            <div class="menu-texto">Cierra la sesión y vuelve al acceso principal.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
-            st.session_state.autenticado    = False
-            st.session_state.vista          = "menu"
-            st.session_state.planta_usuario = None
-            st.session_state.documentos_autorizado = False
-            st.rerun()
- 
+with col_sesion:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">👤 Sesión</div>
+        <div class="menu-pro-group-text">Control de acceso de la aplicación.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Inicio", type="secondary", use_container_width=True, key="btn_ir_inicio"):
+        st.session_state.vista = "menu"
+        st.rerun()
+    if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
+        st.session_state.autenticado    = False
+        st.session_state.vista          = "menu"
+        st.session_state.planta_usuario = None
+        st.session_state.documentos_autorizado = False
+        st.session_state.documentos_admin = False
+        st.rerun()
+
 if st.session_state.vista == "menu":
-    st.info("Selecciona una herramienta desde el menú desplegable.")
- 
+    st.info("Selecciona una herramienta desde el centro de control operativo.")
+
 st.markdown("</div>", unsafe_allow_html=True)
- 
- 
+
+
 # =========================================
 # VISTAS
 # =========================================
