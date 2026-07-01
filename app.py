@@ -1,4 +1,5 @@
 import streamlit as st
+import base64
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -21,6 +22,8 @@ st.set_page_config(
 )
  
 BASE_DIR = Path(__file__).resolve().parent
+DOCUMENTOS_DIR = BASE_DIR / "Documentos"
+PIN_DOCUMENTOS = "1234"
  
 USUARIOS = {
     "diviso": {"clave": "diviso123", "planta": "Diviso"},
@@ -35,6 +38,9 @@ if "vista" not in st.session_state:
  
 if "planta_usuario" not in st.session_state:
     st.session_state.planta_usuario = None
+
+if "documentos_autorizado" not in st.session_state:
+    st.session_state.documentos_autorizado = False
  
  
 # =========================================
@@ -3512,6 +3518,204 @@ def mostrar_despacho_operativo():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+
+# =========================================
+# DOCUMENTOS DEL SISTEMA - VISOR PDF CON PIN
+# =========================================
+def asegurar_carpeta_documentos():
+    """Crea la carpeta Documentos si no existe y devuelve la ruta."""
+    DOCUMENTOS_DIR.mkdir(parents=True, exist_ok=True)
+    return DOCUMENTOS_DIR
+
+
+def listar_pdfs_documentos():
+    """Lista automáticamente todos los PDF guardados en la carpeta Documentos."""
+    carpeta = asegurar_carpeta_documentos()
+    return sorted(
+        [ruta for ruta in carpeta.glob("*.pdf") if ruta.is_file()],
+        key=lambda ruta: ruta.name.lower()
+    )
+
+
+def nombre_archivo_pdf_seguro(nombre_archivo):
+    """Evita rutas extrañas y conserva únicamente el nombre del archivo PDF."""
+    nombre = Path(str(nombre_archivo)).name.strip()
+    nombre = nombre.replace("/", "_").replace("\\", "_")
+    if not nombre.lower().endswith(".pdf"):
+        nombre = f"{nombre}.pdf"
+    return nombre
+
+
+def obtener_ruta_sin_sobrescribir(carpeta, nombre_archivo):
+    """Si ya existe un PDF con el mismo nombre, crea nombre_1.pdf, nombre_2.pdf, etc."""
+    ruta = carpeta / nombre_archivo
+    if not ruta.exists():
+        return ruta
+
+    base = ruta.stem
+    sufijo = ruta.suffix
+    contador = 1
+    while True:
+        nueva_ruta = carpeta / f"{base}_{contador}{sufijo}"
+        if not nueva_ruta.exists():
+            return nueva_ruta
+        contador += 1
+
+
+def guardar_pdfs_subidos(archivos_subidos, reemplazar=False):
+    """Guarda uno o varios PDF cargados desde Streamlit en la carpeta Documentos."""
+    carpeta = asegurar_carpeta_documentos()
+    guardados = []
+    errores = []
+
+    for archivo in archivos_subidos:
+        try:
+            nombre = nombre_archivo_pdf_seguro(archivo.name)
+            ruta_destino = carpeta / nombre if reemplazar else obtener_ruta_sin_sobrescribir(carpeta, nombre)
+            ruta_destino.write_bytes(archivo.getbuffer())
+            guardados.append(ruta_destino.name)
+        except Exception as exc:
+            errores.append(f"{getattr(archivo, 'name', 'archivo')}: {exc}")
+
+    return guardados, errores
+
+
+def mostrar_pdf_en_pagina(ruta_pdf, alto=850):
+    """Muestra un PDF dentro de la página usando un iframe en base64."""
+    ruta_pdf = Path(ruta_pdf)
+
+    if not ruta_pdf.exists():
+        st.error(f"No se encontró el archivo PDF: {ruta_pdf.name}")
+        st.info("Verifica que el PDF esté dentro de la carpeta Documentos del repositorio.")
+        return
+
+    try:
+        base64_pdf = base64.b64encode(ruta_pdf.read_bytes()).decode("utf-8")
+        html_pdf = f"""
+        <div style="background:white;border:1px solid #dce9f7;border-radius:18px;padding:0.7rem;box-shadow:0 4px 20px rgba(10,22,40,0.06);">
+            <iframe
+                src="data:application/pdf;base64,{base64_pdf}#toolbar=1&navpanes=1&scrollbar=1"
+                width="100%"
+                height="{alto}"
+                type="application/pdf"
+                style="border:none;border-radius:14px;">
+            </iframe>
+        </div>
+        """
+        components.html(html_pdf, height=alto + 35, scrolling=True)
+    except Exception as exc:
+        st.error(f"No se pudo mostrar el PDF en la página: {exc}")
+        st.info("Puedes usar el botón de descarga para abrirlo directamente en el navegador.")
+
+
+def mostrar_documentos_sistema():
+    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>📄 Documentos del sistema</div>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <p style="color:#5a7899;font-size:0.93rem;line-height:1.6;margin-bottom:1rem">
+    Consulta, descarga y agrega instructivos PDF directamente desde la aplicación.
+    Para entrar a esta sección se solicita PIN de seguridad.
+    </p>
+    """, unsafe_allow_html=True)
+
+    if not st.session_state.get("documentos_autorizado", False):
+        st.warning("Esta sección está protegida. Ingresa el PIN para ver los documentos.")
+        col_pin, col_btn = st.columns([3, 1])
+        with col_pin:
+            pin = st.text_input("PIN de documentos", type="password", placeholder="Ingresa el PIN", key="pin_documentos")
+        with col_btn:
+            st.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
+            entrar = st.button("Ingresar", use_container_width=True, key="btn_ingresar_documentos")
+
+        if entrar:
+            if str(pin).strip() == PIN_DOCUMENTOS:
+                st.session_state.documentos_autorizado = True
+                st.success("Acceso autorizado.")
+                st.rerun()
+            else:
+                st.error("PIN incorrecto.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    col_a, col_b = st.columns([3, 1])
+    with col_a:
+        st.success("Acceso autorizado a documentos del sistema.")
+    with col_b:
+        if st.button("Bloquear sección", type="secondary", use_container_width=True, key="btn_bloquear_documentos"):
+            st.session_state.documentos_autorizado = False
+            st.rerun()
+
+    with st.expander("➕ Agregar nuevos PDF", expanded=False):
+        st.caption("Los PDF cargados se guardan en la carpeta Documentos. En despliegues tipo Streamlit Cloud, para que queden permanentes también debes subirlos al repositorio de GitHub.")
+        archivos = st.file_uploader(
+            "Selecciona uno o varios PDF",
+            type=["pdf"],
+            accept_multiple_files=True,
+            key="uploader_documentos_pdf"
+        )
+        reemplazar = st.checkbox("Reemplazar si ya existe un PDF con el mismo nombre", value=False, key="chk_reemplazar_pdf")
+
+        if st.button("Guardar PDF(s)", use_container_width=True, key="btn_guardar_pdfs"):
+            if not archivos:
+                st.info("Primero selecciona al menos un PDF.")
+            else:
+                guardados, errores = guardar_pdfs_subidos(archivos, reemplazar=reemplazar)
+                if guardados:
+                    st.success("PDF guardado(s): " + ", ".join(guardados))
+                if errores:
+                    st.error("Algunos archivos no se pudieron guardar: " + " | ".join(errores))
+                st.rerun()
+
+    pdfs = listar_pdfs_documentos()
+
+    if not pdfs:
+        st.info("Todavía no hay PDF en la carpeta Documentos.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    nombres = [pdf.name for pdf in pdfs]
+    documento = st.selectbox("Selecciona el PDF que deseas consultar", nombres, key="select_documento_pdf")
+    ruta_seleccionada = next(pdf for pdf in pdfs if pdf.name == documento)
+
+    pdf_bytes = ruta_seleccionada.read_bytes()
+    tamano_mb = len(pdf_bytes) / (1024 * 1024)
+
+    c1, c2, c3 = st.columns([2.2, 1, 1])
+    with c1:
+        st.markdown(f"""
+        <div class="caja-rango" style="margin-top:0">
+            <b>Documento seleccionado</b><br>
+            {ruta_seleccionada.name}<br>
+            <span style="color:#5a7899">Tamaño aproximado: {tamano_mb:.2f} MB · Carpeta: Documentos</span>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.download_button(
+            label="⬇️ Descargar PDF",
+            data=pdf_bytes,
+            file_name=ruta_seleccionada.name,
+            mime="application/pdf",
+            use_container_width=True,
+            key="btn_descargar_pdf"
+        )
+    with c3:
+        if st.button("🔄 Actualizar lista", use_container_width=True, key="btn_actualizar_documentos"):
+            st.rerun()
+
+    st.markdown("<div class='titulo-seccion-resultado'>Vista previa del PDF</div>", unsafe_allow_html=True)
+    mostrar_pdf_en_pagina(ruta_seleccionada, alto=850)
+
+    with st.expander("📁 PDF disponibles en la carpeta Documentos", expanded=False):
+        tabla_docs = pd.DataFrame({
+            "Documento": [pdf.name for pdf in pdfs],
+            "Tamaño (MB)": [round(pdf.stat().st_size / (1024 * 1024), 2) for pdf in pdfs],
+        })
+        st.dataframe(tabla_docs, use_container_width=True, hide_index=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # =========================================
 # FLUJO DE ACCESO
 # =========================================
@@ -3546,7 +3750,7 @@ st.markdown(f"""
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
  
 with st.expander("Menú principal", expanded=False):
-    m1, m2, m3, m4, m5, m6 = st.columns([1, 1, 1, 1, 1, 0.75])
+    m1, m2, m3, m4, m5, m6, m7 = st.columns([1, 1, 1, 1, 1, 1, 0.75])
  
     with m1:
         st.markdown("""
@@ -3617,6 +3821,19 @@ with st.expander("Menú principal", expanded=False):
         st.markdown("""
         <div class="menu-card">
             <span class="menu-icon"></span>
+            <div class="menu-titulo">Documentos</div>
+            <div class="menu-texto">Consulta instructivos PDF con PIN, descárgalos y agrega nuevos documentos.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+        if st.button("Entrar a documentos", use_container_width=True, key="btn_ir_documentos"):
+            st.session_state.vista = "documentos"
+            st.rerun()
+
+    with m7:
+        st.markdown("""
+        <div class="menu-card">
+            <span class="menu-icon"></span>
             <div class="menu-titulo">Sesión activa</div>
             <div class="menu-texto">Cierra la sesión y vuelve al acceso principal.</div>
         </div>
@@ -3626,6 +3843,7 @@ with st.expander("Menú principal", expanded=False):
             st.session_state.autenticado    = False
             st.session_state.vista          = "menu"
             st.session_state.planta_usuario = None
+            st.session_state.documentos_autorizado = False
             st.rerun()
  
 if st.session_state.vista == "menu":
@@ -3651,6 +3869,10 @@ if st.session_state.vista == "scada":
 
 if st.session_state.vista == "despacho":
     mostrar_despacho_operativo()
+    st.stop()
+
+if st.session_state.vista == "documentos":
+    mostrar_documentos_sistema()
     st.stop()
  
 if st.session_state.vista != "recomendacion":
@@ -3873,4 +4095,3 @@ with col_result:
         st.plotly_chart(fig, use_container_width=True)
  
     st.markdown("</div>", unsafe_allow_html=True)
- 
