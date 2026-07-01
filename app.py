@@ -3058,13 +3058,13 @@ st.markdown(f"""
 # =========================================
 st.markdown("<div class='bloque'>", unsafe_allow_html=True)
  
-with st.expander("🧭 Menú principal", expanded=False):
+with st.expander("Menú principal", expanded=False):
     m1, m2, m3, m4, m5 = st.columns([1, 1, 1, 1, 0.75])
  
     with m1:
         st.markdown("""
         <div class="menu-card">
-            <span class="menu-icon">🔬</span>
+            <span class="menu-icon"></span>
             <div class="menu-titulo">Recomendación PAC</div>
             <div class="menu-texto">Consulta casos históricos similares y genera dosis sugeridas para prueba de jarras.</div>
         </div>
@@ -3077,7 +3077,7 @@ with st.expander("🧭 Menú principal", expanded=False):
     with m2:
         st.markdown("""
         <div class="menu-card">
-            <span class="menu-icon">🧮</span>
+            <span class="menu-icon"></span>
             <div class="menu-titulo">Calculadora PAC</div>
             <div class="menu-texto">Calcula consumos de PAC, descenso de nivel y altura estimada del tanque de PAC.</div>
         </div>
@@ -3090,7 +3090,7 @@ with st.expander("🧭 Menú principal", expanded=False):
     with m3:
         st.markdown("""
         <div class="menu-card">
-            <span class="menu-icon">🏗️</span>
+            <span class="menu-icon"></span>
             <div class="menu-titulo">Calculadora de Tanque</div>
             <div class="menu-texto">Estima caudal de entrada, balance hídrico y hora exacta de rebose o mínimo operativo.</div>
         </div>
@@ -3103,7 +3103,7 @@ with st.expander("🧭 Menú principal", expanded=False):
     with m4:
         st.markdown("""
         <div class="menu-card">
-            <span class="menu-icon">📊</span>
+            <span class="menu-icon"></span>
             <div class="menu-titulo">Panel SCADA</div>
             <div class="menu-texto">Interpreta niveles, volúmenes, presiones, entradas, salidas y tendencias del sistema.</div>
         </div>
