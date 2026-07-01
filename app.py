@@ -3648,14 +3648,10 @@ def mostrar_pdf_en_pagina(ruta_pdf, alto=850):
         st.warning("El PDF no tiene páginas para mostrar.")
         return
 
-    st.markdown("""
-    <div class="caja-rango" style="border-left-color:#00c8ff;margin-top:0.4rem">
-        <b>Vista segura</b><br>
-        El PDF se muestra como imágenes de páginas para evitar el bloqueo de Chrome.
-    </div>
-    """, unsafe_allow_html=True)
+    # Vista fija en alta calidad. Se elimina el selector de tamaño para evitar baja resolución.
+    zoom = 2.1  # Equivale a "Extra grande".
 
-    col_p1, col_p2, col_p3 = st.columns([1, 1, 1])
+    col_p1, col_p2 = st.columns([1, 1])
     with col_p1:
         pagina_inicio = st.number_input(
             "Desde página",
@@ -3674,20 +3670,6 @@ def mostrar_pdf_en_pagina(ruta_pdf, alto=850):
             value=pagina_fin_default,
             step=1,
             key=f"pdf_fin_{ruta_pdf.name}"
-        )
-    with col_p3:
-        zoom = st.select_slider(
-            "Tamaño de lectura",
-            options=[1.1, 1.3, 1.55, 1.8, 2.1],
-            value=1.55,
-            format_func=lambda x: {
-                1.1: "Pequeño",
-                1.3: "Mediano",
-                1.55: "Grande",
-                1.8: "Muy grande",
-                2.1: "Extra grande",
-            }.get(x, str(x)),
-            key=f"pdf_zoom_{ruta_pdf.name}"
         )
 
     if int(pagina_fin) - int(pagina_inicio) > 9:
@@ -3919,18 +3901,10 @@ def mostrar_documentos_sistema():
         st.markdown("</div>", unsafe_allow_html=True)
         return
 
-    tamano_mb = len(pdf_bytes) / (1024 * 1024)
-
-    c1, c2 = st.columns([2.8, 1])
-    with c1:
-        st.markdown(f"""
-        <div class="caja-rango" style="margin-top:0">
-            <b>Documento seleccionado</b><br>
-            {ruta_seleccionada.name}<br>
-            <span style="color:#5a7899">Tamaño aproximado: {tamano_mb:.2f} MB · Carpeta: Documentos</span>
-        </div>
-        """, unsafe_allow_html=True)
-    with c2:
+    col_descarga_pdf_a, col_descarga_pdf_b = st.columns([3, 1])
+    with col_descarga_pdf_a:
+        st.caption(f"Documento seleccionado: {ruta_seleccionada.name}")
+    with col_descarga_pdf_b:
         st.download_button(
             label="⬇️ Descargar PDF",
             data=pdf_bytes,
@@ -3940,7 +3914,7 @@ def mostrar_documentos_sistema():
             key="btn_descargar_pdf"
         )
 
-    st.markdown("<div class='titulo-seccion-resultado'>Vista previa del PDF</div>", unsafe_allow_html=True)
+    st.markdown("<div class='titulo-seccion-resultado'>Vista del PDF</div>", unsafe_allow_html=True)
     mostrar_pdf_en_pagina(ruta_seleccionada, alto=850)
 
     with st.expander("📁 PDF disponibles en la carpeta Documentos", expanded=False):
