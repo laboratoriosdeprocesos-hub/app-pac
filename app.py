@@ -3,6 +3,8 @@ import base64
 import hmac
 import time
 import re
+import io
+import unicodedata
 from urllib.parse import quote
 import requests
 import pandas as pd
@@ -4326,6 +4328,7 @@ def nombre_vista_actual(vista):
         "tanque": "Calculadora de tanque",
         "scada": "Panel SCADA",
         "despacho": "Despacho operativo",
+        "historico_scada": "Despacho histórico SCADA",
         "documentos": "Documentos del sistema",
     }
     return nombres.get(vista, "Inicio")
@@ -4368,7 +4371,7 @@ with col_hid:
         <div class="menu-pro-group-text">Evalúa niveles, volúmenes, entradas, salidas, válvulas y tiempos de llenado o vaciado.</div>
     </div>
     """, unsafe_allow_html=True)
-    h1, h2, h3 = st.columns(3, gap="small")
+    h1, h2, h3, h4 = st.columns(4, gap="small")
     with h1:
         if st.button("Tanques", use_container_width=True, key="btn_ir_tanque", type="primary" if st.session_state.vista == "tanque" else "secondary"):
             st.session_state.vista = "tanque"
@@ -4380,6 +4383,10 @@ with col_hid:
     with h3:
         if st.button("Despacho", use_container_width=True, key="btn_ir_despacho", type="primary" if st.session_state.vista == "despacho" else "secondary"):
             st.session_state.vista = "despacho"
+            st.rerun()
+    with h4:
+        if st.button("Histórico", use_container_width=True, key="btn_ir_historico_scada", type="primary" if st.session_state.vista == "historico_scada" else "secondary"):
+            st.session_state.vista = "historico_scada"
             st.rerun()
 
 with col_doc:
@@ -4418,6 +4425,614 @@ if st.session_state.vista == "menu":
 st.markdown("</div>", unsafe_allow_html=True)
 
 
+
+
+# =========================================
+# ANÁLISIS HISTÓRICO SCADA PARA DESPACHO
+# =========================================
+def mostrar_despacho_historico_scada():
+    """
+    Permite cargar un Excel/CSV exportado del SCADA y analizar el despacho hidráulico:
+    - Últimas 48 horas, última semana, último mes o todo el archivo.
+    - Balance por tanque.
+    - Tiempos estimados de llenado/vaciado.
+    - Caudal requerido por tanque.
+    - Recomendación de apertura/cierre considerando la T Cunduy-Malvinas.
+
+    Nota: no controla válvulas. Solo genera recomendación de apoyo operativo.
+    """
+    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>📈 Despacho histórico SCADA · análisis por Excel</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='texto-panel'>Sube un archivo exportado del SCADA, por ejemplo de las últimas 48 horas o del último mes. "
+        "La app analiza niveles, volúmenes, caudales y la conducción tipo <b>T</b>: la línea llega a Cunduy, una parte entra al tanque Cunduy y el remanente continúa hacia Malvinas.</div>",
+        unsafe_allow_html=True,
+    )
+
+    def normalizar_txt(txt):
+        txt = str(txt).strip().lower()
+        txt = unicodedata.normalize("NFKD", txt).encode("ascii", "ignore").decode("ascii")
+        txt = re.sub(r"[^a-z0-9]+", " ", txt)
+        return re.sub(r"\s+", " ", txt).strip()
+
+    def leer_archivo_scada(archivo):
+        try:
+            nombre = archivo.name.lower()
+            if nombre.endswith(".csv"):
+                try:
+                    return pd.read_csv(archivo)
+                except Exception:
+                    archivo.seek(0)
+                    return pd.read_csv(archivo, sep=";")
+            return pd.read_excel(archivo)
+        except Exception as e:
+            st.error(f"No pude leer el archivo. Revisa que sea Excel o CSV válido. Detalle: {e}")
+            return None
+
+    def limpiar_num(s):
+        return pd.to_numeric(
+            s.astype(str)
+            .str.replace(" ", "", regex=False)
+            .str.replace(".", "", regex=False)
+            .str.replace(",", ".", regex=False),
+            errors="coerce"
+        )
+
+    def preparar_num(df, col):
+        if not col or col == "No usar" or col not in df.columns:
+            return pd.Series([np.nan] * len(df), index=df.index, dtype="float64")
+        if pd.api.types.is_numeric_dtype(df[col]):
+            return pd.to_numeric(df[col], errors="coerce")
+        return limpiar_num(df[col])
+
+    def guess_col(df, grupos, excluir=None):
+        excluir = set(excluir or [])
+        nombres = {c: normalizar_txt(c) for c in df.columns if c not in excluir}
+        for grupo in grupos:
+            tokens = [normalizar_txt(t) for t in grupo]
+            for col, norm in nombres.items():
+                if all(t in norm for t in tokens):
+                    return col
+        return None
+
+    def selector_col(label, df, grupos, key, permitir_no=True, excluir=None):
+        opciones = ["No usar"] + list(df.columns) if permitir_no else list(df.columns)
+        adiv = guess_col(df, grupos, excluir=excluir)
+        index = opciones.index(adiv) if adiv in opciones else 0
+        return st.selectbox(label, opciones, index=index, key=key)
+
+    def ultimo_valor(serie):
+        serie = pd.to_numeric(serie, errors="coerce").dropna()
+        if serie.empty:
+            return np.nan
+        return float(serie.iloc[-1])
+
+    def primer_valor(serie):
+        serie = pd.to_numeric(serie, errors="coerce").dropna()
+        if serie.empty:
+            return np.nan
+        return float(serie.iloc[0])
+
+    def promedio(serie):
+        serie = pd.to_numeric(serie, errors="coerce")
+        if serie.dropna().empty:
+            return np.nan
+        return float(serie.mean())
+
+    def q_to_m3h(q_ls):
+        if q_ls is None or not np.isfinite(q_ls):
+            return np.nan
+        return float(q_ls) * 3.6
+
+    def fmt_q(q):
+        if q is None or not np.isfinite(q):
+            return "Sin dato"
+        return f"{q:.2f} L/s"
+
+    def fmt_m3(v):
+        if v is None or not np.isfinite(v):
+            return "Sin dato"
+        return f"{v:,.2f} m³"
+
+    def fmt_pct(p):
+        if p is None or not np.isfinite(p):
+            return "Sin dato"
+        return f"{p:.1f}%"
+
+    def fmt_tiempo(horas):
+        if horas is None or not np.isfinite(horas) or horas < 0:
+            return "No aplica"
+        if horas > 999:
+            return ">999 h"
+        h = int(horas)
+        m = int(round((horas - h) * 60))
+        if m == 60:
+            h += 1
+            m = 0
+        if h <= 0:
+            return f"{m} min"
+        return f"{h} h {m:02d} min"
+
+    def nivel_a_metros(serie):
+        s = pd.to_numeric(serie, errors="coerce")
+        med = s.dropna().median() if not s.dropna().empty else np.nan
+        if np.isfinite(med) and med > 20:
+            return s / 100.0
+        return s
+
+    def volumen_desde_vol_o_nivel(df, col_vol, col_nivel, capacidad, altura_lleno):
+        if col_vol and col_vol != "No usar" and col_vol in df.columns:
+            return preparar_num(df, col_vol).clip(lower=0)
+        if col_nivel and col_nivel != "No usar" and col_nivel in df.columns:
+            nivel_m = nivel_a_metros(preparar_num(df, col_nivel))
+            altura = max(float(altura_lleno), 0.0001)
+            return (nivel_m / altura * float(capacidad)).clip(lower=0, upper=float(capacidad) * 1.2)
+        return pd.Series([np.nan] * len(df), index=df.index, dtype="float64")
+
+    def tiempo_a_limite(vol_actual, capacidad, q_balance, min_pct, alto_pct):
+        if not np.isfinite(vol_actual) or not np.isfinite(q_balance):
+            return "Sin dato", "Sin dato", np.nan
+        cap = max(float(capacidad), 0.0001)
+        v_min = cap * min_pct / 100.0
+        v_alto = cap * alto_pct / 100.0
+        q_m3h = q_to_m3h(q_balance)
+        if not np.isfinite(q_m3h) or abs(q_m3h) < 0.001:
+            return "Estable", "No aplica", np.nan
+        if q_m3h > 0:
+            horas = max(0.0, (v_alto - vol_actual) / q_m3h)
+            return "Subiendo", fmt_tiempo(horas), horas
+        horas = max(0.0, (vol_actual - v_min) / abs(q_m3h))
+        return "Bajando", fmt_tiempo(horas), horas
+
+    def estado_y_accion(nombre, pct, q_balance, tiempo_limite_h, min_pct, objetivo_pct, alto_pct):
+        if pct is None or not np.isfinite(pct):
+            return "⚪ Sin nivel", "Revisar columna de nivel/volumen", "#5a7899"
+        if pct <= min_pct:
+            return "🔴 Bajo crítico", "Abrir/aumentar entrada si es posible y reducir salidas no prioritarias", "#e63946"
+        if pct >= alto_pct:
+            return "🔴 Alto", "Cerrar/reducir entrada o aumentar salida controlada para evitar rebose", "#e63946"
+        if q_balance is not None and np.isfinite(q_balance) and q_balance < -5 and tiempo_limite_h is not None and np.isfinite(tiempo_limite_h) and tiempo_limite_h <= 6:
+            return "🟠 Bajando rápido", "Reducir salidas o aumentar entrada; verificar demanda/fuga", "#e76f51"
+        if pct < objetivo_pct - 5:
+            return "🟠 Bajo", "Abrir/aumentar entrada gradualmente hasta recuperar objetivo", "#f4a261"
+        if pct > objetivo_pct + 10:
+            return "🟡 Alto controlado", "Mantener o reducir entrada; priorizar despacho si otros tanques lo requieren", "#f4a261"
+        return "🟢 Normal", "Mantener válvulas y seguimiento", "#2a9d8f"
+
+    def requerir_entrada(vol_actual, capacidad, q_salida, horizonte_h, objetivo_pct):
+        if not np.isfinite(vol_actual) or not np.isfinite(q_salida):
+            return np.nan
+        cap = max(float(capacidad), 0.0001)
+        objetivo = cap * objetivo_pct / 100.0
+        h = max(float(horizonte_h), 0.25)
+        return max(0.0, float(q_salida) + (objetivo - float(vol_actual)) / (3.6 * h))
+
+    def crear_fila(nombre, vol_series, cap, q_in_series, q_out_series, periodo_h, min_pct, objetivo_pct, alto_pct, horizonte_h):
+        vol_actual = ultimo_valor(vol_series)
+        vol_inicial = primer_valor(vol_series)
+        pct = vol_actual / cap * 100.0 if np.isfinite(vol_actual) and cap > 0 else np.nan
+        q_in = promedio(q_in_series)
+        q_out = promedio(q_out_series)
+        # Si no hay entrada pero sí nivel y salida, estima entrada desde el cambio real de volumen.
+        if not np.isfinite(q_in) and np.isfinite(q_out) and np.isfinite(vol_actual) and np.isfinite(vol_inicial) and periodo_h > 0:
+            q_nivel = (vol_actual - vol_inicial) / (3.6 * periodo_h)
+            q_in = max(0.0, q_out + q_nivel)
+        q_balance = q_in - q_out if np.isfinite(q_in) and np.isfinite(q_out) else np.nan
+        tendencia, tiempo_limite, horas_limite = tiempo_a_limite(vol_actual, cap, q_balance, min_pct, alto_pct)
+        estado, accion, color = estado_y_accion(nombre, pct, q_balance, horas_limite, min_pct, objetivo_pct, alto_pct)
+        objetivo_m3 = cap * objetivo_pct / 100.0
+        falta = max(0.0, objetivo_m3 - vol_actual) if np.isfinite(vol_actual) else np.nan
+        sobra = max(0.0, vol_actual - cap * alto_pct / 100.0) if np.isfinite(vol_actual) else np.nan
+        q_req = requerir_entrada(vol_actual, cap, q_out, horizonte_h, objetivo_pct)
+        return {
+            "Tanque": nombre,
+            "Volumen actual (m³)": vol_actual,
+            "Capacidad (m³)": cap,
+            "Nivel actual (%)": pct,
+            "Falta a objetivo (m³)": falta,
+            "Sobra sobre alto (m³)": sobra,
+            "Entrada promedio/estimada (L/s)": q_in,
+            "Salida promedio (L/s)": q_out,
+            "Balance (L/s)": q_balance,
+            "Cambio (m³/h)": q_to_m3h(q_balance),
+            "Tendencia": tendencia,
+            "Tiempo a límite": tiempo_limite,
+            "Estado": estado,
+            "Acción sugerida": accion,
+            "Entrada requerida a objetivo (L/s)": q_req,
+            "_color": color,
+            "_horas_limite": horas_limite,
+        }
+
+    archivo = st.file_uploader(
+        "Sube el Excel o CSV exportado del SCADA",
+        type=["xlsx", "xls", "csv"],
+        key="hist_scada_file",
+        help="Puedes subir un archivo de 48 horas, una semana o un mes. La app detecta columnas, pero también puedes seleccionarlas manualmente.",
+    )
+
+    if archivo is None:
+        st.info("Sube el archivo SCADA para activar el análisis histórico de despacho.")
+        st.markdown("""
+        <div class="caja-rango" style="border-left-color:#00c8ff">
+        <b>Columnas ideales del archivo SCADA</b><br>
+        Fecha/hora, niveles o volúmenes de tanques, caudal salida Diviso, entrada/salida Cunduy, entrada/salida Malvinas,
+        caudales Ángeles/Comfaca/Andes si aplican, y para Caldas entrada estimada o salida total/sectores.<br><br>
+        Si el archivo no trae volúmenes, la app puede convertir nivel a volumen usando capacidad y altura de lleno configurables.
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_hist_scada_vacio"):
+            st.session_state.vista = "menu"
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    df = leer_archivo_scada(archivo)
+    if df is None or df.empty:
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    df = df.copy()
+    df.columns = [str(c).strip() for c in df.columns]
+    st.success(f"Archivo cargado: {archivo.name} · {len(df):,} filas · {len(df.columns)} columnas")
+
+    with st.expander("Vista previa del archivo", expanded=False):
+        st.dataframe(df.head(30), use_container_width=True)
+        st.caption("Si alguna columna no se detecta bien, selecciónala manualmente en el mapeo de columnas.")
+
+    col_fecha_guess = guess_col(df, [["fecha", "hora"], ["timestamp"], ["time"], ["fecha"], ["hora"]])
+    col_fecha = st.selectbox("Columna de fecha/hora", ["No usar"] + list(df.columns), index=(["No usar"] + list(df.columns)).index(col_fecha_guess) if col_fecha_guess in df.columns else 0, key="hist_col_fecha")
+
+    if col_fecha != "No usar":
+        df["__fecha_scada__"] = pd.to_datetime(df[col_fecha], errors="coerce", dayfirst=True)
+        df = df.dropna(subset=["__fecha_scada__"]).sort_values("__fecha_scada__")
+    else:
+        df["__fecha_scada__"] = pd.RangeIndex(start=0, stop=len(df), step=1)
+
+    if df.empty:
+        st.error("La columna de fecha/hora no se pudo interpretar. Selecciona otra columna o usa 'No usar'.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    p1, p2, p3 = st.columns([1.0, 1.0, 1.1], gap="medium")
+    with p1:
+        periodo = st.selectbox("Periodo a analizar", ["Todo el archivo", "Últimas 48 horas", "Últimos 7 días", "Último mes", "Personalizado"], key="hist_periodo")
+    with p2:
+        horizonte_h = st.number_input("Horizonte para recomendación (horas)", min_value=0.25, value=6.0, step=0.5, format="%.2f", key="hist_horizonte")
+    with p3:
+        sistema = st.radio("Sistema", ["Diviso → Cunduy/Malvinas", "Caldas"], horizontal=True, key="hist_sistema")
+
+    if col_fecha != "No usar":
+        fecha_max = df["__fecha_scada__"].max()
+        fecha_min = df["__fecha_scada__"].min()
+        if periodo == "Últimas 48 horas":
+            df_f = df[df["__fecha_scada__"] >= fecha_max - pd.Timedelta(hours=48)].copy()
+        elif periodo == "Últimos 7 días":
+            df_f = df[df["__fecha_scada__"] >= fecha_max - pd.Timedelta(days=7)].copy()
+        elif periodo == "Último mes":
+            df_f = df[df["__fecha_scada__"] >= fecha_max - pd.Timedelta(days=31)].copy()
+        elif periodo == "Personalizado":
+            cini, cfin = st.columns(2)
+            with cini:
+                f_ini = st.date_input("Desde", value=fecha_min.date(), key="hist_fecha_ini")
+            with cfin:
+                f_fin = st.date_input("Hasta", value=fecha_max.date(), key="hist_fecha_fin")
+            df_f = df[(df["__fecha_scada__"].dt.date >= f_ini) & (df["__fecha_scada__"].dt.date <= f_fin)].copy()
+        else:
+            df_f = df.copy()
+        if not df_f.empty:
+            horas_periodo = max((df_f["__fecha_scada__"].max() - df_f["__fecha_scada__"].min()).total_seconds() / 3600.0, 0.25)
+            st.caption(f"Periodo usado: {df_f['__fecha_scada__'].min()} → {df_f['__fecha_scada__'].max()} · {horas_periodo:.2f} horas · {len(df_f):,} registros")
+        else:
+            horas_periodo = 0.25
+    else:
+        df_f = df.copy()
+        horas_periodo = st.number_input("Duración aproximada del archivo (horas)", min_value=0.25, value=48.0, step=1.0, key="hist_duracion_sin_fecha")
+
+    if df_f.empty:
+        st.error("No hay datos en el periodo seleccionado.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    with st.expander("⚙️ Criterios y capacidades", expanded=False):
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            min_pct = st.number_input("Mínimo operativo (%)", min_value=1.0, max_value=80.0, value=30.0, step=1.0, key="hist_min_pct")
+        with c2:
+            objetivo_pct = st.number_input("Objetivo (%)", min_value=10.0, max_value=95.0, value=70.0, step=1.0, key="hist_obj_pct")
+        with c3:
+            alto_pct = st.number_input("Alto / rebose operativo (%)", min_value=50.0, max_value=100.0, value=90.0, step=1.0, key="hist_alto_pct")
+        with c4:
+            margen_ls = st.number_input("Margen para recomendar ajuste (L/s)", min_value=0.0, value=5.0, step=1.0, key="hist_margen_ls")
+
+        st.markdown("**Capacidades y alturas para convertir nivel a volumen cuando el archivo no trae volumen**")
+        a1, a2, a3, a4, a5 = st.columns(5)
+        with a1:
+            cap_4400 = st.number_input("Cap. Diviso 4400", min_value=1.0, value=4400.0, step=10.0, key="hist_cap_4400")
+            alt_4400 = st.number_input("Alt. lleno 4400 (m)", min_value=0.1, value=5.67, step=0.01, key="hist_alt_4400")
+        with a2:
+            cap_1100 = st.number_input("Cap. Diviso 1100", min_value=1.0, value=1100.0, step=10.0, key="hist_cap_1100")
+            alt_1100 = st.number_input("Alt. lleno 1100 (m)", min_value=0.1, value=4.02, step=0.01, key="hist_alt_1100")
+        with a3:
+            cap_cunduy = st.number_input("Cap. Cunduy", min_value=1.0, value=2727.0, step=10.0, key="hist_cap_cunduy")
+            alt_cunduy = st.number_input("Alt. lleno Cunduy (m)", min_value=0.1, value=3.57, step=0.01, key="hist_alt_cunduy")
+        with a4:
+            cap_malvinas = st.number_input("Cap. Malvinas", min_value=1.0, value=4020.0, step=10.0, key="hist_cap_malvinas")
+            alt_malvinas = st.number_input("Alt. lleno Malvinas (m)", min_value=0.1, value=3.75, step=0.01, key="hist_alt_malvinas")
+        with a5:
+            cap_caldas = st.number_input("Cap. Caldas", min_value=1.0, value=1365.0, step=10.0, key="hist_cap_caldas")
+            alt_caldas = st.number_input("Alt. lleno Caldas (m)", min_value=0.1, value=2.85, step=0.01, key="hist_alt_caldas")
+
+    st.markdown("<div class='titulo-seccion-resultado'>Mapeo de columnas del SCADA</div>", unsafe_allow_html=True)
+    with st.expander("Seleccionar columnas del archivo", expanded=True):
+        if sistema == "Diviso → Cunduy/Malvinas":
+            st.markdown("**Volúmenes o niveles**")
+            m1, m2, m3, m4 = st.columns(4)
+            with m1:
+                col_vol_4400 = selector_col("Volumen 4400", df_f, [["volumen", "4400"], ["vol", "4400"]], "hist_vol_4400")
+                col_niv_4400 = selector_col("Nivel 4400", df_f, [["nivel", "4400"], ["tanque", "4400"]], "hist_niv_4400")
+            with m2:
+                col_vol_1100 = selector_col("Volumen 1100", df_f, [["volumen", "1100"], ["vol", "1100"]], "hist_vol_1100")
+                col_niv_1100 = selector_col("Nivel 1100", df_f, [["nivel", "1100"], ["tanque", "1100"]], "hist_niv_1100")
+            with m3:
+                col_vol_cunduy = selector_col("Volumen Cunduy", df_f, [["volumen", "cunduy"], ["vol", "cunduy"]], "hist_vol_cunduy")
+                col_niv_cunduy = selector_col("Nivel Cunduy", df_f, [["nivel", "cunduy"], ["tanque", "cunduy"]], "hist_niv_cunduy")
+            with m4:
+                col_vol_malvinas = selector_col("Volumen Malvinas", df_f, [["volumen", "malvinas"], ["vol", "malvinas"]], "hist_vol_malvinas")
+                col_niv_malvinas = selector_col("Nivel Malvinas", df_f, [["nivel", "malvinas"], ["tanque", "malvinas"]], "hist_niv_malvinas")
+
+            st.markdown("**Caudales**")
+            q1, q2, q3, q4 = st.columns(4)
+            with q1:
+                col_q_prod_diviso = selector_col("Producción/entrada Diviso", df_f, [["produccion", "diviso"], ["entrada", "diviso"]], "hist_q_prod_diviso")
+                col_q_salida_diviso = selector_col("Caudal salida Diviso a línea T", df_f, [["caudal", "salida", "diviso"], ["salida", "diviso"]], "hist_q_salida_diviso")
+            with q2:
+                col_q_ent_cunduy = selector_col("Entrada Cunduy", df_f, [["caudal", "entrada", "cunduy"], ["entrada", "cunduy"]], "hist_q_ent_cunduy")
+                col_q_sal_cunduy = selector_col("Salida Cunduy", df_f, [["caudal", "salida", "cunduy"], ["salida", "cunduy"]], "hist_q_sal_cunduy")
+            with q3:
+                col_q_ent_malvinas = selector_col("Entrada Malvinas", df_f, [["caudal", "entrada", "malvinas"], ["entrada", "malvinas"]], "hist_q_ent_malvinas")
+                col_q_sal_malvinas = selector_col("Salida Malvinas", df_f, [["caudal", "salida", "malvinas"], ["salida", "malvinas"]], "hist_q_sal_malvinas")
+            with q4:
+                col_q_angeles = selector_col("Ángeles", df_f, [["angeles"], ["angeles", "caudal"]], "hist_q_angeles")
+                col_q_comfaca = selector_col("Comfaca/Villa Susana", df_f, [["comfaca"], ["villa", "susana"], ["nisola"]], "hist_q_comfaca")
+                col_q_andes = selector_col("Andes Altos 6", df_f, [["andes"], ["altos", "6"]], "hist_q_andes")
+        else:
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                col_vol_caldas = selector_col("Volumen Caldas", df_f, [["volumen", "caldas"], ["vol", "caldas"]], "hist_vol_caldas")
+                col_niv_caldas = selector_col("Nivel Caldas", df_f, [["nivel", "caldas"], ["tanque", "caldas"]], "hist_niv_caldas")
+            with c2:
+                col_q_ent_caldas = selector_col("Entrada/producción Caldas", df_f, [["entrada", "caldas"], ["produccion", "caldas"]], "hist_q_ent_caldas")
+                col_q_sal_caldas = selector_col("Salida total Caldas", df_f, [["salida", "caldas"], ["caudal", "salida"]], "hist_q_sal_caldas")
+            with c3:
+                col_q_centro = selector_col("Centro", df_f, [["centro"]], "hist_q_centro")
+                col_q_ciud1 = selector_col("Ciudadela I", df_f, [["ciudadela", "i"], ["ciudadela", "1"]], "hist_q_ciud1")
+                col_q_ciud2 = selector_col("Ciudadela II", df_f, [["ciudadela", "ii"], ["ciudadela", "2"]], "hist_q_ciud2")
+                col_q_heliconias = selector_col("Heliconias", df_f, [["heliconias"]], "hist_q_heliconias")
+                col_q_acolsure = selector_col("Acolsure", df_f, [["acolsure"]], "hist_q_acolsure")
+
+    if sistema == "Diviso → Cunduy/Malvinas":
+        v4400 = volumen_desde_vol_o_nivel(df_f, col_vol_4400, col_niv_4400, cap_4400, alt_4400)
+        v1100 = volumen_desde_vol_o_nivel(df_f, col_vol_1100, col_niv_1100, cap_1100, alt_1100)
+        vcunduy = volumen_desde_vol_o_nivel(df_f, col_vol_cunduy, col_niv_cunduy, cap_cunduy, alt_cunduy)
+        vmalvinas = volumen_desde_vol_o_nivel(df_f, col_vol_malvinas, col_niv_malvinas, cap_malvinas, alt_malvinas)
+        vdiviso = v4400.fillna(0) + v1100.fillna(0)
+        cap_diviso = cap_4400 + cap_1100
+
+        q_prod_diviso = preparar_num(df_f, col_q_prod_diviso)
+        q_salida_diviso = preparar_num(df_f, col_q_salida_diviso)
+        q_ent_cunduy = preparar_num(df_f, col_q_ent_cunduy)
+        q_sal_cunduy = preparar_num(df_f, col_q_sal_cunduy)
+        q_ent_malvinas_directa = preparar_num(df_f, col_q_ent_malvinas)
+        q_sal_malvinas_base = preparar_num(df_f, col_q_sal_malvinas)
+        q_angeles = preparar_num(df_f, col_q_angeles).fillna(0)
+        q_comfaca = preparar_num(df_f, col_q_comfaca).fillna(0)
+        q_andes = preparar_num(df_f, col_q_andes).fillna(0)
+
+        sumar_ramales = st.checkbox("Sumar Ángeles, Comfaca/Villa Susana y Andes como salida adicional de Malvinas", value=True, key="hist_sumar_ramales_malvinas")
+        q_sal_malvinas = q_sal_malvinas_base.fillna(0) + (q_angeles + q_comfaca + q_andes if sumar_ramales else 0)
+
+        # Estimar producción Diviso si no viene columna de entrada/producción.
+        q_neto_diviso_por_nivel = (ultimo_valor(vdiviso) - primer_valor(vdiviso)) / (3.6 * horas_periodo) if horas_periodo > 0 and np.isfinite(ultimo_valor(vdiviso)) and np.isfinite(primer_valor(vdiviso)) else np.nan
+        if promedio(q_prod_diviso) is None or not np.isfinite(promedio(q_prod_diviso)):
+            q_prod_diviso_est = q_salida_diviso + q_neto_diviso_por_nivel
+        else:
+            q_prod_diviso_est = q_prod_diviso
+
+        # T Cunduy-Malvinas: lo que no entra a Cunduy continúa a Malvinas.
+        q_pasa_a_malvinas_por_t = q_salida_diviso - q_ent_cunduy
+        if promedio(q_ent_malvinas_directa) is not None and np.isfinite(promedio(q_ent_malvinas_directa)):
+            q_ent_malvinas = q_ent_malvinas_directa
+            fuente_malvinas = "entrada directa medida en SCADA"
+        else:
+            q_ent_malvinas = q_pasa_a_malvinas_por_t
+            fuente_malvinas = "estimada por T: salida Diviso - entrada Cunduy"
+
+        fila_diviso = crear_fila("Diviso total 4400+1100", vdiviso, cap_diviso, q_prod_diviso_est, q_salida_diviso, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
+        fila_4400 = crear_fila("Diviso 4400", v4400, cap_4400, pd.Series([np.nan]*len(df_f)), pd.Series([np.nan]*len(df_f)), horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
+        fila_1100 = crear_fila("Diviso 1100", v1100, cap_1100, pd.Series([np.nan]*len(df_f)), pd.Series([np.nan]*len(df_f)), horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
+        fila_cunduy = crear_fila("Cunduy", vcunduy, cap_cunduy, q_ent_cunduy, q_sal_cunduy, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
+        fila_malvinas = crear_fila("Malvinas", vmalvinas, cap_malvinas, q_ent_malvinas, q_sal_malvinas, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
+
+        tabla = pd.DataFrame([fila_diviso, fila_4400, fila_1100, fila_cunduy, fila_malvinas])
+
+        vol_diviso = fila_diviso["Volumen actual (m³)"]
+        pct_diviso = fila_diviso["Nivel actual (%)"]
+        v_min_diviso = cap_diviso * min_pct / 100.0
+        reserva_diviso_ls = max(0.0, (vol_diviso - v_min_diviso) / (3.6 * horizonte_h)) if np.isfinite(vol_diviso) else 0.0
+        q_prod_prom = promedio(q_prod_diviso_est)
+        q_linea_actual = promedio(q_salida_diviso)
+        q_limite_linea = st.number_input("Límite hidráulico aproximado de línea Diviso → Cunduy/Malvinas (L/s)", min_value=1.0, value=max(450.0, q_linea_actual if np.isfinite(q_linea_actual) else 450.0), step=5.0, key="hist_limite_linea_t")
+        q_despacho_seguro = min(q_limite_linea, max(0.0, (q_prod_prom if np.isfinite(q_prod_prom) else 0.0) + reserva_diviso_ls))
+
+        q_req_cunduy = fila_cunduy["Entrada requerida a objetivo (L/s)"]
+        q_req_malvinas = fila_malvinas["Entrada requerida a objetivo (L/s)"]
+        suma_req = sum([q for q in [q_req_cunduy, q_req_malvinas] if np.isfinite(q)])
+        if suma_req > q_despacho_seguro and suma_req > 0:
+            factor = q_despacho_seguro / suma_req
+            q_rec_cunduy = q_req_cunduy * factor if np.isfinite(q_req_cunduy) else 0.0
+            q_rec_malvinas = q_req_malvinas * factor if np.isfinite(q_req_malvinas) else 0.0
+        else:
+            q_rec_cunduy = q_req_cunduy if np.isfinite(q_req_cunduy) else 0.0
+            q_rec_malvinas = q_req_malvinas if np.isfinite(q_req_malvinas) else 0.0
+        q_linea_rec = q_rec_cunduy + q_rec_malvinas
+        q_cunduy_actual = promedio(q_ent_cunduy)
+        q_malvinas_actual = promedio(q_ent_malvinas)
+
+        if not np.isfinite(q_linea_actual):
+            decision = "FALTAN COLUMNAS DE CAUDAL PARA DECISIÓN COMPLETA"
+            color = "#e76f51"
+            detalle = "Selecciona caudal salida Diviso y caudales de Cunduy/Malvinas para calcular apertura o cierre."
+        elif pct_diviso <= min_pct:
+            decision = "REDUCIR DESPACHO DESDE DIVISO"
+            color = "#e63946"
+            detalle = "Diviso está cerca o por debajo del mínimo operativo. Prioriza recuperar nivel antes de aumentar envío a Cunduy/Malvinas."
+        elif q_linea_rec > q_linea_actual + margen_ls:
+            decision = "PUEDE AUMENTAR DESPACHO DESDE DIVISO"
+            color = "#2a9d8f"
+            detalle = f"Los destinos requieren más entrada y Diviso tiene margen. Línea recomendada aproximada: {q_linea_rec:.2f} L/s."
+        elif q_linea_rec < q_linea_actual - margen_ls:
+            decision = "REDUCIR O CERRAR PARCIALMENTE DESPACHO DESDE DIVISO"
+            color = "#e76f51"
+            detalle = f"Con el objetivo configurado, la línea está enviando más de lo requerido. Línea recomendada aproximada: {q_linea_rec:.2f} L/s."
+        else:
+            decision = "MANTENER DESPACHO Y SEGUIMIENTO"
+            color = "#1a6fff"
+            detalle = "La línea está cerca del caudal requerido para el horizonte seleccionado."
+
+        st.markdown(f"""
+        <div style="background:white;border-left:7px solid {color};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
+            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
+            <div style="font-size:1.35rem;font-weight:900;color:{color};margin:0.2rem 0">{decision}</div>
+            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Diviso actual", fmt_pct(pct_diviso), fmt_m3(vol_diviso))
+        k2.metric("Despacho seguro", fmt_q(q_despacho_seguro))
+        k3.metric("Línea actual", fmt_q(q_linea_actual))
+        k4.metric("Línea recomendada", fmt_q(q_linea_rec), f"{q_linea_rec - q_linea_actual:+.2f} L/s" if np.isfinite(q_linea_actual) else None)
+
+        st.markdown("<div class='titulo-seccion-resultado'>Reparto recomendado en la T Cunduy-Malvinas</div>", unsafe_allow_html=True)
+        t_df = pd.DataFrame([
+            {"Punto": "Ramal que entra a Cunduy", "Caudal actual/estimado (L/s)": q_cunduy_actual, "Caudal recomendado (L/s)": q_rec_cunduy, "Acción": "Abrir/aumentar" if q_rec_cunduy > (q_cunduy_actual if np.isfinite(q_cunduy_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_cunduy_actual) and q_rec_cunduy < q_cunduy_actual - margen_ls else "Mantener")},
+            {"Punto": f"Remanente hacia Malvinas ({fuente_malvinas})", "Caudal actual/estimado (L/s)": q_malvinas_actual, "Caudal recomendado (L/s)": q_rec_malvinas, "Acción": "Abrir/aumentar" if q_rec_malvinas > (q_malvinas_actual if np.isfinite(q_malvinas_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_malvinas_actual) and q_rec_malvinas < q_malvinas_actual - margen_ls else "Mantener")},
+            {"Punto": "Salida total Diviso por línea T", "Caudal actual/estimado (L/s)": q_linea_actual, "Caudal recomendado (L/s)": q_linea_rec, "Acción": "Abrir/aumentar" if q_linea_rec > (q_linea_actual if np.isfinite(q_linea_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_linea_actual) and q_linea_rec < q_linea_actual - margen_ls else "Mantener")},
+        ])
+        st.dataframe(t_df.style.format({"Caudal actual/estimado (L/s)": "{:.2f}", "Caudal recomendado (L/s)": "{:.2f}"}, na_rep="Sin dato"), use_container_width=True)
+
+        st.markdown("<div class='titulo-seccion-resultado'>Balance y tiempos por tanque</div>", unsafe_allow_html=True)
+        tabla_mostrar = tabla.drop(columns=["_color", "_horas_limite"])
+        st.dataframe(tabla_mostrar.style.format({
+            "Volumen actual (m³)": "{:,.2f}",
+            "Capacidad (m³)": "{:,.2f}",
+            "Nivel actual (%)": "{:.1f}%",
+            "Falta a objetivo (m³)": "{:,.2f}",
+            "Sobra sobre alto (m³)": "{:,.2f}",
+            "Entrada promedio/estimada (L/s)": "{:.2f}",
+            "Salida promedio (L/s)": "{:.2f}",
+            "Balance (L/s)": "{:+.2f}",
+            "Cambio (m³/h)": "{:+.2f}",
+            "Entrada requerida a objetivo (L/s)": "{:.2f}",
+        }, na_rep="Sin dato"), use_container_width=True)
+
+        fig = go.Figure()
+        x = df_f["__fecha_scada__"] if col_fecha != "No usar" else df_f.index
+        for nombre, serie in [("Diviso total", vdiviso), ("Cunduy", vcunduy), ("Malvinas", vmalvinas)]:
+            if not serie.dropna().empty:
+                fig.add_trace(go.Scatter(x=x, y=serie, mode="lines", name=nombre))
+        if fig.data:
+            fig.update_layout(title="Volúmenes históricos del periodo seleccionado", height=420, margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor="white", paper_bgcolor="white", yaxis_title="Volumen (m³)")
+            st.plotly_chart(fig, use_container_width=True)
+
+        if promedio(q_pasa_a_malvinas_por_t) is not None and np.isfinite(promedio(q_pasa_a_malvinas_por_t)) and promedio(q_pasa_a_malvinas_por_t) < -margen_ls:
+            st.warning("La fórmula de la T dio caudal negativo hacia Malvinas. Revisa si las lecturas no son simultáneas o si la columna de entrada Cunduy no corresponde al ramal correcto.")
+
+    else:
+        vcaldas = volumen_desde_vol_o_nivel(df_f, col_vol_caldas, col_niv_caldas, cap_caldas, alt_caldas)
+        q_ent_caldas = preparar_num(df_f, col_q_ent_caldas)
+        q_sal_caldas_total = preparar_num(df_f, col_q_sal_caldas)
+        q_sectores = pd.Series([0.0] * len(df_f), index=df_f.index)
+        for col in [col_q_centro, col_q_ciud1, col_q_ciud2, col_q_heliconias, col_q_acolsure]:
+            q_sectores = q_sectores + preparar_num(df_f, col).fillna(0)
+        if promedio(q_sal_caldas_total) is None or not np.isfinite(promedio(q_sal_caldas_total)):
+            q_sal_caldas = q_sectores.replace(0, np.nan)
+        else:
+            q_sal_caldas = q_sal_caldas_total
+
+        fila_caldas = crear_fila("Caldas", vcaldas, cap_caldas, q_ent_caldas, q_sal_caldas, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
+        q_req = fila_caldas["Entrada requerida a objetivo (L/s)"]
+        q_in_prom = fila_caldas["Entrada promedio/estimada (L/s)"]
+        q_out_prom = fila_caldas["Salida promedio (L/s)"]
+        pct = fila_caldas["Nivel actual (%)"]
+        if pct <= min_pct:
+            decision = "CERRAR O REDUCIR SALIDAS DE CALDAS"
+            color = "#e63946"
+            detalle = "El tanque está bajo. Prioriza recuperación de nivel y verifica producción/entrada estimada."
+        elif pct >= alto_pct:
+            decision = "PUEDE ABRIR/AUMENTAR SALIDAS DE CALDAS"
+            color = "#2a9d8f"
+            detalle = "El tanque está alto. Puede aumentar salida de forma gradual si la continuidad lo permite."
+        elif np.isfinite(q_in_prom) and np.isfinite(q_out_prom) and q_out_prom > q_in_prom + margen_ls:
+            decision = "REDUCIR SALIDA O AUMENTAR PRODUCCIÓN DE CALDAS"
+            color = "#e76f51"
+            detalle = "La salida promedio supera la entrada estimada y el tanque tenderá a bajar."
+        else:
+            decision = "MANTENER CALDAS Y SEGUIMIENTO"
+            color = "#1a6fff"
+            detalle = "El balance no exige una maniobra fuerte con los datos del periodo."
+
+        st.markdown(f"""
+        <div style="background:white;border-left:7px solid {color};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
+            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
+            <div style="font-size:1.35rem;font-weight:900;color:{color};margin:0.2rem 0">{decision}</div>
+            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Nivel Caldas", fmt_pct(pct), fmt_m3(fila_caldas["Volumen actual (m³)"]))
+        m2.metric("Entrada promedio", fmt_q(q_in_prom))
+        m3.metric("Salida promedio", fmt_q(q_out_prom))
+        m4.metric("Entrada requerida objetivo", fmt_q(q_req))
+
+        tabla = pd.DataFrame([fila_caldas]).drop(columns=["_color", "_horas_limite"])
+        st.dataframe(tabla.style.format({
+            "Volumen actual (m³)": "{:,.2f}",
+            "Capacidad (m³)": "{:,.2f}",
+            "Nivel actual (%)": "{:.1f}%",
+            "Falta a objetivo (m³)": "{:,.2f}",
+            "Sobra sobre alto (m³)": "{:,.2f}",
+            "Entrada promedio/estimada (L/s)": "{:.2f}",
+            "Salida promedio (L/s)": "{:.2f}",
+            "Balance (L/s)": "{:+.2f}",
+            "Cambio (m³/h)": "{:+.2f}",
+            "Entrada requerida a objetivo (L/s)": "{:.2f}",
+        }, na_rep="Sin dato"), use_container_width=True)
+
+        fig = go.Figure()
+        x = df_f["__fecha_scada__"] if col_fecha != "No usar" else df_f.index
+        if not vcaldas.dropna().empty:
+            fig.add_trace(go.Scatter(x=x, y=vcaldas, mode="lines", name="Caldas"))
+        if fig.data:
+            fig.update_layout(title="Volumen histórico Caldas", height=420, margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor="white", paper_bgcolor="white", yaxis_title="Volumen (m³)")
+            st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("""
+    <div class="caja-rango" style="border-left-color:#e63946">
+    <b>Advertencia operativa</b><br>
+    El análisis depende de que las columnas estén bien seleccionadas y de que las lecturas sean simultáneas. Si hay caudal negativo en la T, saltos raros o diferencias fuertes, confirma en SCADA/campo antes de maniobrar. La app no acciona válvulas reales.
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_hist_scada"):
+        st.session_state.vista = "menu"
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 # =========================================
 # VISTAS
 # =========================================
@@ -4435,6 +5050,10 @@ if st.session_state.vista == "scada":
 
 if st.session_state.vista == "despacho":
     mostrar_despacho_operativo()
+    st.stop()
+
+if st.session_state.vista == "historico_scada":
+    mostrar_despacho_historico_scada()
     st.stop()
 
 if st.session_state.vista == "documentos":
