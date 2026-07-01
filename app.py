@@ -23,7 +23,8 @@ st.set_page_config(
  
 BASE_DIR = Path(__file__).resolve().parent
 DOCUMENTOS_DIR = BASE_DIR / "Documentos"
-PIN_DOCUMENTOS = "1234"
+PIN_VER_DOCUMENTOS = "1234"      # PIN para ver y descargar PDF
+PIN_ADMIN_DOCUMENTOS = "4321"    # PIN para agregar y eliminar PDF
  
 USUARIOS = {
     "diviso": {"clave": "diviso123", "planta": "Diviso"},
@@ -41,6 +42,9 @@ if "planta_usuario" not in st.session_state:
 
 if "documentos_autorizado" not in st.session_state:
     st.session_state.documentos_autorizado = False
+
+if "documentos_admin_autorizado" not in st.session_state:
+    st.session_state.documentos_admin_autorizado = False
  
  
 # =========================================
@@ -3580,8 +3584,45 @@ def guardar_pdfs_subidos(archivos_subidos, reemplazar=False):
     return guardados, errores
 
 
+@st.cache_data(show_spinner=False)
+def obtener_info_pdf_bytes(pdf_bytes):
+    """Devuelve número de páginas del PDF. Usa PyMuPDF para evitar visor bloqueado por Chrome."""
+    import fitz
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    n_paginas = doc.page_count
+    doc.close()
+    return n_paginas
+
+
+@st.cache_data(show_spinner=False)
+def renderizar_pdf_a_imagenes(pdf_bytes, pagina_inicio, pagina_fin, zoom=1.55):
+    """Renderiza páginas del PDF a PNG para mostrarlas con st.image.
+
+    Esta forma evita el problema de Chrome bloqueando iframes con PDF en base64.
+    Requiere PyMuPDF en requirements.txt.
+    """
+    import fitz
+
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    paginas = []
+    matriz = fitz.Matrix(float(zoom), float(zoom))
+
+    for i in range(pagina_inicio - 1, pagina_fin):
+        if i < 0 or i >= doc.page_count:
+            continue
+        page = doc.load_page(i)
+        pix = page.get_pixmap(matrix=matriz, alpha=False)
+        paginas.append((i + 1, pix.tobytes("png")))
+
+    doc.close()
+    return paginas
+
+
 def mostrar_pdf_en_pagina(ruta_pdf, alto=850):
-    """Muestra un PDF dentro de la página usando un iframe en base64."""
+    """Muestra un PDF dentro de Streamlit como imágenes de páginas.
+
+    No usa iframe porque Chrome puede bloquear PDF embebidos en base64 dentro de Streamlit.
+    """
     ruta_pdf = Path(ruta_pdf)
 
     if not ruta_pdf.exists():
@@ -3589,23 +3630,111 @@ def mostrar_pdf_en_pagina(ruta_pdf, alto=850):
         st.info("Verifica que el PDF esté dentro de la carpeta Documentos del repositorio.")
         return
 
+    pdf_bytes = ruta_pdf.read_bytes()
+
     try:
-        base64_pdf = base64.b64encode(ruta_pdf.read_bytes()).decode("utf-8")
-        html_pdf = f"""
-        <div style="background:white;border:1px solid #dce9f7;border-radius:18px;padding:0.7rem;box-shadow:0 4px 20px rgba(10,22,40,0.06);">
-            <iframe
-                src="data:application/pdf;base64,{base64_pdf}#toolbar=1&navpanes=1&scrollbar=1"
-                width="100%"
-                height="{alto}"
-                type="application/pdf"
-                style="border:none;border-radius:14px;">
-            </iframe>
-        </div>
-        """
-        components.html(html_pdf, height=alto + 35, scrolling=True)
+        total_paginas = obtener_info_pdf_bytes(pdf_bytes)
+    except ModuleNotFoundError:
+        st.error("Falta instalar PyMuPDF para visualizar PDF dentro de la app.")
+        st.code("PyMuPDF", language="text")
+        st.info("Agrega esa línea en requirements.txt, guarda los cambios y vuelve a desplegar la app. Mientras tanto puedes usar el botón de descarga del PDF.")
+        return
     except Exception as exc:
-        st.error(f"No se pudo mostrar el PDF en la página: {exc}")
+        st.error(f"No se pudo leer el PDF: {exc}")
         st.info("Puedes usar el botón de descarga para abrirlo directamente en el navegador.")
+        return
+
+    if total_paginas <= 0:
+        st.warning("El PDF no tiene páginas para mostrar.")
+        return
+
+    st.markdown("""
+    <div class="caja-rango" style="border-left-color:#00c8ff;margin-top:0.4rem">
+        <b>Vista segura</b><br>
+        El PDF se muestra como imágenes de páginas para evitar el bloqueo de Chrome.
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_p1, col_p2, col_p3 = st.columns([1, 1, 1])
+    with col_p1:
+        pagina_inicio = st.number_input(
+            "Desde página",
+            min_value=1,
+            max_value=int(total_paginas),
+            value=1,
+            step=1,
+            key=f"pdf_inicio_{ruta_pdf.name}"
+        )
+    with col_p2:
+        pagina_fin_default = min(int(total_paginas), int(pagina_inicio) + 4)
+        pagina_fin = st.number_input(
+            "Hasta página",
+            min_value=int(pagina_inicio),
+            max_value=int(total_paginas),
+            value=pagina_fin_default,
+            step=1,
+            key=f"pdf_fin_{ruta_pdf.name}"
+        )
+    with col_p3:
+        zoom = st.select_slider(
+            "Tamaño de lectura",
+            options=[1.1, 1.3, 1.55, 1.8, 2.1],
+            value=1.55,
+            format_func=lambda x: {
+                1.1: "Pequeño",
+                1.3: "Mediano",
+                1.55: "Grande",
+                1.8: "Muy grande",
+                2.1: "Extra grande",
+            }.get(x, str(x)),
+            key=f"pdf_zoom_{ruta_pdf.name}"
+        )
+
+    if int(pagina_fin) - int(pagina_inicio) > 9:
+        st.warning("Para que la app no se ponga lenta, se recomienda visualizar máximo 10 páginas a la vez.")
+
+    pagina_fin = min(int(pagina_fin), int(pagina_inicio) + 9)
+
+    with st.spinner("Cargando vista del PDF..."):
+        paginas = renderizar_pdf_a_imagenes(pdf_bytes, int(pagina_inicio), int(pagina_fin), float(zoom))
+
+    st.caption(f"Mostrando páginas {pagina_inicio} a {pagina_fin} de {total_paginas}.")
+
+    for numero_pagina, imagen_png in paginas:
+        st.markdown(f"<div class='titulo-seccion-resultado'>Página {numero_pagina}</div>", unsafe_allow_html=True)
+        st.image(imagen_png, use_container_width=True)
+
+
+def eliminar_pdfs_documentos(nombres_pdf):
+    """Elimina PDF seleccionados de la carpeta Documentos."""
+    carpeta = asegurar_carpeta_documentos()
+    eliminados = []
+    errores = []
+
+    for nombre in nombres_pdf:
+        try:
+            nombre_seguro = nombre_archivo_pdf_seguro(nombre)
+            ruta = carpeta / nombre_seguro
+
+            # Seguridad: solo se permite borrar archivos PDF dentro de la carpeta Documentos.
+            if ruta.parent.resolve() != carpeta.resolve():
+                errores.append(f"{nombre}: ruta no permitida")
+                continue
+
+            if not ruta.exists():
+                errores.append(f"{nombre}: no existe")
+                continue
+
+            if ruta.suffix.lower() != ".pdf":
+                errores.append(f"{nombre}: no es PDF")
+                continue
+
+            ruta.unlink()
+            eliminados.append(nombre_seguro)
+        except Exception as exc:
+            errores.append(f"{nombre}: {exc}")
+
+    return eliminados, errores
 
 
 def mostrar_documentos_sistema():
@@ -3614,61 +3743,165 @@ def mostrar_documentos_sistema():
 
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;line-height:1.6;margin-bottom:1rem">
-    Consulta, descarga y agrega instructivos PDF directamente desde la aplicación.
-    Para entrar a esta sección se solicita PIN de seguridad.
+    Consulta los instructivos PDF directamente desde la aplicación. El acceso de consulta permite ver y descargar.
+    El acceso de administrador permite agregar y eliminar PDF.
     </p>
     """, unsafe_allow_html=True)
 
-    if not st.session_state.get("documentos_autorizado", False):
-        st.warning("Esta sección está protegida. Ingresa el PIN para ver los documentos.")
-        col_pin, col_btn = st.columns([3, 1])
-        with col_pin:
-            pin = st.text_input("PIN de documentos", type="password", placeholder="Ingresa el PIN", key="pin_documentos")
-        with col_btn:
-            st.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
-            entrar = st.button("Ingresar", use_container_width=True, key="btn_ingresar_documentos")
+    # Crear carpeta si no existe.
+    asegurar_carpeta_documentos()
 
-        if entrar:
-            if str(pin).strip() == PIN_DOCUMENTOS:
+    # ---------------------------------------------------------
+    # ACCESO POR PIN
+    # ---------------------------------------------------------
+    col_estado_1, col_estado_2 = st.columns([2, 2])
+    with col_estado_1:
+        if st.session_state.get("documentos_autorizado", False):
+            st.success("Acceso de consulta activo: puedes ver y descargar PDF.")
+        else:
+            st.warning("Acceso de consulta bloqueado.")
+    with col_estado_2:
+        if st.session_state.get("documentos_admin_autorizado", False):
+            st.success("Acceso administrador activo: puedes agregar y eliminar PDF.")
+        else:
+            st.info("Acceso administrador bloqueado.")
+
+    if not st.session_state.get("documentos_autorizado", False):
+        st.markdown("<div class='titulo-seccion-resultado'>Ingresar como consulta</div>", unsafe_allow_html=True)
+        cpin1, cpin2 = st.columns([3, 1])
+        with cpin1:
+            pin_ver = st.text_input(
+                "PIN para ver y descargar documentos",
+                type="password",
+                placeholder="Ingresa el PIN de consulta",
+                key="pin_ver_documentos"
+            )
+        with cpin2:
+            st.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
+            if st.button("Entrar", use_container_width=True, key="btn_ingresar_ver_documentos"):
+                if str(pin_ver).strip() == PIN_VER_DOCUMENTOS:
+                    st.session_state.documentos_autorizado = True
+                    st.success("Acceso autorizado.")
+                    st.rerun()
+                else:
+                    st.error("PIN de consulta incorrecto.")
+
+    with st.expander("🔐 Ingresar como administrador", expanded=False):
+        st.caption("El administrador puede agregar y eliminar PDF. Cambia el PIN en el código si deseas otra clave.")
+        admin_pin = st.text_input(
+            "PIN de administrador",
+            type="password",
+            placeholder="Ingresa el PIN de administrador",
+            key="pin_admin_documentos"
+        )
+        if st.button("Activar modo administrador", use_container_width=True, key="btn_ingresar_admin_documentos"):
+            if str(admin_pin).strip() == PIN_ADMIN_DOCUMENTOS:
+                st.session_state.documentos_admin_autorizado = True
                 st.session_state.documentos_autorizado = True
-                st.success("Acceso autorizado.")
+                st.success("Modo administrador activado.")
                 st.rerun()
             else:
-                st.error("PIN incorrecto.")
+                st.error("PIN de administrador incorrecto.")
 
+    if not st.session_state.get("documentos_autorizado", False):
+        st.info("Ingresa el PIN de consulta para ver los PDF o el PIN de administrador para gestionar documentos.")
         st.markdown("</div>", unsafe_allow_html=True)
         return
 
-    col_a, col_b = st.columns([3, 1])
-    with col_a:
-        st.success("Acceso autorizado a documentos del sistema.")
-    with col_b:
-        if st.button("Bloquear sección", type="secondary", use_container_width=True, key="btn_bloquear_documentos"):
+    col_bloq1, col_bloq2, col_bloq3 = st.columns([1, 1, 1])
+    with col_bloq1:
+        if st.button("🔒 Bloquear consulta", type="secondary", use_container_width=True, key="btn_bloquear_ver_documentos"):
             st.session_state.documentos_autorizado = False
+            st.session_state.documentos_admin_autorizado = False
+            st.rerun()
+    with col_bloq2:
+        if st.session_state.get("documentos_admin_autorizado", False):
+            if st.button("🔒 Salir de admin", type="secondary", use_container_width=True, key="btn_bloquear_admin_documentos"):
+                st.session_state.documentos_admin_autorizado = False
+                st.rerun()
+    with col_bloq3:
+        if st.button("🔄 Actualizar lista", use_container_width=True, key="btn_actualizar_documentos_top"):
             st.rerun()
 
-    with st.expander("➕ Agregar nuevos PDF", expanded=False):
-        st.caption("Los PDF cargados se guardan en la carpeta Documentos. En despliegues tipo Streamlit Cloud, para que queden permanentes también debes subirlos al repositorio de GitHub.")
-        archivos = st.file_uploader(
-            "Selecciona uno o varios PDF",
-            type=["pdf"],
-            accept_multiple_files=True,
-            key="uploader_documentos_pdf"
-        )
-        reemplazar = st.checkbox("Reemplazar si ya existe un PDF con el mismo nombre", value=False, key="chk_reemplazar_pdf")
+    # ---------------------------------------------------------
+    # PANEL ADMINISTRADOR: AGREGAR Y ELIMINAR
+    # ---------------------------------------------------------
+    if st.session_state.get("documentos_admin_autorizado", False):
+        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+        st.markdown("<div class='titulo-seccion-resultado'>Panel de administrador</div>", unsafe_allow_html=True)
 
-        if st.button("Guardar PDF(s)", use_container_width=True, key="btn_guardar_pdfs"):
-            if not archivos:
-                st.info("Primero selecciona al menos un PDF.")
+        st.markdown("""
+        <div class="caja-rango" style="border-left-color:#f4a261">
+            <b>Importante sobre permanencia</b><br>
+            Si la app corre en tu computador o servidor propio, los PDF cargados quedan guardados en la carpeta <b>Documentos</b> de ese equipo.
+            Si la app corre en Streamlit Community Cloud u otro despliegue temporal, los archivos cargados desde la app pueden perderse al reiniciar,
+            actualizar o redeplegar la aplicación. Para que queden fijos para siempre, súbelos también a GitHub en la carpeta <b>Documentos</b>.
+        </div>
+        """, unsafe_allow_html=True)
+
+        tab_subir, tab_eliminar = st.tabs(["➕ Agregar PDF", "🗑️ Eliminar PDF"])
+
+        with tab_subir:
+            archivos = st.file_uploader(
+                "Selecciona uno o varios PDF para agregar",
+                type=["pdf"],
+                accept_multiple_files=True,
+                key="uploader_documentos_pdf_admin"
+            )
+            reemplazar = st.checkbox(
+                "Reemplazar si ya existe un PDF con el mismo nombre",
+                value=False,
+                key="chk_reemplazar_pdf_admin"
+            )
+
+            if st.button("Guardar PDF(s)", use_container_width=True, key="btn_guardar_pdfs_admin"):
+                if not archivos:
+                    st.info("Primero selecciona al menos un PDF.")
+                else:
+                    guardados, errores = guardar_pdfs_subidos(archivos, reemplazar=reemplazar)
+                    if guardados:
+                        st.success("PDF guardado(s): " + ", ".join(guardados))
+                    if errores:
+                        st.error("Algunos archivos no se pudieron guardar: " + " | ".join(errores))
+                    st.rerun()
+
+        with tab_eliminar:
+            pdfs_para_borrar = listar_pdfs_documentos()
+            if not pdfs_para_borrar:
+                st.info("No hay PDF para eliminar.")
             else:
-                guardados, errores = guardar_pdfs_subidos(archivos, reemplazar=reemplazar)
-                if guardados:
-                    st.success("PDF guardado(s): " + ", ".join(guardados))
-                if errores:
-                    st.error("Algunos archivos no se pudieron guardar: " + " | ".join(errores))
-                st.rerun()
+                nombres_borrar = [pdf.name for pdf in pdfs_para_borrar]
+                seleccion_borrar = st.multiselect(
+                    "Selecciona los PDF que deseas eliminar",
+                    nombres_borrar,
+                    key="multiselect_borrar_pdfs"
+                )
+                confirmar_borrado = st.checkbox(
+                    "Confirmo que deseo eliminar los PDF seleccionados",
+                    value=False,
+                    key="chk_confirmar_borrado_pdfs"
+                )
 
+                if st.button("Eliminar PDF seleccionado(s)", use_container_width=True, key="btn_eliminar_pdfs_admin"):
+                    if not seleccion_borrar:
+                        st.info("Selecciona al menos un PDF para eliminar.")
+                    elif not confirmar_borrado:
+                        st.warning("Marca la confirmación antes de eliminar.")
+                    else:
+                        eliminados, errores = eliminar_pdfs_documentos(seleccion_borrar)
+                        if eliminados:
+                            st.success("PDF eliminado(s): " + ", ".join(eliminados))
+                        if errores:
+                            st.error("Algunos PDF no se pudieron eliminar: " + " | ".join(errores))
+                        st.rerun()
+
+    # ---------------------------------------------------------
+    # LISTA, DESCARGA Y VISUALIZACIÓN
+    # ---------------------------------------------------------
     pdfs = listar_pdfs_documentos()
+
+    st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
+    st.markdown("<div class='titulo-seccion-resultado'>Consulta de documentos</div>", unsafe_allow_html=True)
 
     if not pdfs:
         st.info("Todavía no hay PDF en la carpeta Documentos.")
@@ -3679,10 +3912,16 @@ def mostrar_documentos_sistema():
     documento = st.selectbox("Selecciona el PDF que deseas consultar", nombres, key="select_documento_pdf")
     ruta_seleccionada = next(pdf for pdf in pdfs if pdf.name == documento)
 
-    pdf_bytes = ruta_seleccionada.read_bytes()
+    try:
+        pdf_bytes = ruta_seleccionada.read_bytes()
+    except Exception as exc:
+        st.error(f"No se pudo abrir el archivo seleccionado: {exc}")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
     tamano_mb = len(pdf_bytes) / (1024 * 1024)
 
-    c1, c2, c3 = st.columns([2.2, 1, 1])
+    c1, c2 = st.columns([2.8, 1])
     with c1:
         st.markdown(f"""
         <div class="caja-rango" style="margin-top:0">
@@ -3700,9 +3939,6 @@ def mostrar_documentos_sistema():
             use_container_width=True,
             key="btn_descargar_pdf"
         )
-    with c3:
-        if st.button("🔄 Actualizar lista", use_container_width=True, key="btn_actualizar_documentos"):
-            st.rerun()
 
     st.markdown("<div class='titulo-seccion-resultado'>Vista previa del PDF</div>", unsafe_allow_html=True)
     mostrar_pdf_en_pagina(ruta_seleccionada, alto=850)
@@ -4095,3 +4331,4 @@ with col_result:
         st.plotly_chart(fig, use_container_width=True)
  
     st.markdown("</div>", unsafe_allow_html=True)
+ 
