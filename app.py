@@ -3116,7 +3116,7 @@ with st.expander("Menú principal", expanded=False):
     with m5:
         st.markdown("""
         <div class="menu-card">
-            <span class="menu-icon">🔒</span>
+            <span class="menu-icon"></span>
             <div class="menu-titulo">Sesión activa</div>
             <div class="menu-texto">Cierra la sesión y vuelve al acceso principal.</div>
         </div>
