@@ -1,5 +1,10 @@
 import streamlit as st
 import base64
+import hmac
+import time
+import re
+from urllib.parse import quote
+import requests
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -23,13 +28,87 @@ st.set_page_config(
  
 BASE_DIR = Path(__file__).resolve().parent
 DOCUMENTOS_DIR = BASE_DIR / "Documentos"
-PIN_VER_DOCUMENTOS = "1234"      # PIN para ver y descargar PDF
-PIN_ADMIN_DOCUMENTOS = "4321"    # PIN para agregar y eliminar PDF
- 
-USUARIOS = {
-    "diviso": {"clave": "diviso123", "planta": "Diviso"},
-    "caldas": {"clave": "caldas123", "planta": "Caldas"},
-}
+
+
+# =========================================
+# SEGURIDAD PARA STREAMLIT CLOUD
+# =========================================
+def obtener_secreto(nombre, default=""):
+    """Lee secretos de Streamlit Cloud sin romper la app si aún no están configurados."""
+    try:
+        valor = st.secrets.get(nombre, default)
+        if valor is None:
+            return default
+        return str(valor)
+    except Exception:
+        return default
+
+
+def entero_secreto(nombre, default):
+    try:
+        return int(obtener_secreto(nombre, str(default)))
+    except Exception:
+        return int(default)
+
+
+def secreto_configurado(nombre):
+    return obtener_secreto(nombre, "").strip() != ""
+
+
+def comparar_secreto(valor_ingresado, valor_real):
+    """Compara claves sin filtrar información por tiempo de comparación."""
+    return hmac.compare_digest(str(valor_ingresado).strip(), str(valor_real).strip())
+
+
+MAX_INTENTOS_PIN = entero_secreto("MAX_INTENTOS_PIN", 5)
+BLOQUEO_SEGUNDOS_PIN = entero_secreto("BLOQUEO_SEGUNDOS_PIN", 600)
+PIN_VER_DOCUMENTOS = obtener_secreto("PIN_VER_DOCUMENTOS", "")
+PIN_ADMIN_DOCUMENTOS = obtener_secreto("PIN_ADMIN_DOCUMENTOS", "")
+
+# Datos del repositorio para que el administrador pueda guardar/eliminar PDF de forma permanente en GitHub.
+GITHUB_TOKEN = obtener_secreto("GITHUB_TOKEN", "")
+GITHUB_REPO = obtener_secreto("GITHUB_REPO", "laboratoriosdeprocesos-hub/app-pac")
+GITHUB_BRANCH = obtener_secreto("GITHUB_BRANCH", "main")
+GITHUB_DOCS_DIR = obtener_secreto("GITHUB_DOCS_DIR", "Documentos").strip("/") or "Documentos"
+
+
+def cargar_usuarios_desde_secretos():
+    """Usuarios de acceso general. Las contraseñas deben estar en Streamlit Secrets."""
+    usuarios = {}
+
+    usuario_diviso = obtener_secreto("USUARIO_DIVISO", "diviso").strip().lower()
+    clave_diviso = obtener_secreto("CLAVE_DIVISO", "")
+    if usuario_diviso and clave_diviso:
+        usuarios[usuario_diviso] = {"clave": clave_diviso, "planta": "Diviso"}
+
+    usuario_caldas = obtener_secreto("USUARIO_CALDAS", "caldas").strip().lower()
+    clave_caldas = obtener_secreto("CLAVE_CALDAS", "")
+    if usuario_caldas and clave_caldas:
+        usuarios[usuario_caldas] = {"clave": clave_caldas, "planta": "Caldas"}
+
+    return usuarios
+
+
+USUARIOS = cargar_usuarios_desde_secretos()
+
+
+def segundos_restantes_bloqueo(nombre):
+    hasta = float(st.session_state.get(f"bloqueado_hasta_{nombre}", 0) or 0)
+    restante = int(max(0, hasta - time.time()))
+    return restante
+
+
+def registrar_intento_fallido(nombre):
+    key_intentos = f"intentos_{nombre}"
+    st.session_state[key_intentos] = int(st.session_state.get(key_intentos, 0)) + 1
+    if st.session_state[key_intentos] >= MAX_INTENTOS_PIN:
+        st.session_state[f"bloqueado_hasta_{nombre}"] = time.time() + BLOQUEO_SEGUNDOS_PIN
+        st.session_state[key_intentos] = 0
+
+
+def reiniciar_intentos(nombre):
+    st.session_state[f"intentos_{nombre}"] = 0
+    st.session_state[f"bloqueado_hasta_{nombre}"] = 0
  
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
@@ -385,14 +464,24 @@ def mostrar_login():
             st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
  
             if st.button("INGRESAR AL SISTEMA", key="btn_login"):
-                u = usuario.strip().lower()
-                if u in USUARIOS and clave == USUARIOS[u]["clave"]:
-                    st.session_state.autenticado    = True
-                    st.session_state.vista          = "menu"
-                    st.session_state.planta_usuario = USUARIOS[u]["planta"]
-                    st.rerun()
+                restante = segundos_restantes_bloqueo("login")
+                if restante > 0:
+                    st.error(f"Acceso bloqueado temporalmente. Intenta nuevamente en {restante} segundos.")
+                elif not USUARIOS:
+                    st.error("Faltan configurar los usuarios y claves en Streamlit Cloud Secrets.")
+                    st.info("Configura USUARIO_DIVISO, CLAVE_DIVISO, USUARIO_CALDAS y CLAVE_CALDAS en los Secrets de la app.")
                 else:
-                    st.error("Usuario o contraseña incorrectos")
+                    u = usuario.strip().lower()
+                    clave_real = USUARIOS.get(u, {}).get("clave", "")
+                    if u in USUARIOS and comparar_secreto(clave, clave_real):
+                        reiniciar_intentos("login")
+                        st.session_state.autenticado    = True
+                        st.session_state.vista          = "menu"
+                        st.session_state.planta_usuario = USUARIOS[u]["planta"]
+                        st.rerun()
+                    else:
+                        registrar_intento_fallido("login")
+                        st.error("Usuario o contraseña incorrectos")
  
             st.markdown("""
             <div class="login-bottom-note">
@@ -3566,17 +3655,168 @@ def obtener_ruta_sin_sobrescribir(carpeta, nombre_archivo):
         contador += 1
 
 
+def pdf_es_valido(uploaded_file, max_mb=25):
+    """Valida tamaño y firma básica de PDF."""
+    try:
+        data = uploaded_file.getbuffer()
+        if len(data) > max_mb * 1024 * 1024:
+            return False, f"supera el tamaño máximo de {max_mb} MB"
+        if not bytes(data[:5]).startswith(b"%PDF-"):
+            return False, "el archivo no parece ser un PDF válido"
+        return True, ""
+    except Exception as exc:
+        return False, str(exc)
+
+
+def github_habilitado():
+    return bool(GITHUB_TOKEN.strip() and GITHUB_REPO.strip() and GITHUB_BRANCH.strip())
+
+
+def github_headers():
+    return {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+
+def github_url_contenido(nombre_archivo):
+    ruta_repo = f"{GITHUB_DOCS_DIR}/{nombre_archivo}"
+    return f"https://api.github.com/repos/{GITHUB_REPO}/contents/{quote(ruta_repo)}"
+
+
+def github_obtener_info(nombre_archivo):
+    if not github_habilitado():
+        return None, "GitHub no configurado"
+    try:
+        resp = requests.get(
+            github_url_contenido(nombre_archivo),
+            headers=github_headers(),
+            params={"ref": GITHUB_BRANCH},
+            timeout=20,
+        )
+        if resp.status_code == 200:
+            return resp.json(), None
+        if resp.status_code == 404:
+            return None, None
+        return None, f"GitHub respondió {resp.status_code}: {resp.text[:250]}"
+    except Exception as exc:
+        return None, str(exc)
+
+
+def github_nombre_disponible(nombre_archivo):
+    info, error = github_obtener_info(nombre_archivo)
+    if error:
+        return nombre_archivo
+    if info is None:
+        return nombre_archivo
+
+    ruta = Path(nombre_archivo)
+    base = ruta.stem
+    sufijo = ruta.suffix or ".pdf"
+    contador = 1
+    while True:
+        candidato = f"{base}_{contador}{sufijo}"
+        info, error = github_obtener_info(candidato)
+        if error or info is None:
+            return candidato
+        contador += 1
+
+
+def github_guardar_pdf(nombre_archivo, contenido_bytes, reemplazar=False):
+    if not github_habilitado():
+        return False, "GitHub no está configurado. El PDF solo se guardó temporalmente en la app."
+
+    nombre_final = nombre_archivo
+    info_existente, error_info = github_obtener_info(nombre_final)
+    if error_info:
+        return False, error_info
+
+    if info_existente is not None and not reemplazar:
+        nombre_final = github_nombre_disponible(nombre_final)
+        info_existente = None
+
+    payload = {
+        "message": f"Agregar/actualizar documento {nombre_final}",
+        "content": base64.b64encode(contenido_bytes).decode("utf-8"),
+        "branch": GITHUB_BRANCH,
+    }
+    if info_existente is not None and info_existente.get("sha"):
+        payload["sha"] = info_existente["sha"]
+
+    try:
+        resp = requests.put(
+            github_url_contenido(nombre_final),
+            headers=github_headers(),
+            json=payload,
+            timeout=30,
+        )
+        if resp.status_code in (200, 201):
+            return True, nombre_final
+        return False, f"GitHub respondió {resp.status_code}: {resp.text[:300]}"
+    except Exception as exc:
+        return False, str(exc)
+
+
+def github_eliminar_pdf(nombre_archivo):
+    if not github_habilitado():
+        return False, "GitHub no está configurado. Se eliminará solo de forma temporal si existe en la app."
+
+    info, error_info = github_obtener_info(nombre_archivo)
+    if error_info:
+        return False, error_info
+    if info is None:
+        return False, "No existe en GitHub"
+
+    payload = {
+        "message": f"Eliminar documento {nombre_archivo}",
+        "sha": info.get("sha"),
+        "branch": GITHUB_BRANCH,
+    }
+
+    try:
+        resp = requests.delete(
+            github_url_contenido(nombre_archivo),
+            headers=github_headers(),
+            json=payload,
+            timeout=30,
+        )
+        if resp.status_code == 200:
+            return True, nombre_archivo
+        return False, f"GitHub respondió {resp.status_code}: {resp.text[:300]}"
+    except Exception as exc:
+        return False, str(exc)
+
+
 def guardar_pdfs_subidos(archivos_subidos, reemplazar=False):
-    """Guarda uno o varios PDF cargados desde Streamlit en la carpeta Documentos."""
+    """Guarda PDF cargados. En Streamlit Cloud, si GITHUB_TOKEN está configurado, también los sube al repositorio para permanencia."""
     carpeta = asegurar_carpeta_documentos()
     guardados = []
     errores = []
 
     for archivo in archivos_subidos:
         try:
+            valido, motivo = pdf_es_valido(archivo, max_mb=25)
+            if not valido:
+                errores.append(f"{getattr(archivo, 'name', 'archivo')}: {motivo}")
+                continue
+
             nombre = nombre_archivo_pdf_seguro(archivo.name)
-            ruta_destino = carpeta / nombre if reemplazar else obtener_ruta_sin_sobrescribir(carpeta, nombre)
-            ruta_destino.write_bytes(archivo.getbuffer())
+            contenido = bytes(archivo.getbuffer())
+
+            # 1) Guardado permanente en GitHub si está configurado.
+            nombre_final = nombre
+            if github_habilitado():
+                ok_git, resultado_git = github_guardar_pdf(nombre, contenido, reemplazar=reemplazar)
+                if ok_git:
+                    nombre_final = resultado_git
+                else:
+                    errores.append(f"{nombre}: no se pudo guardar en GitHub ({resultado_git})")
+                    # No se detiene: también se intenta guardar temporalmente para esta sesión.
+
+            # 2) Guardado local para que se vea inmediatamente en la sesión actual.
+            ruta_destino = carpeta / nombre_final if reemplazar else obtener_ruta_sin_sobrescribir(carpeta, nombre_final)
+            ruta_destino.write_bytes(contenido)
             guardados.append(ruta_destino.name)
         except Exception as exc:
             errores.append(f"{getattr(archivo, 'name', 'archivo')}: {exc}")
@@ -3688,7 +3928,7 @@ def mostrar_pdf_en_pagina(ruta_pdf, alto=850):
 
 
 def eliminar_pdfs_documentos(nombres_pdf):
-    """Elimina PDF seleccionados de la carpeta Documentos."""
+    """Elimina PDF seleccionados. Si GitHub está configurado, también los elimina del repositorio para que el cambio sea permanente."""
     carpeta = asegurar_carpeta_documentos()
     eliminados = []
     errores = []
@@ -3702,16 +3942,20 @@ def eliminar_pdfs_documentos(nombres_pdf):
             if ruta.parent.resolve() != carpeta.resolve():
                 errores.append(f"{nombre}: ruta no permitida")
                 continue
-
-            if not ruta.exists():
-                errores.append(f"{nombre}: no existe")
-                continue
-
-            if ruta.suffix.lower() != ".pdf":
+            if Path(nombre_seguro).suffix.lower() != ".pdf":
                 errores.append(f"{nombre}: no es PDF")
                 continue
 
-            ruta.unlink()
+            # Eliminación permanente en GitHub, si está configurado.
+            if github_habilitado():
+                ok_git, resultado_git = github_eliminar_pdf(nombre_seguro)
+                if not ok_git and resultado_git != "No existe en GitHub":
+                    errores.append(f"{nombre}: no se pudo eliminar en GitHub ({resultado_git})")
+
+            # Eliminación local para que se refleje en la sesión actual.
+            if ruta.exists():
+                ruta.unlink()
+
             eliminados.append(nombre_seguro)
         except Exception as exc:
             errores.append(f"{nombre}: {exc}")
@@ -3726,7 +3970,7 @@ def mostrar_documentos_sistema():
     st.markdown("""
     <p style="color:#5a7899;font-size:0.93rem;line-height:1.6;margin-bottom:1rem">
     Consulta los instructivos PDF directamente desde la aplicación. El acceso de consulta permite ver y descargar.
-    El acceso de administrador permite agregar y eliminar PDF.
+    El acceso de administrador permite agregar y eliminar PDF. Las claves se leen desde Streamlit Cloud Secrets.
     </p>
     """, unsafe_allow_html=True)
 
@@ -3761,15 +4005,22 @@ def mostrar_documentos_sistema():
         with cpin2:
             st.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
             if st.button("Entrar", use_container_width=True, key="btn_ingresar_ver_documentos"):
-                if str(pin_ver).strip() == PIN_VER_DOCUMENTOS:
+                restante = segundos_restantes_bloqueo("documentos_consulta")
+                if restante > 0:
+                    st.error(f"Consulta bloqueada temporalmente. Intenta nuevamente en {restante} segundos.")
+                elif not PIN_VER_DOCUMENTOS:
+                    st.error("Falta configurar PIN_VER_DOCUMENTOS en Streamlit Cloud Secrets.")
+                elif comparar_secreto(pin_ver, PIN_VER_DOCUMENTOS):
+                    reiniciar_intentos("documentos_consulta")
                     st.session_state.documentos_autorizado = True
                     st.success("Acceso autorizado.")
                     st.rerun()
                 else:
+                    registrar_intento_fallido("documentos_consulta")
                     st.error("PIN de consulta incorrecto.")
 
     with st.expander("🔐 Ingresar como administrador", expanded=False):
-        st.caption("El administrador puede agregar y eliminar PDF. Cambia el PIN en el código si deseas otra clave.")
+        st.caption("El administrador puede agregar y eliminar PDF. El PIN debe configurarse en Streamlit Cloud Secrets, no en el código.")
         admin_pin = st.text_input(
             "PIN de administrador",
             type="password",
@@ -3777,12 +4028,19 @@ def mostrar_documentos_sistema():
             key="pin_admin_documentos"
         )
         if st.button("Activar modo administrador", use_container_width=True, key="btn_ingresar_admin_documentos"):
-            if str(admin_pin).strip() == PIN_ADMIN_DOCUMENTOS:
+            restante = segundos_restantes_bloqueo("documentos_admin")
+            if restante > 0:
+                st.error(f"Administrador bloqueado temporalmente. Intenta nuevamente en {restante} segundos.")
+            elif not PIN_ADMIN_DOCUMENTOS:
+                st.error("Falta configurar PIN_ADMIN_DOCUMENTOS en Streamlit Cloud Secrets.")
+            elif comparar_secreto(admin_pin, PIN_ADMIN_DOCUMENTOS):
+                reiniciar_intentos("documentos_admin")
                 st.session_state.documentos_admin_autorizado = True
                 st.session_state.documentos_autorizado = True
                 st.success("Modo administrador activado.")
                 st.rerun()
             else:
+                registrar_intento_fallido("documentos_admin")
                 st.error("PIN de administrador incorrecto.")
 
     if not st.session_state.get("documentos_autorizado", False):
@@ -3815,11 +4073,16 @@ def mostrar_documentos_sistema():
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#f4a261">
             <b>Importante sobre permanencia</b><br>
-            Si la app corre en tu computador o servidor propio, los PDF cargados quedan guardados en la carpeta <b>Documentos</b> de ese equipo.
-            Si la app corre en Streamlit Community Cloud u otro despliegue temporal, los archivos cargados desde la app pueden perderse al reiniciar,
-            actualizar o redeplegar la aplicación. Para que queden fijos para siempre, súbelos también a GitHub en la carpeta <b>Documentos</b>.
+            En Streamlit Cloud, los archivos guardados solo en la carpeta local pueden perderse al reiniciar o redeplegar la app.
+            Para guardar y eliminar PDF de forma permanente desde la app, configura <b>GITHUB_TOKEN</b>, <b>GITHUB_REPO</b>, <b>GITHUB_BRANCH</b> y <b>GITHUB_DOCS_DIR</b> en Streamlit Secrets.
+            Si no configuras GitHub, los cambios pueden ser temporales.
         </div>
         """, unsafe_allow_html=True)
+
+        if github_habilitado():
+            st.success("Sincronización permanente con GitHub activa.")
+        else:
+            st.warning("GitHub no está configurado en Secrets: los PDF agregados o eliminados desde la app pueden ser temporales.")
 
         tab_subir, tab_eliminar = st.tabs(["➕ Agregar PDF", "🗑️ Eliminar PDF"])
 
@@ -4129,7 +4392,7 @@ with col_doc:
     if st.button("Abrir documentos", use_container_width=True, key="btn_ir_documentos", type="primary" if st.session_state.vista == "documentos" else "secondary"):
         st.session_state.vista = "documentos"
         st.rerun()
-    st.markdown("<div class='menu-pro-mini-note'>Usuario: PIN 1234 · Admin: carga y eliminación de PDF.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='menu-pro-mini-note'>Documentos protegidos por Secrets · Admin con carga/eliminación segura.</div>", unsafe_allow_html=True)
 
 with col_sesion:
     st.markdown("""
