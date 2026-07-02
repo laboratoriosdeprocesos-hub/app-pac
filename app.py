@@ -360,6 +360,47 @@ h1 { font-size: 1.5rem !important; font-weight: 800 !important; }
 h2 { font-size: 1.15rem !important; font-weight: 700 !important; }
 h3 { font-size: 1rem !important; font-weight: 700 !important; }
  
+
+/* ===============================
+   TABLAS PROFESIONALES
+   =============================== */
+[data-testid="stDataFrame"] {
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    border: 1px solid #d7e5f3 !important;
+    box-shadow: 0 8px 26px rgba(10,22,40,0.08) !important;
+    background: #ffffff !important;
+}
+[data-testid="stDataFrame"] div[role="grid"] {
+    border-radius: 18px !important;
+}
+[data-testid="stDataFrame"] [role="columnheader"] {
+    background: #0d2347 !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.35px !important;
+    text-transform: uppercase !important;
+    border-right: 1px solid rgba(255,255,255,0.14) !important;
+}
+[data-testid="stDataFrame"] [role="gridcell"] {
+    font-size: 0.88rem !important;
+    color: #0a1628 !important;
+    border-color: #e8f0f8 !important;
+}
+[data-testid="stDataFrame"] [role="row"]:nth-child(even) [role="gridcell"] {
+    background: #f8fbff !important;
+}
+[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
+    background: #eef6ff !important;
+}
+.tabla-nota {
+    color:#5a7899;
+    font-size:0.84rem;
+    margin-top:0.35rem;
+    margin-bottom:0.55rem;
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f0f6ff; border-radius: 10px; }
 ::-webkit-scrollbar-thumb { background: #b8d0e8; border-radius: 10px; }
@@ -623,8 +664,104 @@ def obtener_nombre_columna(df, candidatos):
         if col in df.columns:
             return col
     raise ValueError(f"No encontré ninguna de estas columnas: {candidatos}")
- 
- 
+
+
+# =========================================
+# TABLAS PROFESIONALES
+# =========================================
+def _estilo_accion_tabla(valor):
+    texto = str(valor).lower()
+    if any(pal in texto for pal in ["abrir", "aumentar", "alto", "puede"]):
+        return "background-color:#e8f6f2;color:#0b6b58;font-weight:800;border-radius:8px;"
+    if any(pal in texto for pal in ["cerrar", "reducir", "bajo", "crítico", "critico"]):
+        return "background-color:#fff1f0;color:#a61d24;font-weight:800;border-radius:8px;"
+    if any(pal in texto for pal in ["mantener", "normal", "estable"]):
+        return "background-color:#eef4ff;color:#174ea6;font-weight:800;border-radius:8px;"
+    return ""
+
+
+def _estilo_numero_balance(valor):
+    try:
+        v = float(valor)
+    except Exception:
+        return ""
+    if v > 0:
+        return "color:#0b6b58;font-weight:800;"
+    if v < 0:
+        return "color:#a61d24;font-weight:800;"
+    return "color:#42526e;font-weight:700;"
+
+
+def estilo_tabla_profesional(df, formatos=None, na_rep="Sin dato"):
+    """Aplica un estilo corporativo limpio a tablas operativas sin dibujos ni adornos excesivos."""
+    if df.__class__.__name__ == "Styler":
+        styler = df
+        data = df.data
+    else:
+        data = df.copy()
+        if formatos:
+            styler = data.style.format(formatos, na_rep=na_rep)
+        else:
+            styler = data.style.format(na_rep=na_rep)
+
+    styler = styler.set_table_styles([
+        {"selector": "thead th", "props": [
+            ("background-color", "#0d2347"),
+            ("color", "#ffffff"),
+            ("font-weight", "800"),
+            ("text-transform", "uppercase"),
+            ("letter-spacing", "0.35px"),
+            ("font-size", "12px"),
+            ("border", "1px solid #1f3a63"),
+            ("text-align", "center"),
+            ("padding", "9px 10px"),
+        ]},
+        {"selector": "tbody td", "props": [
+            ("border", "1px solid #e6eef7"),
+            ("padding", "8px 10px"),
+            ("font-size", "13px"),
+            ("color", "#0a1628"),
+        ]},
+        {"selector": "tbody tr:nth-child(even)", "props": [("background-color", "#f8fbff")]},
+        {"selector": "tbody tr:hover", "props": [("background-color", "#eef6ff")]},
+        {"selector": "caption", "props": [("caption-side", "top"), ("font-weight", "800"), ("color", "#0b4f6c")]},
+    ])
+    styler = styler.set_properties(**{
+        "text-align": "center",
+        "vertical-align": "middle",
+        "font-family": "Inter, Arial, sans-serif",
+    })
+
+    for col in getattr(data, "columns", []):
+        col_txt = str(col).lower()
+        try:
+            if any(k in col_txt for k in ["acción", "accion", "estado", "decisión", "decision"]):
+                styler = styler.map(_estilo_accion_tabla, subset=[col])
+            if any(k in col_txt for k in ["balance", "ajuste", "cambio"]):
+                styler = styler.map(_estilo_numero_balance, subset=[col])
+        except Exception:
+            try:
+                if any(k in col_txt for k in ["acción", "accion", "estado", "decisión", "decision"]):
+                    styler = styler.applymap(_estilo_accion_tabla, subset=[col])
+                if any(k in col_txt for k in ["balance", "ajuste", "cambio"]):
+                    styler = styler.applymap(_estilo_numero_balance, subset=[col])
+            except Exception:
+                pass
+    return styler
+
+
+def mostrar_tabla_profesional(df, formatos=None, na_rep="Sin dato", height=None):
+    styler = estilo_tabla_profesional(df, formatos=formatos, na_rep=na_rep)
+    kwargs = {"use_container_width": True, "hide_index": True}
+    if height is not None:
+        kwargs["height"] = height
+    try:
+        st.dataframe(styler, **kwargs)
+    except TypeError:
+        kwargs.pop("hide_index", None)
+        st.dataframe(styler, **kwargs)
+
+
 @st.cache_data(ttl=60)
 def cargar_y_limpiar_excel(archivo_excel, config_key):
     config = CONFIGS[config_key]
@@ -1385,13 +1522,13 @@ def mostrar_calculadora_pac():
     r4.metric("Altura estimada actual (m)", f"{altura_actual:.4f}")
  
     st.subheader("Detalle por registro")
-    st.dataframe(
-        df_mostrar.style.format({
+    mostrar_tabla_profesional(
+        df_mostrar,
+        formatos={
             "Tiempo (min)": "{:.1f}", "Caudal PAC (mL/min)": "{:.1f}", "Densidad PAC (g/mL)": "{:.2f}",
             "Consumo (g)": "{:.2f}", "Consumo (kg)": "{:.4f}",
             "Descenso altura (m)": "{:.4f}", "Altura estimada (m)": "{:.4f}"
-        }),
-        use_container_width=True
+        }
     )
  
     if len(df_mostrar) > 1:
@@ -3196,7 +3333,13 @@ def mostrar_panel_scada_tanques():
             {"Unidad": "Cunduy", "Entrada (L/s)": q_ent_cunduy, "Salida calculada (L/s)": q_sal_cunduy, "Balance neto (L/s)": q_neto_cunduy, "Cambio estimado (m³/h)": q_neto_cunduy*3.6, "Tiempo estimado": tiempo_a_limite(vol_cunduy, cap_cunduy, q_neto_cunduy) if cap_cunduy > 0 else "Capacidad no definida"},
             {"Unidad": "Malvinas", "Entrada (L/s)": q_ent_malvinas, "Salida calculada (L/s)": salida_malvinas_total, "Balance neto (L/s)": q_neto_malvinas, "Cambio estimado (m³/h)": q_neto_malvinas*3.6, "Tiempo estimado": tiempo_a_limite(vol_malvinas, cap_malvinas, q_neto_malvinas) if cap_malvinas > 0 else "Capacidad no definida"},
         ])
-        st.dataframe(balance_df, use_container_width=True)
+        mostrar_tabla_profesional(
+            balance_df,
+            formatos={
+                "Entrada (L/s)": "{:.2f}", "Salida calculada (L/s)": "{:.2f}",
+                "Balance neto (L/s)": "{:+.2f}", "Cambio estimado (m³/h)": "{:+.2f}"
+            }
+        )
 
         alertas = []
         if q_neto_cunduy < -10:
@@ -3238,7 +3381,7 @@ def mostrar_panel_scada_tanques():
         archivo = st.file_uploader("Archivo histórico SCADA", type=["csv", "xlsx", "xls"], key="scada_historico")
         df_hist = leer_tabla_historica(archivo)
         if df_hist is not None and not df_hist.empty:
-            st.dataframe(df_hist.head(30), use_container_width=True)
+            mostrar_tabla_profesional(df_hist.head(30), height=420)
             fecha_cols = [c for c in df_hist.columns if "fecha" in str(c).lower() or "hora" in str(c).lower() or "time" in str(c).lower()]
             col_fecha = st.selectbox("Columna de fecha/hora", options=[None] + fecha_cols + list(df_hist.columns), key="scada_col_fecha")
             num_cols = [c for c in df_hist.columns if pd.api.types.is_numeric_dtype(df_hist[c])]
@@ -3556,13 +3699,16 @@ def mostrar_despacho_operativo():
                 "Acción": "Abrir / aumentar" if q_rec_malvinas > q_ent_malvinas_actual + margen_ls else ("Cerrar / reducir" if q_rec_malvinas < q_ent_malvinas_actual - margen_ls else "Mantener"),
             },
         ])
-        st.dataframe(reco_df.style.format({
-            "Caudal actual (L/s)": "{:.2f}",
-            "Caudal requerido al objetivo (L/s)": "{:.2f}",
-            "Caudal recomendado (L/s)": "{:.2f}",
-            "Ajuste recomendado (L/s)": "{:+.2f}",
-            "Volumen actual (%)": "{:.1f}%",
-        }), use_container_width=True)
+        mostrar_tabla_profesional(
+            reco_df,
+            formatos={
+                "Caudal actual (L/s)": "{:.2f}",
+                "Caudal requerido al objetivo (L/s)": "{:.2f}",
+                "Caudal recomendado (L/s)": "{:.2f}",
+                "Ajuste recomendado (L/s)": "{:+.2f}",
+                "Volumen actual (%)": "{:.1f}%",
+            }
+        )
 
         st.markdown("<div class='titulo-seccion-resultado'>Tiempos de llenado/vaciado</div>", unsafe_allow_html=True)
         tiempos_df = pd.DataFrame([
@@ -3570,15 +3716,18 @@ def mostrar_despacho_operativo():
             eval_4400_prop, eval_1100_prop, eval_diviso_prop, eval_cunduy_prop, eval_malvinas_prop,
         ])
         tiempos_df = tiempos_df.drop(columns=["_horas_limite"])
-        st.dataframe(tiempos_df.style.format({
-            "Volumen (m³)": "{:,.2f}",
-            "Capacidad (m³)": "{:,.2f}",
-            "%": "{:.1f}%",
-            "Entrada (L/s)": "{:.2f}",
-            "Salida (L/s)": "{:.2f}",
-            "Balance (L/s)": "{:+.2f}",
-            "Cambio (m³/h)": "{:+.2f}",
-        }), use_container_width=True)
+        mostrar_tabla_profesional(
+            tiempos_df,
+            formatos={
+                "Volumen (m³)": "{:,.2f}",
+                "Capacidad (m³)": "{:,.2f}",
+                "%": "{:.1f}%",
+                "Entrada (L/s)": "{:.2f}",
+                "Salida (L/s)": "{:.2f}",
+                "Balance (L/s)": "{:+.2f}",
+                "Cambio (m³/h)": "{:+.2f}",
+            }
+        )
 
         fig = go.Figure()
         fig.add_trace(go.Bar(name="Volumen actual", x=["Diviso", "Cunduy", "Malvinas"], y=[vol_diviso, vol_cunduy, vol_malvinas]))
@@ -3695,15 +3844,18 @@ def mostrar_despacho_operativo():
         m4.metric("Ajuste sugerido", f"{q_salida_recomendada - q_salida_caldas:+.2f} L/s")
 
         tabla_caldas = pd.DataFrame([eval_caldas_actual, eval_caldas_prop]).drop(columns=["_horas_limite"])
-        st.dataframe(tabla_caldas.style.format({
-            "Volumen (m³)": "{:,.2f}",
-            "Capacidad (m³)": "{:,.2f}",
-            "%": "{:.1f}%",
-            "Entrada (L/s)": "{:.2f}",
-            "Salida (L/s)": "{:.2f}",
-            "Balance (L/s)": "{:+.2f}",
-            "Cambio (m³/h)": "{:+.2f}",
-        }), use_container_width=True)
+        mostrar_tabla_profesional(
+            tabla_caldas,
+            formatos={
+                "Volumen (m³)": "{:,.2f}",
+                "Capacidad (m³)": "{:,.2f}",
+                "%": "{:.1f}%",
+                "Entrada (L/s)": "{:.2f}",
+                "Salida (L/s)": "{:.2f}",
+                "Balance (L/s)": "{:+.2f}",
+                "Cambio (m³/h)": "{:+.2f}",
+            }
+        )
 
         if considerar_sectores and q_salida_caldas > 0:
             factor = q_salida_recomendada / q_salida_caldas if q_salida_caldas > 0 else 0.0
@@ -3715,10 +3867,13 @@ def mostrar_despacho_operativo():
                 {"Sector": "Acolsure", "Salida actual (L/s)": q_acolsure, "Salida recomendada proporcional (L/s)": q_acolsure * factor},
             ])
             st.markdown("<div class='titulo-seccion-resultado'>Distribución proporcional sugerida por sector</div>", unsafe_allow_html=True)
-            st.dataframe(sectores_df.style.format({
-                "Salida actual (L/s)": "{:.2f}",
-                "Salida recomendada proporcional (L/s)": "{:.2f}",
-            }), use_container_width=True)
+            mostrar_tabla_profesional(
+                sectores_df,
+                formatos={
+                    "Salida actual (L/s)": "{:.2f}",
+                    "Salida recomendada proporcional (L/s)": "{:.2f}",
+                }
+            )
 
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#00c8ff">
@@ -4314,7 +4469,7 @@ def mostrar_documentos_sistema():
             "Documento": [pdf.name for pdf in pdfs],
             "Tamaño (MB)": [round(pdf.stat().st_size / (1024 * 1024), 2) for pdf in pdfs],
         })
-        st.dataframe(tabla_docs, use_container_width=True, hide_index=True)
+        mostrar_tabla_profesional(tabla_docs)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -4804,7 +4959,7 @@ def mostrar_despacho_historico_scada():
     st.success(f"Archivo cargado: {archivo.name} · {len(df):,} filas · {len(df.columns)} columnas")
 
     with st.expander("Vista previa del archivo", expanded=False):
-        st.dataframe(df.head(30), use_container_width=True)
+        mostrar_tabla_profesional(df.head(30), height=420)
         st.caption("Si alguna columna no se detecta bien, selecciónala manualmente en el mapeo de columnas.")
 
     col_fecha_guess = guess_col(df, [["fecha", "hora"], ["timestamp"], ["time"], ["fecha"], ["hora"]])
@@ -5047,22 +5202,30 @@ def mostrar_despacho_historico_scada():
             {"Punto": f"Remanente hacia Malvinas ({fuente_malvinas})", "Caudal actual/estimado (L/s)": q_malvinas_actual, "Caudal recomendado (L/s)": q_rec_malvinas, "Acción": "Abrir/aumentar" if q_rec_malvinas > (q_malvinas_actual if np.isfinite(q_malvinas_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_malvinas_actual) and q_rec_malvinas < q_malvinas_actual - margen_ls else "Mantener")},
             {"Punto": "Salida total Diviso por línea T", "Caudal actual/estimado (L/s)": q_linea_actual, "Caudal recomendado (L/s)": q_linea_rec, "Acción": "Abrir/aumentar" if q_linea_rec > (q_linea_actual if np.isfinite(q_linea_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_linea_actual) and q_linea_rec < q_linea_actual - margen_ls else "Mantener")},
         ])
-        st.dataframe(t_df.style.format({"Caudal actual/estimado (L/s)": "{:.2f}", "Caudal recomendado (L/s)": "{:.2f}"}, na_rep="Sin dato"), use_container_width=True)
+        mostrar_tabla_profesional(
+            t_df,
+            formatos={"Caudal actual/estimado (L/s)": "{:.2f}", "Caudal recomendado (L/s)": "{:.2f}"},
+            na_rep="Sin dato"
+        )
 
         st.markdown("<div class='titulo-seccion-resultado'>Balance y tiempos por tanque</div>", unsafe_allow_html=True)
         tabla_mostrar = tabla.drop(columns=["_color", "_horas_limite"])
-        st.dataframe(tabla_mostrar.style.format({
-            "Volumen actual (m³)": "{:,.2f}",
-            "Capacidad (m³)": "{:,.2f}",
-            "Nivel actual (%)": "{:.1f}%",
-            "Falta a objetivo (m³)": "{:,.2f}",
-            "Sobra sobre alto (m³)": "{:,.2f}",
-            "Entrada promedio/estimada (L/s)": "{:.2f}",
-            "Salida promedio (L/s)": "{:.2f}",
-            "Balance (L/s)": "{:+.2f}",
-            "Cambio (m³/h)": "{:+.2f}",
-            "Entrada requerida a objetivo (L/s)": "{:.2f}",
-        }, na_rep="Sin dato"), use_container_width=True)
+        mostrar_tabla_profesional(
+            tabla_mostrar,
+            formatos={
+                "Volumen actual (m³)": "{:,.2f}",
+                "Capacidad (m³)": "{:,.2f}",
+                "Nivel actual (%)": "{:.1f}%",
+                "Falta a objetivo (m³)": "{:,.2f}",
+                "Sobra sobre alto (m³)": "{:,.2f}",
+                "Entrada promedio/estimada (L/s)": "{:.2f}",
+                "Salida promedio (L/s)": "{:.2f}",
+                "Balance (L/s)": "{:+.2f}",
+                "Cambio (m³/h)": "{:+.2f}",
+                "Entrada requerida a objetivo (L/s)": "{:.2f}",
+            },
+            na_rep="Sin dato"
+        )
 
         fig = go.Figure()
         x = df_f["__fecha_scada__"] if col_fecha != "No usar" else df_f.index
@@ -5125,18 +5288,22 @@ def mostrar_despacho_historico_scada():
         m4.metric("Entrada requerida objetivo", fmt_q(q_req))
 
         tabla = pd.DataFrame([fila_caldas]).drop(columns=["_color", "_horas_limite"])
-        st.dataframe(tabla.style.format({
-            "Volumen actual (m³)": "{:,.2f}",
-            "Capacidad (m³)": "{:,.2f}",
-            "Nivel actual (%)": "{:.1f}%",
-            "Falta a objetivo (m³)": "{:,.2f}",
-            "Sobra sobre alto (m³)": "{:,.2f}",
-            "Entrada promedio/estimada (L/s)": "{:.2f}",
-            "Salida promedio (L/s)": "{:.2f}",
-            "Balance (L/s)": "{:+.2f}",
-            "Cambio (m³/h)": "{:+.2f}",
-            "Entrada requerida a objetivo (L/s)": "{:.2f}",
-        }, na_rep="Sin dato"), use_container_width=True)
+        mostrar_tabla_profesional(
+            tabla,
+            formatos={
+                "Volumen actual (m³)": "{:,.2f}",
+                "Capacidad (m³)": "{:,.2f}",
+                "Nivel actual (%)": "{:.1f}%",
+                "Falta a objetivo (m³)": "{:,.2f}",
+                "Sobra sobre alto (m³)": "{:,.2f}",
+                "Entrada promedio/estimada (L/s)": "{:.2f}",
+                "Salida promedio (L/s)": "{:.2f}",
+                "Balance (L/s)": "{:+.2f}",
+                "Cambio (m³/h)": "{:+.2f}",
+                "Entrada requerida a objetivo (L/s)": "{:.2f}",
+            },
+            na_rep="Sin dato"
+        )
 
         fig = go.Figure()
         x = df_f["__fecha_scada__"] if col_fecha != "No usar" else df_f.index
@@ -5361,7 +5528,13 @@ with col_result:
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Dosis sugeridas para prueba de jarras</div>", unsafe_allow_html=True)
         st.caption(f"Densidad PAC usada: {densidad_pac:.2f} g/mL · Caudal a tratar: {caudal:.2f} L/s")
-        st.dataframe(resultado["tabla_jarras"], use_container_width=True)
+        mostrar_tabla_profesional(
+            resultado["tabla_jarras"],
+            formatos={
+                "Caudal PAC recomendado (mL/min)": "{:.1f}",
+                "Dosis PAC recomendada (mg/L)": "{:.2f}",
+            }
+        )
  
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Registros históricos similares</div>", unsafe_allow_html=True)
@@ -5375,7 +5548,7 @@ with col_result:
         if "Alcalinidad de agua encalada (mg/L)" in resultado["similares_filtrados"].columns:
             fmt["Alcalinidad de agua encalada (mg/L)"] = "{:.1f}"
  
-        st.dataframe(resultado["similares_filtrados"].style.format(fmt), use_container_width=True)
+        mostrar_tabla_profesional(resultado["similares_filtrados"], formatos=fmt)
  
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Visualización</div>", unsafe_allow_html=True)
