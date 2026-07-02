@@ -1062,6 +1062,143 @@ body {{ background: transparent; font-family: 'Inter', sans-serif; padding: 4px;
     return html
  
  
+
+
+# =========================================
+# BLOQUE VISUAL DE FÓRMULAS — ESTILO PROFESIONAL
+# =========================================
+def mostrar_formulas_pac_profesionales():
+    """Muestra las fórmulas de la calculadora PAC en formato matemático limpio.
+    Se usa MathJax dentro de components.html para evitar que las fórmulas se vean
+    como texto plano y mantener una presentación tipo documento técnico.
+    """
+    html = r"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #0a1628;
+}
+.formula-wrap {
+    background: linear-gradient(135deg, #f8fcff 0%, #eef7ff 100%);
+    border: 1px solid #d6e8f7;
+    border-left: 6px solid #00c8ff;
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: 0 6px 22px rgba(10, 22, 40, 0.06);
+}
+.formula-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    color: #0b4f6c;
+    font-size: 16px;
+    font-weight: 850;
+    letter-spacing: .2px;
+}
+.formula-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 14px;
+}
+.formula-card {
+    background: #ffffff;
+    border: 1px solid #dce9f7;
+    border-radius: 16px;
+    padding: 14px 14px 12px 14px;
+    min-height: 132px;
+    box-shadow: 0 4px 16px rgba(10, 22, 40, 0.055);
+}
+.formula-name {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .55px;
+    font-weight: 800;
+    color: #5a7899;
+    margin-bottom: 6px;
+}
+.formula-eq {
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0d2347;
+    overflow-x: auto;
+}
+.formula-note {
+    margin-top: 7px;
+    color: #5a7899;
+    line-height: 1.45;
+    font-size: 12px;
+}
+.formula-footer {
+    margin-top: 12px;
+    background: #ffffff;
+    border: 1px dashed #bdd6ee;
+    border-radius: 13px;
+    padding: 10px 12px;
+    color: #3a5270;
+    font-size: 12.5px;
+    line-height: 1.55;
+}
+@media (max-width: 760px) {
+    .formula-grid { grid-template-columns: 1fr; }
+    .formula-card { min-height: auto; }
+}
+</style>
+</head>
+<body>
+<div class="formula-wrap">
+    <div class="formula-title">🧮 Fórmulas aplicadas</div>
+    <div class="formula-grid">
+        <div class="formula-card">
+            <div class="formula-name">1. Tiempo del periodo</div>
+            <div class="formula-eq">\[t = H_f - H_i\]</div>
+            <div class="formula-note">Si el periodo cruza medianoche: \(t = (1440 - H_i) + H_f\).</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">2. Consumo de PAC</div>
+            <div class="formula-eq">\[C_g = t \times Q_{PAC} \times \rho\]</div>
+            <div class="formula-note">Donde \(Q_{PAC}\) está en mL/min y \(\rho\) en g/mL.</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">3. Descenso del nivel</div>
+            <div class="formula-eq">\[\Delta h = \frac{C_{kg}}{\rho \times 1000 \times A}\]</div>
+            <div class="formula-note">Convierte el consumo a volumen y lo divide entre el área del tanque.</div>
+        </div>
+        <div class="formula-card">
+            <div class="formula-name">4. Altura estimada</div>
+            <div class="formula-eq">\[h_{actual} = h_i - \sum \Delta h\]</div>
+            <div class="formula-note">Resta los descensos acumulados a la altura inicial del tanque.</div>
+        </div>
+    </div>
+    <div class="formula-footer">
+        <b>Variables:</b> \(t\): tiempo en minutos · \(H_i\): hora inicial · \(H_f\): hora final ·
+        \(C_g\): consumo en gramos · \(C_{kg}\): consumo en kilogramos · \(A\): área del tanque en m² ·
+        \(\rho\): densidad del PAC.
+    </div>
+</div>
+</body>
+</html>
+"""
+    components.html(html, height=540, scrolling=False)
+
+
 # =========================================
 # CALCULADORA DE CONSUMO PAC
 # =========================================
@@ -1287,17 +1424,7 @@ def mostrar_calculadora_pac():
     </div>
     """, unsafe_allow_html=True)
  
-    st.markdown("""
-    <div class="caja-rango" style="border-left-color:#00c8ff">
-        <b>Fórmulas aplicadas</b><br>
-        <span style="color:#3a5270">
-        Tiempo (min) = Hora final - Hora inicio &nbsp;|&nbsp; Si final &lt; inicio → (1440 - inicio) + final<br>
-        Consumo (g) = Tiempo × Caudal (mL/min) × Densidad (g/mL)<br>
-        Descenso (m) = [Consumo (kg) / (Densidad × 1000)] / Área (m²)<br>
-        Altura estimada = Altura inicial - Σ descensos acumulados
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+    mostrar_formulas_pac_profesionales()
  
     st.markdown("</div>", unsafe_allow_html=True)
  
