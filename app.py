@@ -224,23 +224,24 @@ footer { visibility: hidden !important; }
 .header-logo-card {
     position: relative;
     z-index: 2;
-    min-width: 168px;
-    max-width: 190px;
-    background: rgba(255,255,255,0.96);
-    border: 1px solid rgba(207,229,244,0.95);
-    border-radius: 22px;
-    padding: 0.55rem 0.8rem;
+    min-width: 150px;
+    max-width: 170px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 28px rgba(0, 58, 112, 0.18);
+    box-shadow: none !important;
 }
 
 .header-logo-card img {
     width: 100%;
-    max-height: 86px;
+    max-height: 82px;
     object-fit: contain;
     display: block;
+    filter: drop-shadow(0 2px 4px rgba(0, 30, 70, 0.18));
 }
 
 .header-left-brand {
@@ -547,6 +548,21 @@ div[data-testid="stMetricValue"] > div { color: #003A70 !important; }
 ::-webkit-scrollbar-track { background: #EEF7FC !important; }
 ::-webkit-scrollbar-thumb { background: #A7D2E4 !important; }
 ::-webkit-scrollbar-thumb:hover { background: #008ACB !important; }
+
+/* Logo SERVAF sin fondo blanco en encabezado */
+.app-header .header-logo-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+.app-header .header-logo-card img {
+    max-height: 82px !important;
+    max-width: 170px !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 30, 70, 0.18));
+}
+
 </style>
 """
  
