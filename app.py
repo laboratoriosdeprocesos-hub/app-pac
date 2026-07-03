@@ -4596,11 +4596,13 @@ planta_badge = st.session_state.get("planta_usuario", "")
 logo_servaf_b64 = obtener_logo_servaf_base64()
 
 if logo_servaf_b64:
-    logo_header_html = f"""
-    <div class="header-logo-card">
-        <img src="data:image/png;base64,{logo_servaf_b64}" alt="SERVAF">
-    </div>
-    """
+    # IMPORTANTE: se construye en una sola línea, sin sangría inicial.
+    # Si el HTML queda indentado, Markdown puede mostrarlo como texto/código.
+    logo_header_html = (
+        f'<div class="header-logo-card">'
+        f'<img src="data:image/png;base64,{logo_servaf_b64}" alt="SERVAF">'
+        f'</div>'
+    )
 else:
     logo_header_html = '<div class="header-logo">💧 SERVAF</div>'
 
