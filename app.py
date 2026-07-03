@@ -136,23 +136,27 @@ ESTILOS_GLOBALES = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
  
 :root {
-    --azul-deep:   #0a1628;
-    --azul-mid:    #0d2347;
-    --azul-accent: #1a6fff;
-    --cyan:        #00c8ff;
-    --agua:        #00e5c0;
+    --azul-deep:   #003A70;
+    --azul-mid:    #004A8F;
+    --azul-accent: #008ACB;
+    --azul-claro:  #48B9EA;
+    --verde:       #6FAE4A;
+    --verde-soft:  #EAF7E8;
+    --teal:        #2DB9B0;
+    --cyan:        #48B9EA;
+    --agua:        #2DB9B0;
     --blanco:      #ffffff;
-    --gris-1:      #f0f6ff;
-    --gris-2:      #dce9f7;
-    --texto-dark:  #0a1628;
-    --texto-muted: #5a7899;
+    --gris-1:      #EEF7FC;
+    --gris-2:      #CFE5F4;
+    --texto-dark:  #003A70;
+    --texto-muted: #4E6F8A;
 }
  
 * { box-sizing: border-box; }
  
 html, body, .stApp {
     font-family: 'Inter', sans-serif;
-    background: #f0f6ff !important;
+    background: #EEF7FC !important;
 }
  
 header { visibility: hidden !important; }
@@ -166,7 +170,7 @@ footer { visibility: hidden !important; }
 .main > div { padding-top: 0 !important; }
  
 .app-header {
-    background: linear-gradient(135deg, #0a1628 0%, #0d2347 55%, #0f3060 100%);
+    background: linear-gradient(135deg, #003A70 0%, #004A8F 55%, #006AA8 100%);
     border-radius: 20px;
     padding: 1.4rem 2rem;
     display: flex;
@@ -222,15 +226,15 @@ footer { visibility: hidden !important; }
 }
  
 .bloque-mini {
-    background: #f8fcff; border: 1px solid #e1edf5;
+    background: #F7FCFF; border: 1px solid #D8EAF4;
     border-radius: 16px; padding: 0.95rem; margin-bottom: 0.85rem;
 }
  
-.titulo-mini { font-size: 0.95rem; font-weight: 800; color: #0b4f6c; margin-bottom: 0.4rem; }
+.titulo-mini { font-size: 0.95rem; font-weight: 800; color: #005B8E; margin-bottom: 0.4rem; }
  
 .etiqueta {
     display: inline-flex; align-items: center; gap: 0.4rem;
-    background: linear-gradient(135deg, #e8f4ff, #d6ecff); color: #0d2347;
+    background: linear-gradient(135deg, #E6F5FB, #D5ECF8); color: #004A8F;
     padding: 0.28rem 0.9rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
     margin-bottom: 0.9rem; letter-spacing: 0.5px; text-transform: uppercase;
     border: 1px solid rgba(26,111,255,0.15);
@@ -245,44 +249,44 @@ footer { visibility: hidden !important; }
  
 .menu-card::before {
     content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, #1a6fff, #00c8ff); border-radius: 20px 20px 0 0;
+    background: linear-gradient(90deg, #008ACB, #48B9EA); border-radius: 20px 20px 0 0;
 }
  
 .menu-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(10,22,40,0.12); }
  
 .menu-icon { font-size: 2rem; margin-bottom: 0.7rem; display: block; }
-.menu-titulo { font-weight: 700; font-size: 1.08rem; color: #0a1628; margin-bottom: 0.45rem; }
+.menu-titulo { font-weight: 700; font-size: 1.08rem; color: #003A70; margin-bottom: 0.45rem; }
 .menu-texto { font-size: 0.9rem; color: var(--texto-muted); line-height: 1.55; margin-bottom: 1rem; }
  
 .panel-izquierdo {
     background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-    border: 1px solid #dceaf4; border-radius: 22px; padding: 1.1rem 1.1rem 0.9rem 1.1rem;
+    border: 1px solid #CFE5F4; border-radius: 22px; padding: 1.1rem 1.1rem 0.9rem 1.1rem;
     box-shadow: 0 10px 28px rgba(7,62,94,0.08); position: sticky; top: 0.8rem;
 }
  
 .panel-derecho {
-    background: rgba(255,255,255,0.98); border: 1px solid #dceaf4; border-radius: 22px;
+    background: rgba(255,255,255,0.98); border: 1px solid #CFE5F4; border-radius: 22px;
     padding: 1.1rem; box-shadow: 0 10px 28px rgba(7,62,94,0.08);
 }
  
-.subtitulo-panel { color: #0b4f6c; font-size: 1.12rem; font-weight: 800; margin-bottom: 0.35rem; }
-.texto-panel { color: #5b7482; font-size: 0.93rem; line-height: 1.5; margin-bottom: 0.9rem; }
+.subtitulo-panel { color: #005B8E; font-size: 1.12rem; font-weight: 800; margin-bottom: 0.35rem; }
+.texto-panel { color: #54748A; font-size: 0.93rem; line-height: 1.5; margin-bottom: 0.9rem; }
  
 .titulo-seccion-resultado {
-    font-size: 1.08rem; font-weight: 800; color: #0b4f6c;
+    font-size: 1.08rem; font-weight: 800; color: #005B8E;
     margin-bottom: 0.45rem; margin-top: 0.25rem;
 }
  
-.hr-suave { border: none; border-top: 1px solid #e5eef5; margin: 0.8rem 0 1rem 0; }
+.hr-suave { border: none; border-top: 1px solid #D8EAF4; margin: 0.8rem 0 1rem 0; }
  
 .caja-rango {
-    background: linear-gradient(135deg, #eef6ff, #f5faff); border-left: 5px solid #1a6fff;
+    background: linear-gradient(135deg, #EAF6FC, #f5faff); border-left: 5px solid #008ACB;
     padding: 1.1rem 1.3rem; border-radius: 14px; font-size: 0.93rem; margin: 0.8rem 0;
-    color: #0a1628; line-height: 1.65; box-shadow: inset 0 0 0 1px rgba(26,111,255,0.08);
+    color: #003A70; line-height: 1.65; box-shadow: inset 0 0 0 1px rgba(26,111,255,0.08);
 }
  
 div[data-testid="stMetric"] {
-    background: linear-gradient(160deg, #f8fbff 0%, #eef5ff 100%) !important;
+    background: linear-gradient(160deg, #F7FCFF 0%, #eef5ff 100%) !important;
     border: 1px solid rgba(26,111,255,0.12) !important; padding: 1rem 1.2rem !important;
     border-radius: 16px !important; box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
 }
@@ -293,14 +297,14 @@ div[data-testid="stMetricLabel"] > div {
 }
  
 div[data-testid="stMetricValue"] > div {
-    color: #0d2347 !important; font-weight: 800 !important;
+    color: #004A8F !important; font-weight: 800 !important;
     font-size: 1.65rem !important; letter-spacing: 0 !important;
 }
  
 .stButton > button {
     font-family: 'Inter', sans-serif !important; font-weight: 700 !important;
     font-size: 0.9rem !important;
-    background: linear-gradient(135deg, #1a6fff 0%, #0052cc 100%) !important;
+    background: linear-gradient(135deg, #008ACB 0%, #005B96 100%) !important;
     color: white !important; border: none !important; border-radius: 12px !important;
     min-height: 48px !important; width: 100% !important;
     box-shadow: 0 6px 20px rgba(26,111,255,0.28) !important;
@@ -309,8 +313,8 @@ div[data-testid="stMetricValue"] > div {
 .stButton > button:hover { transform: translateY(-1px); }
  
 .stButton > button[kind="secondary"] {
-    background: linear-gradient(135deg, #f0f6ff 0%, #e4eeff 100%) !important;
-    color: #0d2347 !important; border: 1px solid rgba(26,111,255,0.2) !important;
+    background: linear-gradient(135deg, #EEF7FC 0%, #DDEFFA 100%) !important;
+    color: #004A8F !important; border: 1px solid rgba(26,111,255,0.2) !important;
     box-shadow: 0 4px 12px rgba(10,22,40,0.07) !important;
 }
  
@@ -320,42 +324,42 @@ div[data-testid="stSelectbox"] > label,
 div[data-testid="stSlider"] > label,
 div[data-testid="stRadio"] > label {
     font-size: 1rem !important; font-weight: 700 !important;
-    color: #3a5270 !important; text-transform: uppercase; letter-spacing: 0.4px;
+    color: #315C7E !important; text-transform: uppercase; letter-spacing: 0.4px;
 }
  
 div[data-baseweb="input"] input,
 div[data-baseweb="select"] > div {
-    border-radius: 12px !important; border: 1.5px solid #dce9f7 !important;
-    background: #f8fbff !important; font-size: 0.96rem !important; color: #0a1628 !important;
+    border-radius: 12px !important; border: 1.5px solid #CFE5F4 !important;
+    background: #F7FCFF !important; font-size: 0.96rem !important; color: #003A70 !important;
 }
  
 [data-testid="stDataFrame"] {
     border-radius: 16px !important; overflow: hidden !important;
-    border: 1px solid #dce9f7 !important; box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
+    border: 1px solid #CFE5F4 !important; box-shadow: 0 4px 16px rgba(10,22,40,0.06) !important;
 }
  
 thead tr th {
-    background: #0d2347 !important; color: white !important;
+    background: #004A8F !important; color: white !important;
     font-weight: 700 !important; font-size: 0.8rem !important; text-align: center !important;
 }
  
-tbody tr:nth-child(even) { background: #f8fbff !important; }
-tbody tr td { text-align: center !important; color: #0a1628 !important; }
+tbody tr:nth-child(even) { background: #F7FCFF !important; }
+tbody tr td { text-align: center !important; color: #003A70 !important; }
  
 div[data-testid="stExpander"] {
-    border: 1.5px solid #dce9f7 !important; border-radius: 16px !important;
+    border: 1.5px solid #CFE5F4 !important; border-radius: 16px !important;
     background: white !important; overflow: hidden;
 }
  
 .streamlit-expanderHeader {
-    font-weight: 700 !important; color: #0d2347 !important; font-size: 0.95rem !important;
+    font-weight: 700 !important; color: #004A8F !important; font-size: 0.95rem !important;
 }
  
 div[data-testid="stInfo"],
 div[data-testid="stSuccess"],
 div[data-testid="stError"] { border-radius: 14px !important; }
  
-h1, h2, h3 { font-family: 'Inter', sans-serif !important; color: #0a1628 !important; }
+h1, h2, h3 { font-family: 'Inter', sans-serif !important; color: #003A70 !important; }
 h1 { font-size: 1.5rem !important; font-weight: 800 !important; }
 h2 { font-size: 1.15rem !important; font-weight: 700 !important; }
 h3 { font-size: 1rem !important; font-weight: 700 !important; }
@@ -367,7 +371,7 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
 [data-testid="stDataFrame"] {
     border-radius: 18px !important;
     overflow: hidden !important;
-    border: 1px solid #d7e5f3 !important;
+    border: 1px solid #CFE5F4 !important;
     box-shadow: 0 8px 26px rgba(10,22,40,0.08) !important;
     background: #ffffff !important;
 }
@@ -375,7 +379,7 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
     border-radius: 18px !important;
 }
 [data-testid="stDataFrame"] [role="columnheader"] {
-    background: #0d2347 !important;
+    background: #004A8F !important;
     color: #ffffff !important;
     font-weight: 800 !important;
     font-size: 0.78rem !important;
@@ -385,26 +389,26 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
 }
 [data-testid="stDataFrame"] [role="gridcell"] {
     font-size: 0.88rem !important;
-    color: #0a1628 !important;
+    color: #003A70 !important;
     border-color: #e8f0f8 !important;
 }
 [data-testid="stDataFrame"] [role="row"]:nth-child(even) [role="gridcell"] {
-    background: #f8fbff !important;
+    background: #F7FCFF !important;
 }
 [data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
-    background: #eef6ff !important;
+    background: #EAF6FC !important;
 }
 .tabla-nota {
-    color:#5a7899;
+    color:#4E6F8A;
     font-size:0.84rem;
     margin-top:0.35rem;
     margin-bottom:0.55rem;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f0f6ff; border-radius: 10px; }
-::-webkit-scrollbar-thumb { background: #b8d0e8; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #1a6fff; }
+::-webkit-scrollbar-track { background: #EEF7FC; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #A7D2E4; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #008ACB; }
  
 @media (max-width: 1100px) { .panel-izquierdo { position: relative; top: 0; } }
  
@@ -420,6 +424,69 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
 .tanque-layout { overflow: visible !important; width: 100% !important; }
 .tanque-svg-wrap { overflow: visible !important; }
 [data-testid="stMarkdownContainer"] { overflow: visible !important; }
+
+
+/* ===============================
+   PALETA SERVAF GESTIÓN 2025
+   Aplicada a toda la app, excepto el diseño propio del login.
+   =============================== */
+html, body, .stApp {
+    background:
+        radial-gradient(circle at 88% 6%, rgba(72,185,234,0.22) 0%, rgba(72,185,234,0.06) 34%, transparent 58%),
+        linear-gradient(135deg, #F7FCFF 0%, #EEF7FC 52%, #E5F3FA 100%) !important;
+}
+.app-header {
+    background:
+        radial-gradient(circle at 88% -20%, rgba(255,255,255,0.24) 0%, transparent 42%),
+        linear-gradient(135deg, #003A70 0%, #004A8F 52%, #008ACB 100%) !important;
+    border: 1px solid rgba(255,255,255,0.22) !important;
+    box-shadow: 0 14px 36px rgba(0, 58, 112, 0.22) !important;
+}
+.header-logo, .header-badge { color: #DDF5FF !important; }
+.header-badge {
+    background: rgba(255,255,255,0.12) !important;
+    border-color: rgba(255,255,255,0.30) !important;
+}
+.bloque, .panel-derecho, .panel-izquierdo, .menu-card {
+    border-color: #CFE5F4 !important;
+    box-shadow: 0 10px 28px rgba(0, 58, 112, 0.075) !important;
+}
+.menu-card::before {
+    background: linear-gradient(90deg, #003A70, #008ACB 58%, #6FAE4A) !important;
+}
+.etiqueta {
+    background: linear-gradient(135deg, #E6F5FB 0%, #F1FAEF 100%) !important;
+    color: #003A70 !important;
+    border-color: rgba(0, 138, 203, 0.20) !important;
+}
+.stButton > button {
+    background: linear-gradient(135deg, #005B96 0%, #008ACB 100%) !important;
+    box-shadow: 0 8px 20px rgba(0, 91, 150, 0.22) !important;
+}
+.stButton > button:hover {
+    filter: brightness(1.02) !important;
+    box-shadow: 0 10px 24px rgba(0, 91, 150, 0.26) !important;
+}
+.stButton > button[kind="secondary"] {
+    background: linear-gradient(135deg, #F7FCFF 0%, #E6F5FB 100%) !important;
+    color: #003A70 !important;
+    border: 1px solid rgba(0, 138, 203, 0.25) !important;
+    box-shadow: 0 5px 14px rgba(0, 58, 112, 0.075) !important;
+}
+div[data-testid="stMetric"] {
+    background: linear-gradient(160deg, #FFFFFF 0%, #F1FAEF 100%) !important;
+    border-color: rgba(111, 174, 74, 0.20) !important;
+}
+div[data-testid="stMetricValue"] > div { color: #003A70 !important; }
+[data-testid="stDataFrame"] [role="columnheader"], thead tr th {
+    background: linear-gradient(135deg, #003A70 0%, #004A8F 100%) !important;
+}
+[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
+    background: #E6F5FB !important;
+}
+::-webkit-scrollbar-track { background: #EEF7FC !important; }
+::-webkit-scrollbar-thumb { background: #A7D2E4 !important; }
+::-webkit-scrollbar-thumb:hover { background: #008ACB !important; }
 </style>
 """
  
@@ -706,7 +773,7 @@ def estilo_tabla_profesional(df, formatos=None, na_rep="Sin dato"):
 
     styler = styler.set_table_styles([
         {"selector": "thead th", "props": [
-            ("background-color", "#0d2347"),
+            ("background-color", "#004A8F"),
             ("color", "#ffffff"),
             ("font-weight", "800"),
             ("text-transform", "uppercase"),
@@ -720,11 +787,11 @@ def estilo_tabla_profesional(df, formatos=None, na_rep="Sin dato"):
             ("border", "1px solid #e6eef7"),
             ("padding", "8px 10px"),
             ("font-size", "13px"),
-            ("color", "#0a1628"),
+            ("color", "#003A70"),
         ]},
-        {"selector": "tbody tr:nth-child(even)", "props": [("background-color", "#f8fbff")]},
-        {"selector": "tbody tr:hover", "props": [("background-color", "#eef6ff")]},
-        {"selector": "caption", "props": [("caption-side", "top"), ("font-weight", "800"), ("color", "#0b4f6c")]},
+        {"selector": "tbody tr:nth-child(even)", "props": [("background-color", "#F7FCFF")]},
+        {"selector": "tbody tr:hover", "props": [("background-color", "#EAF6FC")]},
+        {"selector": "caption", "props": [("caption-side", "top"), ("font-weight", "800"), ("color", "#005B8E")]},
     ])
     styler = styler.set_properties(**{
         "text-align": "center",
@@ -988,6 +1055,7 @@ def minutos_a_hora_futura(min_base, delta_min):
 # =========================================
 # TANQUE SVG ANIMADO
 # =========================================
+
 def generar_tanque_svg(
     h_actual, h_rebose, h_minima, h_lleno,
     hora_actual_str, hora_rebose_str, hora_minimo_str,
@@ -996,81 +1064,55 @@ def generar_tanque_svg(
     pct_actual = max(0.0, min(1.0, h_actual / h_lleno)) * 100
     pct_rebose = max(0.0, min(1.0, h_rebose / h_lleno)) * 100
     pct_minima = max(0.0, min(1.0, h_minima / h_lleno)) * 100
- 
-    TK_X, TK_Y, TK_W, TK_H = 55, 40, 160, 280
+
+    TK_X, TK_Y, TK_W, TK_H = 86, 56, 108, 248
     TK_BOTTOM = TK_Y + TK_H
-    VB_W, VB_H = 340, 420
- 
+    VB_W, VB_H = 300, 452
+
     y_agua   = TK_BOTTOM - (pct_actual / 100) * TK_H
     y_rebose = TK_BOTTOM - (pct_rebose / 100) * TK_H
     y_minima = TK_BOTTOM - (pct_minima / 100) * TK_H
- 
-    if pct_actual > 85:
-        c1, c2 = "#e63946", "#ff6b7a"
-        estado_color, estado_txt = "#e63946", "&#9888;&#65039; NIVEL ALTO"
-    elif pct_actual < 20:
-        c1, c2 = "#f4a261", "#ffd166"
-        estado_color, estado_txt = "#f4a261", "&#9888;&#65039; NIVEL BAJO"
+
+    if pct_actual >= 92:
+        accent = "#C2410C"
+        accent_soft = "#FFF7ED"
+        agua_top = "#FB7185"
+        agua_bottom = "#E11D48"
+        estado_txt = "NIVEL MUY ALTO"
+    elif pct_actual >= 82:
+        accent = "#DC2626"
+        accent_soft = "#FEF2F2"
+        agua_top = "#FB7185"
+        agua_bottom = "#F43F5E"
+        estado_txt = "NIVEL CRÍTICO ALTO"
+    elif pct_actual <= 20:
+        accent = "#B45309"
+        accent_soft = "#FFFBEB"
+        agua_top = "#FBBF24"
+        agua_bottom = "#F59E0B"
+        estado_txt = "NIVEL BAJO"
     else:
-        c1, c2 = "#1a6fff", "#00c8ff"
-        estado_color, estado_txt = "#2a9d8f", "&#9989; NIVEL NORMAL"
- 
-    flecha = "&#9650; Subiendo" if tendencia == "subiendo" else (
-        "&#9660; Bajando" if tendencia == "bajando" else "&#8594; Estable"
-    )
-    signo      = "+" if Q_neto_Ls >= 0 else ""
-    txt_rebose = hora_rebose_str if hora_rebose_str else "&#8212;"
-    txt_minimo = hora_minimo_str if hora_minimo_str else "&#8212;"
- 
+        accent = "#0A8F83"
+        accent_soft = "#F0FDFA"
+        agua_top = "#38BDF8"
+        agua_bottom = "#2563EB"
+        estado_txt = "NIVEL OPERATIVO"
+
+    tendencia_label = "SUBIENDO" if tendencia == "subiendo" else ("BAJANDO" if tendencia == "bajando" else "ESTABLE")
+    flecha = "▲" if tendencia == "subiendo" else ("▼" if tendencia == "bajando" else "●")
+    signo = "+" if Q_neto_Ls >= 0 else ""
+    txt_rebose = hora_rebose_str if hora_rebose_str else "No aplica"
+    txt_minimo = hora_minimo_str if hora_minimo_str else "No aplica"
+
     escala_lines = ""
     for i in range(5):
-        yy  = TK_Y + i * TK_H // 4
+        yy = TK_Y + i * TK_H / 4
         val = h_lleno * (1 - i / 4)
         escala_lines += (
-            f'<line x1="{TK_X-18}" y1="{yy}" x2="{TK_X-8}" y2="{yy}" '
-            f'stroke="#8ab0c8" stroke-width="1.2"/>'
-            f'<text x="{TK_X-20}" y="{yy+4}" text-anchor="end" font-size="8" '
-            f'font-family="Inter,sans-serif" fill="#5a7899">{val:.1f}</text>'
+            f'<line x1="{TK_X-16}" y1="{yy:.1f}" x2="{TK_X-6}" y2="{yy:.1f}" stroke="#94A3B8" stroke-width="1.1"/>'
+            f'<text x="{TK_X-20}" y="{yy+4:.1f}" text-anchor="end" font-size="8.8" font-family="Inter,sans-serif" fill="#64748B">{val:.1f}</text>'
         )
- 
-    burbujas = ""
-    if tendencia != "bajando":
-        for cx_b, cy_b, r_b, dur, begin in [
-            (TK_X + int(TK_W * 0.3), TK_BOTTOM - 20, 3,   "3.5s", "0s"),
-            (TK_X + int(TK_W * 0.6), TK_BOTTOM - 10, 2,   "4.2s", "1s"),
-            (TK_X + int(TK_W * 0.45),TK_BOTTOM - 30, 2.5, "5s",   "2s"),
-        ]:
-            burbujas += (
-                f'<circle cx="{cx_b}" cy="{cy_b}" r="{r_b}" fill="rgba(255,255,255,0.6)">'
-                f'<animate attributeName="cy" values="{TK_BOTTOM};{TK_Y}" '
-                f'dur="{dur}" repeatCount="indefinite" begin="{begin}"/>'
-                f'<animate attributeName="opacity" values="0.7;0" '
-                f'dur="{dur}" repeatCount="indefinite" begin="{begin}"/>'
-                f'</circle>'
-            )
- 
-    cx_w = TK_X + 3
-    cw_w = TK_W - 6
-    wave_d = (
-        f"M {cx_w},{y_agua:.1f} "
-        + "".join([
-            f"Q {cx_w + cw_w*(k+0.5)/8:.1f},{y_agua + (-7 if k%2==0 else 7):.1f} "
-            f"{cx_w + cw_w*(k+1)/8:.1f},{y_agua:.1f} "
-            for k in range(8)
-        ])
-        + "".join([
-            f"Q {cx_w + cw_w*(k+8.5)/8:.1f},{y_agua + (-7 if k%2==0 else 7):.1f} "
-            f"{cx_w + cw_w*(k+9)/8:.1f},{y_agua:.1f} "
-            for k in range(8)
-        ])
-        + f"L {cx_w + cw_w*2},{TK_BOTTOM} L {cx_w},{TK_BOTTOM} Z"
-    )
- 
-    sub_tendencia = (
-        "Nivel subiendo" if tendencia == "subiendo"
-        else ("Nivel bajando" if tendencia == "bajando" else "Nivel estable")
-    )
- 
+
     html = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -1080,125 +1122,98 @@ def generar_tanque_svg(
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{ background: transparent; font-family: 'Inter', sans-serif; padding: 4px; }}
 .tk-wrap {{
-  background: linear-gradient(160deg, #f0f8ff 0%, #e4f1fc 100%);
-  border: 1.5px solid #c5ddf0; border-radius: 20px;
-  padding: 1.1rem 1.1rem 1.3rem 1.1rem;
-  box-shadow: 0 8px 32px rgba(10,30,60,0.10); width: 100%;
+  background: #ffffff;
+  border: 1px solid #D7E3F1;
+  border-radius: 18px;
+  padding: 14px 14px 12px 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }}
-.tk-titulo {{
-  font-size: 0.82rem; font-weight: 800; color: #0b4f6c;
-  letter-spacing: 1px; text-transform: uppercase; text-align: center; margin-bottom: 0.35rem;
+.tk-header {{ text-align:center; margin-bottom: 8px; }}
+.tk-kicker {{ font-size: 11px; font-weight: 800; color: #334155; letter-spacing: 1.1px; text-transform: uppercase; }}
+.tk-status {{
+  margin: 8px auto 0 auto; display:inline-flex; align-items:center; gap:6px;
+  background: {accent_soft}; color: {accent}; border: 1.3px solid {accent};
+  border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 800;
 }}
-.tk-estado {{
-  background: {estado_color}22; border: 1.5px solid {estado_color}; color: {estado_color};
-  font-weight: 800; font-size: 0.76rem; padding: 0.22rem 0.85rem; border-radius: 999px;
-  text-align: center; letter-spacing: 0.5px; margin: 0 auto 0.85rem auto; display: table;
+.tk-svg-wrap {{ width:100%; display:flex; justify-content:center; margin: 6px 0 10px 0; }}
+.tk-svg-wrap svg {{ width:100%; max-width:250px; height:auto; }}
+.tk-footer {{
+  background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:12px;
 }}
-.tk-svg-wrap {{ width: 100%; max-width: 380px; margin: 0 auto; overflow: visible; }}
-.tk-svg-wrap svg {{ width: 100%; height: auto; display: block; overflow: visible; }}
-.tk-info-grid {{
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: 0.6rem; margin-top: 0.9rem; width: 100%;
-}}
-.tk-badge {{
-  background: white; border: 1px solid #dce9f7; border-radius: 13px;
-  padding: 0.6rem 0.85rem; font-size: 0.81rem; color: #0a1628;
-  box-shadow: 0 2px 8px rgba(10,22,40,0.06);
-}}
-.lbl {{ font-size: 0.66rem; font-weight: 700; color: #5a7899; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }}
-.val {{ font-size: 0.98rem; font-weight: 800; color: #0d2347; word-break: break-word; display: block; }}
-.sub {{ font-size: 0.70rem; color: #8aabca; margin-top: 1px; display: block; }}
+.tk-footer-row {{ display:flex; align-items:baseline; justify-content:center; gap:6px; flex-wrap:wrap; margin-bottom:6px; }}
+.tk-time {{ font-size: 14px; font-weight: 800; color:#0F172A; }}
+.tk-level {{ font-size: 16px; font-weight: 800; color:{accent}; }}
+.tk-metrics {{ display:grid; grid-template-columns: 1fr; gap:4px; text-align:center; }}
+.tk-metric {{ font-size: 12.5px; color:#334155; }}
+.tk-metric b {{ color:#0F172A; }}
+.tk-metric .accent {{ color:{accent}; font-weight:800; }}
 </style>
 </head>
 <body>
 <div class="tk-wrap">
-  <div class="tk-titulo">&#127959;&#65039; Estado del Tanque &mdash; {hora_actual_str}</div>
-  <div class="tk-estado">{estado_txt}</div>
+  <div class="tk-header">
+    <div class="tk-kicker">Estado del tanque</div>
+    <div class="tk-status">{estado_txt}</div>
+  </div>
   <div class="tk-svg-wrap">
-    <svg viewBox="0 0 {VB_W} {VB_H}" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+    <svg viewBox="0 0 {VB_W} {VB_H}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="gAgua" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="{c2}" stop-opacity="0.95"/>
-          <stop offset="100%" stop-color="{c1}" stop-opacity="1"/>
+          <stop offset="0%" stop-color="{agua_top}" stop-opacity="0.92"/>
+          <stop offset="100%" stop-color="{agua_bottom}" stop-opacity="0.98"/>
         </linearGradient>
         <linearGradient id="gTanque" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#d0e8f5"/>
-          <stop offset="35%" stop-color="#eaf4fc"/>
-          <stop offset="65%" stop-color="#eaf4fc"/>
-          <stop offset="100%" stop-color="#b8d4e8"/>
+          <stop offset="0%" stop-color="#E2E8F0"/>
+          <stop offset="50%" stop-color="#F8FAFC"/>
+          <stop offset="100%" stop-color="#CBD5E1"/>
         </linearGradient>
-        <linearGradient id="gReflejo" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
-          <stop offset="25%" stop-color="rgba(255,255,255,0.35)"/>
-          <stop offset="50%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <clipPath id="clipTk">
-          <rect x="{TK_X+3}" y="{TK_Y}" width="{TK_W-6}" height="{TK_H}"/>
+        <clipPath id="clipTank">
+          <rect x="{TK_X+3}" y="{TK_Y+2}" width="{TK_W-6}" height="{TK_H-4}" rx="12"/>
         </clipPath>
       </defs>
-      <rect x="{TK_X+6}" y="{TK_Y+6}" width="{TK_W}" height="{TK_H+20}" rx="10" fill="rgba(10,30,60,0.12)"/>
-      <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H+20}" rx="10" fill="url(#gTanque)" stroke="#8ab4cc" stroke-width="2.5"/>
-      <g clip-path="url(#clipTk)">
-        <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}" height="{TK_BOTTOM - y_agua:.1f}" fill="url(#gAgua)" opacity="0.92"/>
-        <g>
-          <path d="{wave_d}" fill="{c2}" opacity="0.5">
-          </path>
-          <animateTransform attributeName="transform" type="translate" from="0,0" to="{-(cw_w)},0" dur="2.8s" repeatCount="indefinite"/>
-        </g>
-        <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}" height="{TK_BOTTOM - y_agua:.1f}" fill="url(#gReflejo)" opacity="0.55"/>
-        {burbujas}
-      </g>
-      <line x1="{TK_X-8}" y1="{y_rebose:.1f}" x2="{TK_X+TK_W+8}" y2="{y_rebose:.1f}" stroke="#e63946" stroke-width="1.8" stroke-dasharray="5,3" opacity="0.9"/>
-      <text x="{TK_X+TK_W+12}" y="{y_rebose+4:.1f}" font-size="8.5" font-family="Inter,sans-serif" fill="#e63946" font-weight="700">REBOSE {h_rebose:.2f}m</text>
-      <line x1="{TK_X-8}" y1="{y_minima:.1f}" x2="{TK_X+TK_W+8}" y2="{y_minima:.1f}" stroke="#f4a261" stroke-width="1.8" stroke-dasharray="5,3" opacity="0.9"/>
-      <text x="{TK_X+TK_W+12}" y="{y_minima+4:.1f}" font-size="8.5" font-family="Inter,sans-serif" fill="#f4a261" font-weight="700">MIN {h_minima:.2f}m</text>
-      <rect x="{TK_X + TK_W//2 - 32:.0f}" y="{y_agua-26:.1f}" width="64" height="20" rx="10" fill="{c1}" opacity="0.9"/>
-      <text x="{TK_X + TK_W//2:.0f}" y="{y_agua-13:.1f}" text-anchor="middle" font-size="9.5" font-family="Inter,sans-serif" fill="white" font-weight="800">{h_actual:.3f} m</text>
-      <rect x="{TK_X-8}" y="{TK_Y-10}" width="{TK_W+16}" height="13" rx="6" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
-      <circle cx="{TK_X-1}" cy="{TK_Y-4}" r="2.5" fill="#5a8aa8"/>
-      <circle cx="{TK_X+TK_W+1}" cy="{TK_Y-4}" r="2.5" fill="#5a8aa8"/>
-      <circle cx="{TK_X+TK_W//2}" cy="{TK_Y-4}" r="2.5" fill="#5a8aa8"/>
-      <rect x="{TK_X-10}" y="{TK_BOTTOM+20}" width="{TK_W+20}" height="13" rx="6" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
-      <rect x="{TK_X+8}" y="{TK_BOTTOM+33}" width="12" height="26" rx="4" fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
-      <rect x="{TK_X+TK_W-20}" y="{TK_BOTTOM+33}" width="12" height="26" rx="4" fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
-      <line x1="{TK_X-22}" y1="{TK_Y}" x2="{TK_X-22}" y2="{TK_BOTTOM}" stroke="#b8d0e4" stroke-width="1.5"/>
+
+      <text x="{VB_W/2:.0f}" y="24" text-anchor="middle" font-size="18" font-family="Inter,sans-serif" font-weight="800" fill="#0F172A">{h_actual:.3f} m</text>
+      <text x="{VB_W/2:.0f}" y="41" text-anchor="middle" font-size="11" font-family="Inter,sans-serif" font-weight="600" fill="#64748B">Nivel actual • {pct_actual:.1f}% del volumen</text>
+
+      <line x1="{TK_X-20}" y1="{TK_Y}" x2="{TK_X-20}" y2="{TK_BOTTOM}" stroke="#CBD5E1" stroke-width="1.2"/>
       {escala_lines}
-      <text x="{TK_X + TK_W//2:.0f}" y="{TK_BOTTOM+17}" text-anchor="middle" font-size="11" font-family="Inter,sans-serif" fill="{estado_color}" font-weight="700">{flecha}</text>
+
+      <rect x="{TK_X-8}" y="{TK_Y-12}" width="{TK_W+16}" height="14" rx="7" fill="#8FB7CF" stroke="#789EB5" stroke-width="1"/>
+      <rect x="{TK_X}" y="{TK_Y}" width="{TK_W}" height="{TK_H}" rx="16" fill="url(#gTanque)" stroke="#94A3B8" stroke-width="2"/>
+      <g clip-path="url(#clipTank)">
+        <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}" height="{TK_BOTTOM-y_agua:.1f}" fill="url(#gAgua)"/>
+        <rect x="{TK_X+3}" y="{y_agua:.1f}" width="{TK_W-6}" height="{TK_BOTTOM-y_agua:.1f}" fill="rgba(255,255,255,0.08)"/>
+      </g>
+      <rect x="{TK_X+4}" y="{TK_Y+4}" width="14" height="{TK_H-8}" rx="7" fill="rgba(255,255,255,0.18)"/>
+      <rect x="{TK_X-10}" y="{TK_BOTTOM+4}" width="{TK_W+20}" height="12" rx="6" fill="#8FB7CF" stroke="#789EB5" stroke-width="1"/>
+      <rect x="{TK_X+16}" y="{TK_BOTTOM+16}" width="10" height="28" rx="3" fill="#7B9CB2"/>
+      <rect x="{TK_X+TK_W-26}" y="{TK_BOTTOM+16}" width="10" height="28" rx="3" fill="#7B9CB2"/>
+
+      <line x1="{TK_X-8}" y1="{y_rebose:.1f}" x2="{TK_X+TK_W+44}" y2="{y_rebose:.1f}" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <text x="{TK_X+TK_W+48}" y="{y_rebose+4:.1f}" font-size="9" font-family="Inter,sans-serif" font-weight="700" fill="#DC2626">REB {h_rebose:.2f} m</text>
+
+      <line x1="{TK_X-8}" y1="{y_minima:.1f}" x2="{TK_X+TK_W+44}" y2="{y_minima:.1f}" stroke="#D97706" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <text x="{TK_X+TK_W+48}" y="{y_minima+4:.1f}" font-size="9" font-family="Inter,sans-serif" font-weight="700" fill="#D97706">MIN {h_minima:.2f} m</text>
+
+      <rect x="{TK_X+16}" y="{max(TK_Y+10, y_agua-26):.1f}" width="{TK_W-32}" height="20" rx="10" fill="#FFFFFF" stroke="#D7E3F1"/>
+      <text x="{VB_W/2:.0f}" y="{max(TK_Y+24, y_agua-12):.1f}" text-anchor="middle" font-size="10" font-family="Inter,sans-serif" font-weight="800" fill="#0F172A">{flecha} {tendencia_label}</text>
     </svg>
   </div>
-  <div class="tk-info-grid">
-    <div class="tk-badge">
-      <span class="lbl">Hora actual</span>
-      <span class="val">{hora_actual_str}</span>
-      <span class="sub">Lectura m&#225;s reciente</span>
+  <div class="tk-footer">
+    <div class="tk-footer-row">
+      <span class="tk-time">{hora_actual_str}</span>
+      <span style="color:#94A3B8; font-weight:700;">—</span>
+      <span class="tk-level">{h_actual:.3f} m</span>
     </div>
-    <div class="tk-badge">
-      <span class="lbl">Nivel actual</span>
-      <span class="val" style="color:{estado_color}">{h_actual:.3f} m</span>
-      <span class="sub">{pct_actual:.1f}% del volumen</span>
-    </div>
-    <div class="tk-badge">
-      <span class="lbl">Caudal neto</span>
-      <span class="val">{signo}{Q_neto_Ls:.2f} L/s</span>
-      <span class="sub">{sub_tendencia}</span>
-    </div>
-    <div class="tk-badge" style="border-left:4px solid #e63946;">
-      <span class="lbl">&#9201; Hora rebose</span>
-      <span class="val" style="color:#e63946">{txt_rebose}</span>
-      <span class="sub">L&#237;mite: {h_rebose:.2f} m</span>
-    </div>
-    <div class="tk-badge" style="border-left:4px solid #f4a261;">
-      <span class="lbl">&#9201; Hora m&#237;nimo</span>
-      <span class="val" style="color:#f4a261">{txt_minimo}</span>
-      <span class="sub">L&#237;mite: {h_minima:.2f} m</span>
+    <div class="tk-metrics">
+      <div class="tk-metric">Q neto: <span class="accent">{signo}{Q_neto_Ls:.2f} L/s</span></div>
+      <div class="tk-metric">Hora rebose: <b>{txt_rebose}</b> · Hora mínimo: <b>{txt_minimo}</b></div>
     </div>
   </div>
 </div>
 </body>
 </html>"""
     return html
- 
- 
 
 
 # =========================================
@@ -1228,12 +1243,12 @@ body {
     padding: 0;
     background: transparent;
     font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #0a1628;
+    color: #003A70;
 }
 .formula-wrap {
-    background: linear-gradient(135deg, #f8fcff 0%, #eef7ff 100%);
+    background: linear-gradient(135deg, #F7FCFF 0%, #eef7ff 100%);
     border: 1px solid #d6e8f7;
-    border-left: 6px solid #00c8ff;
+    border-left: 6px solid #48B9EA;
     border-radius: 18px;
     padding: 18px 20px;
     box-shadow: 0 6px 22px rgba(10, 22, 40, 0.06);
@@ -1243,7 +1258,7 @@ body {
     align-items: center;
     gap: 10px;
     margin-bottom: 14px;
-    color: #0b4f6c;
+    color: #005B8E;
     font-size: 16px;
     font-weight: 850;
     letter-spacing: .2px;
@@ -1255,7 +1270,7 @@ body {
 }
 .formula-card {
     background: #ffffff;
-    border: 1px solid #dce9f7;
+    border: 1px solid #CFE5F4;
     border-radius: 16px;
     padding: 14px 14px 12px 14px;
     min-height: 132px;
@@ -1266,7 +1281,7 @@ body {
     text-transform: uppercase;
     letter-spacing: .55px;
     font-weight: 800;
-    color: #5a7899;
+    color: #4E6F8A;
     margin-bottom: 6px;
 }
 .formula-eq {
@@ -1274,12 +1289,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #0d2347;
+    color: #004A8F;
     overflow-x: auto;
 }
 .formula-note {
     margin-top: 7px;
-    color: #5a7899;
+    color: #4E6F8A;
     line-height: 1.45;
     font-size: 12px;
 }
@@ -1289,7 +1304,7 @@ body {
     border: 1px dashed #bdd6ee;
     border-radius: 13px;
     padding: 10px 12px;
-    color: #3a5270;
+    color: #315C7E;
     font-size: 12.5px;
     line-height: 1.55;
 }
@@ -1344,7 +1359,7 @@ def mostrar_calculadora_pac():
     st.markdown("<div class='etiqueta'>💧 Calculadora de PAC</div>", unsafe_allow_html=True)
  
     st.markdown("""
-    <p style="color:#5a7899;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
+    <p style="color:#4E6F8A;font-size:0.93rem;margin-bottom:1.2rem;line-height:1.6">
     Registra uno o varios periodos de consumo para calcular automáticamente el consumo total de PAC,
     el descenso en el nivel del tanque y la altura estimada restante.
     Usa horas como <code>07:00</code>, <code>13:30</code>, <code>22:00</code> o solo <code>7</code>, <code>13</code>.
@@ -1364,12 +1379,12 @@ def mostrar_calculadora_pac():
  
     st.markdown(f"""
     <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
-        <div style="background:#f0f6ff;border:1px solid #dce9f7;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#0d2347">
-            <span style="font-weight:700;display:block;font-size:0.72rem;color:#5a7899;text-transform:uppercase;margin-bottom:2px">Radio</span>
+        <div style="background:#EEF7FC;border:1px solid #CFE5F4;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#004A8F">
+            <span style="font-weight:700;display:block;font-size:0.72rem;color:#4E6F8A;text-transform:uppercase;margin-bottom:2px">Radio</span>
             {radio_tanque:.4f} m
         </div>
-        <div style="background:#f0f6ff;border:1px solid #dce9f7;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#0d2347">
-            <span style="font-weight:700;display:block;font-size:0.72rem;color:#5a7899;text-transform:uppercase;margin-bottom:2px">Área</span>
+        <div style="background:#EEF7FC;border:1px solid #CFE5F4;border-radius:12px;padding:0.7rem 1.2rem;font-size:0.87rem;color:#004A8F">
+            <span style="font-weight:700;display:block;font-size:0.72rem;color:#4E6F8A;text-transform:uppercase;margin-bottom:2px">Área</span>
             {area_tanque:.4f} m²
         </div>
     </div>
@@ -1537,16 +1552,16 @@ def mostrar_calculadora_pac():
         fig_altura = go.Figure()
         fig_altura.add_trace(go.Scatter(
             x=labels, y=alturas, mode="lines+markers",
-            line=dict(color="#1a6fff", width=2.5, shape="spline"),
-            marker=dict(size=9, color="#1a6fff", line=dict(color="white", width=2)),
+            line=dict(color="#008ACB", width=2.5, shape="spline"),
+            marker=dict(size=9, color="#008ACB", line=dict(color="white", width=2)),
             fill="tozeroy", fillcolor="rgba(26,111,255,0.07)"
         ))
         fig_altura.update_layout(
             title="Evolución de altura estimada del tanque",
             plot_bgcolor="white", paper_bgcolor="white",
-            font=dict(family="Inter", color="#0a1628", size=12),
-            xaxis=dict(title="Registro", gridcolor="#e8f0fe"),
-            yaxis=dict(title="Altura (m)", gridcolor="#e8f0fe"),
+            font=dict(family="Inter", color="#003A70", size=12),
+            xaxis=dict(title="Registro", gridcolor="#E3F2F8"),
+            yaxis=dict(title="Altura (m)", gridcolor="#E3F2F8"),
             margin=dict(l=20, r=20, t=40, b=20), height=300
         )
         st.plotly_chart(fig_altura, use_container_width=True)
@@ -1577,7 +1592,7 @@ def mostrar_calculadora_pac():
 #      por:      components.html(panel_html, height=1060, scrolling=False)
 #
 # CAMBIOS PRINCIPALES:
-#   - Fondo claro (#f0f6ff / blanco) en lugar de azul oscuro -> mejor lectura
+#   - Fondo claro (#EEF7FC / blanco) en lugar de azul oscuro -> mejor lectura
 #   - Todos los textos en colores oscuros con contraste WCAG AA correcto
 #   - Grid responsive que cabe sin scroll en pantallas normales
 #   - Corregido bug: "color:#3a4a7a)" tenia parentesis de mas
@@ -1632,24 +1647,24 @@ def generar_panel_resultados_html(
         nivel_color = "#d35400"; nivel_label = "NIVEL BAJO"
         agua_c1, agua_c2 = "#f4a261", "#ffd166"
     else:
-        nivel_color = "#1a7a5a"; nivel_label = "NIVEL NORMAL"
-        agua_c1, agua_c2 = "#1a6fff", "#00c8ff"
+        nivel_color = "#258B6A"; nivel_label = "NIVEL NORMAL"
+        agua_c1, agua_c2 = "#008ACB", "#48B9EA"
 
     # ── Color de tendencia ───────────────────────────────────────────────────
     if tendencia_proy == "subiendo":
-        tend_color = "#1a7a5a"; tend_icon = "▲"; tend_txt = "SUBIENDO"
+        tend_color = "#258B6A"; tend_icon = "▲"; tend_txt = "SUBIENDO"
     elif tendencia_proy == "bajando":
         tend_color = "#c0392b"; tend_icon = "▼"; tend_txt = "BAJANDO"
     else:
-        tend_color = "#4a7899"; tend_icon = "●"; tend_txt = "ESTABLE"
+        tend_color = "#4E7F9F"; tend_icon = "●"; tend_txt = "ESTABLE"
 
     # ── Accion recomendada ───────────────────────────────────────────────────
     if delta_entrada_planta > 0.5:
-        accion_color = "#1a7a5a"; accion_icon = "⬆"; accion_dir = "SUBIR"
+        accion_color = "#258B6A"; accion_icon = "⬆"; accion_dir = "SUBIR"
     elif delta_entrada_planta < -0.5:
         accion_color = "#c0392b"; accion_icon = "⬇"; accion_dir = "BAJAR"
     else:
-        accion_color = "#4a7899"; accion_icon = "●"; accion_dir = "MANTENER"
+        accion_color = "#4E7F9F"; accion_icon = "●"; accion_dir = "MANTENER"
 
     # ── Helpers ──────────────────────────────────────────────────────────────
     def fmt_tiempo(v):
@@ -1666,13 +1681,13 @@ def generar_panel_resultados_html(
     signo_q_post = "+" if Q_neto_post_ajuste_Ls >= 0 else ""
     
     if Q_neto_post_ajuste_Ls > 0.05:
-        color_q_post = "#1a7a5a"
+        color_q_post = "#258B6A"
         txt_q_post = "SUBIENDO"
     elif Q_neto_post_ajuste_Ls < -0.05:
         color_q_post = "#c0392b"
         txt_q_post = "BAJANDO"
     else:
-        color_q_post = "#4a7899"
+        color_q_post = "#4E7F9F"
         txt_q_post = "ESTABLE"
 
     rebose_txt = hora_rebose_str if hora_rebose_str else "No aplica"
@@ -1682,10 +1697,10 @@ def generar_panel_resultados_html(
 
     rebose_color = ("#c0392b" if (t_rebose_min is not None and t_rebose_min < 60)
                     else "#d35400" if (t_rebose_min is not None and t_rebose_min < 180)
-                    else "#4a7899")
+                    else "#4E7F9F")
     minimo_color = ("#c0392b" if (t_minimo_min is not None and t_minimo_min < 60)
                     else "#d35400" if (t_minimo_min is not None and t_minimo_min < 180)
-                    else "#4a7899")
+                    else "#4E7F9F")
 
     rel_obs_txt = (f"{relacion_observada:.3f}"
                    if (relacion_observada is not None
@@ -1750,13 +1765,13 @@ def generar_panel_resultados_html(
     valv_html = ""
     if mostrar_recomendacion_valvulero:
         if delta_entrada_planta > 0.5:
-            vc = "#1a7a5a"; vd = "ABRIR SALIDA"
+            vc = "#258B6A"; vd = "ABRIR SALIDA"
         elif delta_entrada_planta < -0.5:
             vc = "#c0392b"; vd = "CERRAR SALIDA"
         else:
-            vc = "#4a7899"; vd = "MANTENER SALIDA"
+            vc = "#4E7F9F"; vd = "MANTENER SALIDA"
         valv_html = (
-            f'<div style="background:#f0f6ff;border:1.5px solid #2563eb;border-radius:12px;'
+            f'<div style="background:#EEF7FC;border:1.5px solid #2563eb;border-radius:12px;'
             f'padding:10px 14px;margin-top:8px;font-family:Inter,sans-serif">'
             f'<div style="font-size:0.68rem;font-weight:700;color:#1e3a5f;text-transform:uppercase;'
             f'letter-spacing:1px;margin-bottom:4px">Referencia valvulero</div>'
@@ -1828,7 +1843,7 @@ def generar_panel_resultados_html(
 <style>
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
-  background: #f0f6ff;
+  background: #EEF7FC;
   font-family: Inter, sans-serif;
   color: #0f172a;
   padding: 10px;
@@ -1837,7 +1852,7 @@ body {{
 
 /* ── HEADER ── */
 .hdr {{
-  background: linear-gradient(90deg, #0d2347 0%, #1a4a8a 100%);
+  background: linear-gradient(90deg, #004A8F 0%, #1a4a8a 100%);
   border-radius: 14px;
   padding: 10px 16px;
   display: flex;
@@ -1861,7 +1876,7 @@ body {{
 .hdr-time {{
   font-size: 1rem;
   font-weight: 700;
-  color: #0d2347;
+  color: #004A8F;
   background: rgba(255,255,255,0.92);
   border-radius: 8px;
   padding: 4px 14px;
@@ -1879,7 +1894,7 @@ body {{
 /* ── TARJETA GENÉRICA ── */
 .card {{
   background: #ffffff;
-  border: 1px solid #dce9f7;
+  border: 1px solid #CFE5F4;
   border-radius: 14px;
   padding: 11px 13px;
   box-shadow: 0 2px 8px rgba(10,22,40,0.06);
@@ -1923,7 +1938,7 @@ body {{
 }}
 .mc {{
   background: #ffffff;
-  border: 1px solid #dce9f7;
+  border: 1px solid #CFE5F4;
   border-radius: 12px;
   padding: 9px 11px;
   box-shadow: 0 2px 6px rgba(10,22,40,0.05);
@@ -1936,16 +1951,16 @@ body {{
   top: 0; left: 0; right: 0;
   height: 3px;
   border-radius: 12px 12px 0 0;
-  background: #1a6fff;
+  background: #008ACB;
 }}
-.mc.verde::before {{ background: #16a34a; }}
+.mc.verde::before {{ background: #67A84A; }}
 .mc.rojo::before  {{ background: #dc2626; }}
 .mc.naranja::before {{ background: #ea580c; }}
 .mc.azul::before {{ background: #2563eb; }}
 .m-lbl {{
   font-size: 0.60rem;
   font-weight: 600;
-  color: #4a7899;
+  color: #4E7F9F;
   text-transform: uppercase;
   letter-spacing: 0.7px;
   display: block;
@@ -2006,8 +2021,8 @@ body {{
   flex-wrap: wrap;
 }}
 .an-item {{
-  background: #f0f6ff;
-  border: 1px solid #dce9f7;
+  background: #EEF7FC;
+  border: 1px solid #CFE5F4;
   border-radius: 10px;
   padding: 7px 12px;
   text-align: center;
@@ -2015,7 +2030,7 @@ body {{
 .an-lbl {{
   font-size: 0.58rem;
   font-weight: 600;
-  color: #4a7899;
+  color: #4E7F9F;
   text-transform: uppercase;
   letter-spacing: 0.7px;
   display: block;
@@ -2052,9 +2067,9 @@ body {{
   font-size: 0.78rem;
   white-space: nowrap;
 }}
-.chip-azul  {{ background: #1a6fff; color: #fff; }}
-.chip-morado {{ background: #6c63ff; color: #fff; }}
-.chip-verde  {{ background: #16a34a; color: #fff; }}
+.chip-azul  {{ background: #008ACB; color: #fff; }}
+.chip-morado {{ background: #008ACB; color: #fff; }}
+.chip-verde  {{ background: #67A84A; color: #fff; }}
 .tl-sep {{
   font-size: 0.72rem;
   color: #64748b;
@@ -2066,8 +2081,8 @@ body {{
   margin-top: 4px;
 }}
 .tl-det b {{ color: #0f172a; }}
-.tl-det .vc {{ color: #6c63ff; font-weight: 700; }}
-.tl-det .vg {{ color: #16a34a; font-weight: 700; }}
+.tl-det .vc {{ color: #008ACB; font-weight: 700; }}
+.tl-det .vg {{ color: #67A84A; font-weight: 700; }}
 .tl-det .va {{ color: {accion_color}; font-weight: 700; }}
 
 /* ── FILA INFERIOR ── */
@@ -2085,7 +2100,7 @@ body {{
   border-radius: 13px;
   overflow: visible;
   margin-bottom: 7px;
-  border: 1px solid #dce9f7;
+  border: 1px solid #CFE5F4;
 }}
 .nivel-bar-fill {{
   position: absolute;
@@ -2107,10 +2122,10 @@ body {{
   position: absolute;
   top: -4px; bottom: -4px;
   width: 3px;
-  background: #16a34a;
+  background: #67A84A;
   border-radius: 2px;
   left: {pct_objetivo:.1f}%;
-  box-shadow: 0 0 6px #16a34a88;
+  box-shadow: 0 0 6px #67A84A88;
 }}
 .nivel-bar-reb {{
   position: absolute;
@@ -2157,15 +2172,15 @@ body {{
 }}
 .rs {{
   text-align: center;
-  background: #f8fbff;
-  border: 1px solid #dce9f7;
+  background: #F7FCFF;
+  border: 1px solid #CFE5F4;
   border-radius: 10px;
   padding: 7px 5px;
 }}
 .rs-lbl {{
   font-size: 0.58rem;
   font-weight: 600;
-  color: #4a7899;
+  color: #4E7F9F;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   display: block;
@@ -2185,7 +2200,7 @@ body {{
   gap: 7px;
 }}
 .lim-item {{
-  background: #f8fbff;
+  background: #F7FCFF;
   border-radius: 10px;
   padding: 8px 10px;
   border-left: 3px solid;
@@ -2219,15 +2234,15 @@ body {{
 }}
 .bi {{
   text-align: center;
-  background: #f8fbff;
-  border: 1px solid #dce9f7;
+  background: #F7FCFF;
+  border: 1px solid #CFE5F4;
   border-radius: 9px;
   padding: 7px 5px;
 }}
 .bi-lbl {{
   font-size: 0.58rem;
   font-weight: 600;
-  color: #4a7899;
+  color: #4E7F9F;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: block;
@@ -2243,8 +2258,8 @@ body {{
 /* ── LECTURA COMPACTA BAJO TANQUE ── */
 .lecturas-box {{
   width: 100%;
-  background: #f0f6ff;
-  border: 1px solid #dce9f7;
+  background: #EEF7FC;
+  border: 1px solid #CFE5F4;
   border-radius: 10px;
   padding: 7px 10px;
   font-size: 0.72rem;
@@ -2310,7 +2325,7 @@ body {{
               rx="9" fill="rgba(10,30,60,0.10)"/>
         <!-- Cuerpo -->
         <rect x="{TX}" y="{TY}" width="{TW}" height="{TH+22}"
-              rx="9" fill="url(#gTk)" stroke="#8ab4cc" stroke-width="2"/>
+              rx="9" fill="url(#gTk)" stroke="#A8D6E9" stroke-width="2"/>
 
         <!-- Agua -->
         <g clip-path="url(#clipT)">
@@ -2343,9 +2358,9 @@ body {{
 
         <!-- Línea objetivo -->
         <line x1="{TX-5}" y1="{y_obj:.1f}" x2="{TX+TW+5}" y2="{y_obj:.1f}"
-              stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.8"/>
+              stroke="#67A84A" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.8"/>
         <text x="{TX+TW+8}" y="{y_obj+4:.1f}" font-size="7.5"
-              font-family="Inter,sans-serif" fill="#16a34a" font-weight="700">
+              font-family="Inter,sans-serif" fill="#67A84A" font-weight="700">
           OBJ {nivel_objetivo:.2f}m
         </text>
 
@@ -2360,10 +2375,10 @@ body {{
 
         <!-- Tapa -->
         <rect x="{TX-6}" y="{TY-9}" width="{TW+12}" height="12"
-              rx="5" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+              rx="5" fill="#A8D6E9" stroke="#6a9ab8" stroke-width="1.5"/>
         <!-- Base -->
         <rect x="{TX-8}" y="{TB+22}" width="{TW+16}" height="11"
-              rx="5" fill="#8ab4cc" stroke="#6a9ab8" stroke-width="1.5"/>
+              rx="5" fill="#A8D6E9" stroke="#6a9ab8" stroke-width="1.5"/>
         <rect x="{TX+6}" y="{TB+33}" width="10" height="20"
               rx="3" fill="#7aa4bc" stroke="#6090a8" stroke-width="1"/>
         <rect x="{TX+TW-16}" y="{TB+33}" width="10" height="20"
@@ -2510,7 +2525,7 @@ body {{
 
         <div class="leyenda-bar">
           <div class="ld"><div class="ld-dot" style="background:{agua_c1}"></div>Actual</div>
-          <div class="ld"><div class="ld-dot" style="background:#16a34a"></div>Objetivo</div>
+          <div class="ld"><div class="ld-dot" style="background:#67A84A"></div>Objetivo</div>
           <div class="ld"><div class="ld-dot" style="background:#dc2626"></div>Rebose</div>
           <div class="ld"><div class="ld-dot" style="background:#ea580c"></div>Mínimo</div>
         </div>
@@ -2518,7 +2533,7 @@ body {{
         <div class="res-stats">
           <div class="rs">
             <span class="rs-lbl">Cuando llega ajuste</span>
-            <span class="rs-val" style="color:#6c63ff">{nivel_cuando_llega_ajuste:.3f} m</span>
+            <span class="rs-val" style="color:#008ACB">{nivel_cuando_llega_ajuste:.3f} m</span>
           </div>
           <div class="rs">
             <span class="rs-lbl">Post corrección</span>
@@ -3109,7 +3124,7 @@ def mostrar_calculadora_tanque():
         with st.expander("📈 Proyección del nivel — próximas 6 horas", expanded=False):
             pasos_min  = list(range(0, 361, 10))
             horas_proj = [minutos_a_hora_futura(min_actual, p) for p in pasos_min]
-            y_max = max(altura_rebose * 1.13, altura_actual * 1.2)
+            y_max = max(altura_rebose * 1.10, altura_actual * 1.12, nivel_objetivo * 1.08)
 
             niv_proj = [round(max(0.0, min(altura_rebose*1.05,
                           altura_actual + Q_neto_proyeccion_m3s*(p*60)/area_equiv)), 4)
@@ -3125,68 +3140,99 @@ def mostrar_calculadora_tanque():
                 niv_aj.append(round(max(0.0, min(altura_rebose*1.05, h_aj)), 4))
 
             fig = go.Figure()
-            fig.add_hrect(y0=altura_rebose, y1=y_max,
-                          fillcolor="rgba(230,57,70,0.07)", line_width=0)
+
             fig.add_hrect(y0=0, y1=altura_minima,
-                          fillcolor="rgba(244,162,97,0.07)", line_width=0)
-            for y_val, color, label in [
-                (altura_rebose, "#e63946", f"Rebose {altura_rebose:.2f}m"),
-                (altura_minima, "#f4a261", f"Mínimo {altura_minima:.2f}m"),
-                (nivel_objetivo, "#00c8a0", f"Objetivo {nivel_objetivo:.2f}m"),
-            ]:
-                fig.add_shape(type="line", x0=0, x1=1, xref="paper",
-                              y0=y_val, y1=y_val,
-                              line=dict(color=color, width=1.8, dash="dash"))
-                fig.add_annotation(x=1, y=y_val, xref="paper",
-                                   text=label, showarrow=False,
-                                   font=dict(color=color, size=10),
-                                   xanchor="left")
+                          fillcolor="rgba(245, 158, 11, 0.06)", line_width=0)
+            fig.add_hrect(y0=altura_rebose, y1=y_max,
+                          fillcolor="rgba(220, 38, 38, 0.05)", line_width=0)
+
+            line_specs = [
+                (altura_rebose, "#B91C1C", f"Rebose {altura_rebose:.2f} m", "dash"),
+                (altura_minima, "#B45309", f"Mínimo {altura_minima:.2f} m", "dash"),
+                (nivel_objetivo, "#0A8F83", f"Objetivo {nivel_objetivo:.2f} m", "dot"),
+            ]
+            for y_val, color, label, dash in line_specs:
+                fig.add_hline(y=y_val, line=dict(color=color, width=1.5, dash=dash))
+                fig.add_annotation(
+                    x=1.005, y=y_val, xref="paper", yref="y",
+                    text=label, showarrow=False, xanchor="left",
+                    font=dict(color=color, size=10)
+                )
+
             fig.add_trace(go.Scatter(
                 x=horas_proj, y=niv_proj, mode="lines",
-                name="Sin ajuste", line=dict(color="#1a6fff", width=2.5, shape="spline"),
-                fill="tozeroy", fillcolor="rgba(26,111,255,0.06)"
+                name="Sin ajuste",
+                line=dict(color="#005B96", width=2.6, shape="spline")
             ))
             fig.add_trace(go.Scatter(
                 x=horas_proj, y=niv_aj, mode="lines",
                 name="Con ajuste recomendado",
-                line=dict(color="#00c8a0", width=2.5, dash="dash", shape="spline"),
-                fill="tozeroy", fillcolor="rgba(0,200,160,0.04)"
+                line=dict(color="#6FAE4A", width=2.6, dash="dash", shape="spline")
             ))
             fig.add_trace(go.Scatter(
                 x=[hora_actual_str], y=[altura_actual], mode="markers",
                 name="Nivel actual",
-                marker=dict(size=14, color="#00c8ff", line=dict(color="#0a1628", width=2))
+                marker=dict(size=10, color="#0F172A", line=dict(color="#FFFFFF", width=1.5))
             ))
-            fig.add_shape(type="line", x0=hora_efecto_str, x1=hora_efecto_str,
-                          y0=0, y1=y_max,
-                          line=dict(color="#a89dff", width=1.5, dash="dot"))
-            fig.add_annotation(x=hora_efecto_str, y=y_max*0.92,
-                               text=f"Efecto ajuste<br>{hora_efecto_str}",
-                               showarrow=False,
-                               font=dict(color="#a89dff", size=10),
-                               bgcolor="rgba(20,30,60,0.85)",
-                               bordercolor="#a89dff", borderwidth=1, borderpad=4)
+
+            fig.add_vline(x=hora_efecto_str, line_width=1.2, line_dash="dot", line_color="#64748B")
+            fig.add_annotation(
+                x=hora_efecto_str, y=y_max*0.95,
+                text=f"Efecto del ajuste\n{hora_efecto_str}",
+                showarrow=False,
+                font=dict(color="#315C7E", size=10),
+                bgcolor="#F8FAFC",
+                bordercolor="#CBD5E1",
+                borderwidth=1,
+                borderpad=4
+            )
+
             if hora_rebose_str:
-                fig.add_trace(go.Scatter(x=[hora_rebose_str], y=[altura_rebose],
+                fig.add_trace(go.Scatter(
+                    x=[hora_rebose_str], y=[altura_rebose],
                     mode="markers", name=f"Rebose {hora_rebose_str}",
-                    marker=dict(size=13, color="#e63946", line=dict(color="white", width=2), symbol="x-open-dot")))
+                    marker=dict(size=11, color="#B91C1C", symbol="diamond")
+                ))
             if hora_minimo_str:
-                fig.add_trace(go.Scatter(x=[hora_minimo_str], y=[altura_minima],
+                fig.add_trace(go.Scatter(
+                    x=[hora_minimo_str], y=[altura_minima],
                     mode="markers", name=f"Mínimo {hora_minimo_str}",
-                    marker=dict(size=13, color="#f4a261", line=dict(color="white", width=2), symbol="x-open-dot")))
+                    marker=dict(size=11, color="#B45309", symbol="diamond")
+                ))
 
             tick_vals = [horas_proj[i] for i, p in enumerate(pasos_min) if p % 30 == 0]
             fig.update_layout(
-                plot_bgcolor="#0a1e3d", paper_bgcolor="#0d2347",
-                font=dict(family="Barlow Condensed", color="#d0e8f5", size=12),
-                xaxis=dict(title="Hora del día", gridcolor="#1a3a6a", linecolor="#1a3a6a",
-                           tickangle=-30, tickvals=tick_vals, tickfont=dict(size=11)),
-                yaxis=dict(title="Altura (m)", gridcolor="#1a3a6a", linecolor="#1a3a6a",
-                           range=[0, y_max], tickfont=dict(size=11)),
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0,
-                            bgcolor="rgba(10,30,64,0.9)", bordercolor="#1a3a6a",
-                            borderwidth=1, font=dict(size=11, color="#d0e8f5")),
-                margin=dict(l=20, r=120, t=20, b=60), height=420
+                plot_bgcolor="#FFFFFF",
+                paper_bgcolor="#FFFFFF",
+                font=dict(family="Inter", color="#0F172A", size=12),
+                xaxis=dict(
+                    title="Hora del día",
+                    gridcolor="#D8EAF4",
+                    linecolor="#CFE5F4",
+                    tickangle=-30,
+                    tickvals=tick_vals,
+                    tickfont=dict(size=11, color="#334155"),
+                    title_font=dict(size=12, color="#334155")
+                ),
+                yaxis=dict(
+                    title="Altura (m)",
+                    gridcolor="#D8EAF4",
+                    linecolor="#CFE5F4",
+                    range=[0, y_max],
+                    tickfont=dict(size=11, color="#334155"),
+                    title_font=dict(size=12, color="#334155")
+                ),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom", y=1.02,
+                    xanchor="left", x=0,
+                    bgcolor="rgba(255,255,255,0.92)",
+                    bordercolor="#CFE5F4",
+                    borderwidth=1,
+                    font=dict(size=11, color="#334155")
+                ),
+                margin=dict(l=24, r=110, t=18, b=54),
+                height=400
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -3653,7 +3699,7 @@ def mostrar_despacho_operativo():
             detalle_decision = f"La salida actual ({q_salida_diviso_actual:.2f} L/s) supera la salida segura estimada ({q_total_seguro_salida:.2f} L/s)."
         elif destinos_bajos and q_extra_disponible > margen_ls:
             decision = "PUEDE ABRIR / AUMENTAR DESPACHO DESDE DIVISO"
-            color_decision = "#2a9d8f"
+            color_decision = "#2DB9A3"
             detalle_decision = f"Hay margen aproximado de +{q_extra_disponible:.2f} L/s hacia Cunduy/Malvinas sin bajar Diviso del mínimo en {horizonte_h:.1f} h."
         elif destinos_altos or fuente_alta:
             decision = "MANTENER O REDUCIR SI HAY RIESGO DE REBOSE"
@@ -3661,14 +3707,14 @@ def mostrar_despacho_operativo():
             detalle_decision = "Revisa si los destinos o Diviso están altos. Evita seguir llenando tanques con riesgo de rebose."
         else:
             decision = "MANTENER DESPACHO Y SEGUIMIENTO"
-            color_decision = "#1a6fff"
+            color_decision = "#008ACB"
             detalle_decision = "No se observa una necesidad fuerte de abrir o cerrar con los datos ingresados."
 
         st.markdown(f"""
         <div style="background:white;border-left:7px solid {color_decision};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
+            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
             <div style="font-size:1.35rem;font-weight:900;color:{color_decision};margin:0.2rem 0">{decision}</div>
-            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle_decision}</div>
+            <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle_decision}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -3751,7 +3797,7 @@ def mostrar_despacho_operativo():
             )
 
         st.markdown("""
-        <div class="caja-rango" style="border-left-color:#00c8ff">
+        <div class="caja-rango" style="border-left-color:#48B9EA">
         <b>Cómo leer este resultado</b><br>
         • <b>Despacho seguro total</b>: caudal máximo aproximado que Diviso puede sacar durante el horizonte sin bajar del mínimo operativo, limitado por conducción.<br>
         • <b>Caudal recomendado por destino</b>: entrada sugerida hacia Cunduy y Malvinas para acercarlos al nivel objetivo.<br>
@@ -3812,17 +3858,17 @@ def mostrar_despacho_operativo():
             q_salida_recomendada = q_salida_segura_caldas
         elif pct_caldas >= alto_pct and q_extra_caldas > margen_ls:
             decision = "PUEDE ABRIR / AUMENTAR SALIDAS DE CALDAS"
-            color_decision = "#2a9d8f"
+            color_decision = "#2DB9A3"
             detalle = f"El tanque está alto ({pct_caldas:.1f}%). Puede aumentar salida hasta aprox. {q_salida_segura_caldas:.2f} L/s, de forma gradual."
             q_salida_recomendada = q_salida_segura_caldas
         elif q_extra_caldas > margen_ls and pct_caldas > objetivo_pct:
             decision = "PUEDE AUMENTAR MODERADAMENTE SALIDAS"
-            color_decision = "#2a9d8f"
+            color_decision = "#2DB9A3"
             detalle = f"Hay margen aproximado de +{q_extra_caldas:.2f} L/s sin bajar del mínimo en {horizonte_h:.1f} h."
             q_salida_recomendada = min(q_salida_caldas + q_extra_caldas, q_limite_salida_caldas)
         else:
             decision = "MANTENER SALIDAS Y SEGUIMIENTO"
-            color_decision = "#1a6fff"
+            color_decision = "#008ACB"
             detalle = "El balance no exige abrir ni cerrar con fuerza. Mantén seguimiento de nivel, salidas y producción."
             q_salida_recomendada = q_salida_caldas
 
@@ -3831,9 +3877,9 @@ def mostrar_despacho_operativo():
 
         st.markdown(f"""
         <div style="background:white;border-left:7px solid {color_decision};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
+            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
             <div style="font-size:1.35rem;font-weight:900;color:{color_decision};margin:0.2rem 0">{decision}</div>
-            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle}</div>
+            <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -3876,7 +3922,7 @@ def mostrar_despacho_operativo():
             )
 
         st.markdown("""
-        <div class="caja-rango" style="border-left-color:#00c8ff">
+        <div class="caja-rango" style="border-left-color:#48B9EA">
         <b>Nota para Caldas</b><br>
         Como la entrada al tanque no tiene macromedidor, la entrada debe estimarse con producción, cambio de nivel y salidas macromedidas. Si la entrada estimada no es confiable, confirma con lectura física o tendencia SCADA antes de maniobrar.
         </div>
@@ -4252,7 +4298,7 @@ def mostrar_documentos_sistema():
     st.markdown("<div class='etiqueta'>📄 Documentos del sistema</div>", unsafe_allow_html=True)
 
     st.markdown("""
-    <p style="color:#5a7899;font-size:0.93rem;line-height:1.6;margin-bottom:1rem">
+    <p style="color:#4E6F8A;font-size:0.93rem;line-height:1.6;margin-bottom:1rem">
     Consulta los instructivos PDF directamente desde la aplicación. El acceso de consulta permite ver y descargar.
     El acceso de administrador permite agregar y eliminar PDF. Las claves se leen desde Streamlit Cloud Secrets.
     </p>
@@ -4522,11 +4568,11 @@ MENU_PROFESIONAL_CSS = """
 .menu-pro-title {
     font-size: 1.08rem;
     font-weight: 850;
-    color: #0a1628;
+    color: #003A70;
     letter-spacing: -0.01em;
 }
 .menu-pro-subtitle {
-    color: #5a7899;
+    color: #4E6F8A;
     font-size: 0.84rem;
     margin-top: 0.15rem;
     line-height: 1.35;
@@ -4535,9 +4581,9 @@ MENU_PROFESIONAL_CSS = """
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #e8f4ff, #f3f9ff);
+    background: linear-gradient(135deg, #E6F5FB, #f3f9ff);
     border: 1px solid #cde3ff;
-    color: #0d2347;
+    color: #004A8F;
     border-radius: 999px;
     padding: 0.42rem 0.9rem;
     font-size: 0.78rem;
@@ -4545,8 +4591,8 @@ MENU_PROFESIONAL_CSS = """
     white-space: nowrap;
 }
 .menu-pro-group {
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-    border: 1px solid #dce9f7;
+    background: linear-gradient(180deg, #ffffff 0%, #F7FCFF 100%);
+    border: 1px solid #CFE5F4;
     border-radius: 18px;
     padding: 0.85rem 0.95rem 0.95rem 0.95rem;
     box-shadow: 0 5px 18px rgba(10,22,40,0.055);
@@ -4556,13 +4602,13 @@ MENU_PROFESIONAL_CSS = """
 .menu-pro-group-title {
     font-size: 0.91rem;
     font-weight: 850;
-    color: #0b4f6c;
+    color: #005B8E;
     text-transform: uppercase;
     letter-spacing: 0.045em;
     margin-bottom: 0.2rem;
 }
 .menu-pro-group-text {
-    color: #5a7899;
+    color: #4E6F8A;
     font-size: 0.80rem;
     line-height: 1.42;
     min-height: 2.1rem;
@@ -4868,7 +4914,7 @@ def mostrar_despacho_historico_scada():
 
     def estado_y_accion(nombre, pct, q_balance, tiempo_limite_h, min_pct, objetivo_pct, alto_pct):
         if pct is None or not np.isfinite(pct):
-            return "⚪ Sin nivel", "Revisar columna de nivel/volumen", "#5a7899"
+            return "⚪ Sin nivel", "Revisar columna de nivel/volumen", "#4E6F8A"
         if pct <= min_pct:
             return "🔴 Bajo crítico", "Abrir/aumentar entrada si es posible y reducir salidas no prioritarias", "#e63946"
         if pct >= alto_pct:
@@ -4879,7 +4925,7 @@ def mostrar_despacho_historico_scada():
             return "🟠 Bajo", "Abrir/aumentar entrada gradualmente hasta recuperar objetivo", "#f4a261"
         if pct > objetivo_pct + 10:
             return "🟡 Alto controlado", "Mantener o reducir entrada; priorizar despacho si otros tanques lo requieren", "#f4a261"
-        return "🟢 Normal", "Mantener válvulas y seguimiento", "#2a9d8f"
+        return "🟢 Normal", "Mantener válvulas y seguimiento", "#2DB9A3"
 
     def requerir_entrada(vol_actual, capacidad, q_salida, horizonte_h, objetivo_pct):
         if not np.isfinite(vol_actual) or not np.isfinite(q_salida):
@@ -4936,7 +4982,7 @@ def mostrar_despacho_historico_scada():
     if archivo is None:
         st.info("Sube el archivo SCADA para activar el análisis histórico de despacho.")
         st.markdown("""
-        <div class="caja-rango" style="border-left-color:#00c8ff">
+        <div class="caja-rango" style="border-left-color:#48B9EA">
         <b>Columnas ideales del archivo SCADA</b><br>
         Fecha/hora, niveles o volúmenes de tanques, caudal salida Diviso, entrada/salida Cunduy, entrada/salida Malvinas,
         caudales Ángeles/Comfaca/Andes si aplican, y para Caldas entrada estimada o salida total/sectores.<br><br>
@@ -5171,7 +5217,7 @@ def mostrar_despacho_historico_scada():
             detalle = "Diviso está cerca o por debajo del mínimo operativo. Prioriza recuperar nivel antes de aumentar envío a Cunduy/Malvinas."
         elif q_linea_rec > q_linea_actual + margen_ls:
             decision = "PUEDE AUMENTAR DESPACHO DESDE DIVISO"
-            color = "#2a9d8f"
+            color = "#2DB9A3"
             detalle = f"Los destinos requieren más entrada y Diviso tiene margen. Línea recomendada aproximada: {q_linea_rec:.2f} L/s."
         elif q_linea_rec < q_linea_actual - margen_ls:
             decision = "REDUCIR O CERRAR PARCIALMENTE DESPACHO DESDE DIVISO"
@@ -5179,14 +5225,14 @@ def mostrar_despacho_historico_scada():
             detalle = f"Con el objetivo configurado, la línea está enviando más de lo requerido. Línea recomendada aproximada: {q_linea_rec:.2f} L/s."
         else:
             decision = "MANTENER DESPACHO Y SEGUIMIENTO"
-            color = "#1a6fff"
+            color = "#008ACB"
             detalle = "La línea está cerca del caudal requerido para el horizonte seleccionado."
 
         st.markdown(f"""
         <div style="background:white;border-left:7px solid {color};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
+            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
             <div style="font-size:1.35rem;font-weight:900;color:{color};margin:0.2rem 0">{decision}</div>
-            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle}</div>
+            <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -5262,7 +5308,7 @@ def mostrar_despacho_historico_scada():
             detalle = "El tanque está bajo. Prioriza recuperación de nivel y verifica producción/entrada estimada."
         elif pct >= alto_pct:
             decision = "PUEDE ABRIR/AUMENTAR SALIDAS DE CALDAS"
-            color = "#2a9d8f"
+            color = "#2DB9A3"
             detalle = "El tanque está alto. Puede aumentar salida de forma gradual si la continuidad lo permite."
         elif np.isfinite(q_in_prom) and np.isfinite(q_out_prom) and q_out_prom > q_in_prom + margen_ls:
             decision = "REDUCIR SALIDA O AUMENTAR PRODUCCIÓN DE CALDAS"
@@ -5270,14 +5316,14 @@ def mostrar_despacho_historico_scada():
             detalle = "La salida promedio supera la entrada estimada y el tanque tenderá a bajar."
         else:
             decision = "MANTENER CALDAS Y SEGUIMIENTO"
-            color = "#1a6fff"
+            color = "#008ACB"
             detalle = "El balance no exige una maniobra fuerte con los datos del periodo."
 
         st.markdown(f"""
         <div style="background:white;border-left:7px solid {color};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#5a7899;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
+            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
             <div style="font-size:1.35rem;font-weight:900;color:{color};margin:0.2rem 0">{decision}</div>
-            <div style="font-size:0.94rem;color:#0a1628;line-height:1.55">{detalle}</div>
+            <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -5389,8 +5435,8 @@ with col_form:
  
     if planta_usuario == "Diviso":
         st.markdown(
-            "<div style='background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;"
-            "padding:0.55rem 1rem;font-size:0.87rem;color:#0d2347;margin-bottom:0.8rem'>"
+            "<div style='background:#EAF6FC;border:1px solid #c5dcf5;border-radius:12px;"
+            "padding:0.55rem 1rem;font-size:0.87rem;color:#004A8F;margin-bottom:0.8rem'>"
             "🏭 <b>Planta:</b> Diviso</div>",
             unsafe_allow_html=True
         )
@@ -5398,8 +5444,8 @@ with col_form:
         config_key = "Diviso - Modulo 500" if modulo_diviso == "Módulo 500" else "Diviso - Modulo 150"
     else:
         st.markdown(
-            "<div style='background:#eef6ff;border:1px solid #c5dcf5;border-radius:12px;"
-            "padding:0.55rem 1rem;font-size:0.87rem;color:#0d2347;margin-bottom:0.8rem'>"
+            "<div style='background:#EAF6FC;border:1px solid #c5dcf5;border-radius:12px;"
+            "padding:0.55rem 1rem;font-size:0.87rem;color:#004A8F;margin-bottom:0.8rem'>"
             "🏭 <b>Planta:</b> Caldas</div>",
             unsafe_allow_html=True
         )
@@ -5538,7 +5584,7 @@ with col_result:
  
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Registros históricos similares</div>", unsafe_allow_html=True)
-        st.markdown("<p style='color:#5a7899;font-size:0.88rem;margin-bottom:0.8rem'>Registros más cercanos al caso actual ordenados por similitud.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#4E6F8A;font-size:0.88rem;margin-bottom:0.8rem'>Registros más cercanos al caso actual ordenados por similitud.</p>", unsafe_allow_html=True)
  
         fmt = {
             "Caudal a tratar (L/s)": "{:.1f}", "Turbiedad de agua cruda (UNT)": "{:.1f}",
@@ -5558,22 +5604,22 @@ with col_result:
         fig.add_trace(go.Scatter(
             x=df_grafica["Caudal PAC (mL/min)"], y=df_grafica["Turbiedad de agua cruda (UNT)"],
             mode="lines+markers", name="Históricos",
-            line=dict(color="#1a6fff", width=2.2, shape="spline"),
-            marker=dict(size=8, color="#1a6fff", line=dict(color="white", width=2), symbol="circle"),
+            line=dict(color="#008ACB", width=2.2, shape="spline"),
+            marker=dict(size=8, color="#008ACB", line=dict(color="white", width=2), symbol="circle"),
             fill="tozeroy", fillcolor="rgba(26,111,255,0.05)"
         ))
         fig.add_trace(go.Scatter(
             x=[resultado["pac_promedio"]], y=[turbiedad],
             mode="markers", name="Caso actual",
-            marker=dict(size=14, color="#00e5c0", line=dict(color="#0a1628", width=2), symbol="star")
+            marker=dict(size=14, color="#2DB9B0", line=dict(color="#003A70", width=2), symbol="star")
         ))
         fig.update_layout(
             title=dict(text="Caudal PAC vs Turbiedad - Registros similares",
-                       font=dict(family="Syne", size=14, color="#0a1628")),
+                       font=dict(family="Syne", size=14, color="#003A70")),
             plot_bgcolor="white", paper_bgcolor="white",
-            font=dict(family="DM Sans", color="#0a1628", size=12),
-            xaxis=dict(title="Caudal PAC (mL/min)", gridcolor="#e8f0fe", linecolor="#dce9f7"),
-            yaxis=dict(title="Turbiedad (UNT)",      gridcolor="#e8f0fe", linecolor="#dce9f7"),
+            font=dict(family="DM Sans", color="#003A70", size=12),
+            xaxis=dict(title="Caudal PAC (mL/min)", gridcolor="#E3F2F8", linecolor="#CFE5F4"),
+            yaxis=dict(title="Turbiedad (UNT)",      gridcolor="#E3F2F8", linecolor="#CFE5F4"),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             margin=dict(l=20, r=20, t=50, b=20), height=360
         )
