@@ -31,6 +31,22 @@ st.set_page_config(
 BASE_DIR = Path(__file__).resolve().parent
 DOCUMENTOS_DIR = BASE_DIR / "Documentos"
 
+LOGO_SERVAF_ARCHIVO = "servaf_color_vertical (1).png"
+
+
+def obtener_logo_servaf_base64():
+    """Retorna el logo SERVAF en base64 para usarlo dentro del encabezado HTML."""
+    ruta_logo = BASE_DIR / LOGO_SERVAF_ARCHIVO
+    if not ruta_logo.exists():
+        return None
+
+    try:
+        with open(ruta_logo, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    except Exception:
+        return None
+
+
 
 # =========================================
 # SEGURIDAD PARA STREAMLIT CLOUD
@@ -172,7 +188,7 @@ footer { visibility: hidden !important; }
 .app-header {
     background: linear-gradient(135deg, #003A70 0%, #004A8F 55%, #006AA8 100%);
     border-radius: 20px;
-    padding: 1.4rem 2rem;
+    padding: 1.05rem 1.35rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -202,7 +218,49 @@ footer { visibility: hidden !important; }
  
 .header-logo {
     font-size: 1.05rem; font-weight: 800; color: var(--cyan);
-    letter-spacing: 3px; text-transform: uppercase; position: relative; z-index: 2;
+    letter-spacing: 3px; text-transform: none; position: relative; z-index: 2;
+}
+
+.header-logo-card {
+    position: relative;
+    z-index: 2;
+    min-width: 168px;
+    max-width: 190px;
+    background: rgba(255,255,255,0.96);
+    border: 1px solid rgba(207,229,244,0.95);
+    border-radius: 22px;
+    padding: 0.55rem 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 28px rgba(0, 58, 112, 0.18);
+}
+
+.header-logo-card img {
+    width: 100%;
+    max-height: 86px;
+    object-fit: contain;
+    display: block;
+}
+
+.header-left-brand {
+    position: relative;
+    z-index: 2;
+    min-width: 170px;
+    color: #D9F3FF;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+}
+
+.header-left-brand span {
+    display: block;
+    color: #79D0F2;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    margin-top: 0.2rem;
 }
  
 .header-title {
@@ -236,7 +294,7 @@ footer { visibility: hidden !important; }
     display: inline-flex; align-items: center; gap: 0.4rem;
     background: linear-gradient(135deg, #E6F5FB, #D5ECF8); color: #004A8F;
     padding: 0.28rem 0.9rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
-    margin-bottom: 0.9rem; letter-spacing: 0.5px; text-transform: uppercase;
+    margin-bottom: 0.9rem; letter-spacing: 0.5px; text-transform: none;
     border: 1px solid rgba(26,111,255,0.15);
 }
  
@@ -293,7 +351,7 @@ div[data-testid="stMetric"] {
  
 div[data-testid="stMetricLabel"] > div {
     font-size: 0.78rem !important; font-weight: 600 !important;
-    color: var(--texto-muted) !important; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--texto-muted) !important; text-transform: none; letter-spacing: 0.5px;
 }
  
 div[data-testid="stMetricValue"] > div {
@@ -324,7 +382,7 @@ div[data-testid="stSelectbox"] > label,
 div[data-testid="stSlider"] > label,
 div[data-testid="stRadio"] > label {
     font-size: 1rem !important; font-weight: 700 !important;
-    color: #315C7E !important; text-transform: uppercase; letter-spacing: 0.4px;
+    color: #315C7E !important; text-transform: none; letter-spacing: 0.4px;
 }
  
 div[data-baseweb="input"] input,
@@ -384,7 +442,7 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
     font-weight: 800 !important;
     font-size: 0.78rem !important;
     letter-spacing: 0.35px !important;
-    text-transform: uppercase !important;
+    text-transform: none !important;
     border-right: 1px solid rgba(255,255,255,0.14) !important;
 }
 [data-testid="stDataFrame"] [role="gridcell"] {
@@ -417,6 +475,8 @@ h3 { font-size: 1rem !important; font-weight: 700 !important; }
     .bloque { padding: 1rem 1.1rem; border-radius: 16px; }
     .app-header { padding: 1rem 1.2rem; flex-direction: column; gap: 0.6rem; text-align: center; }
     .header-title { font-size: 1.1rem; }
+    .header-left-brand { min-width: 0; }
+    .header-logo-card { min-width: 150px; max-width: 175px; }
     div[data-testid="stMetricValue"] > div { font-size: 1.35rem !important; }
 }
  
@@ -515,7 +575,7 @@ ESTILOS_LOGIN = """
 }
 .login-brand {
     font-size: 0.85rem; font-weight: 800; color: #00c8ff;
-    letter-spacing: 4px; text-transform: uppercase; position: relative; z-index: 2;
+    letter-spacing: 4px; text-transform: none; position: relative; z-index: 2;
 }
 .login-center { position: relative; z-index: 2; }
 .login-headline { font-size: 3rem; font-weight: 800; color: white; line-height: 1.05; margin-bottom: 1rem; }
@@ -523,7 +583,7 @@ ESTILOS_LOGIN = """
 .login-desc { color: rgba(255,255,255,0.65); font-size: 0.97rem; line-height: 1.65; max-width: 340px; }
 .login-footer-left {
     position: relative; z-index: 2; color: rgba(255,255,255,0.45);
-    font-size: 0.78rem; letter-spacing: 0.5px; font-weight: 500; text-transform: uppercase;
+    font-size: 0.78rem; letter-spacing: 0.5px; font-weight: 500; text-transform: none;
 }
 .login-title-r { font-size: 1.9rem; font-weight: 800; color: #0a1628; margin-bottom: 0.35rem; }
 .login-sub-r { color: #5a7899; font-size: 0.92rem; margin-bottom: 2rem; line-height: 1.55; }
@@ -982,7 +1042,7 @@ def calcular_rango_pac(df, config_key, caudal, turbiedad, ph,
  
     tabla_jarras = pd.DataFrame({
         "Jarra": [1,2,3,4,5,6],
-        "Caudal PAC recomendado (mL/min)": jarras_recomendadas,
+        "Caudal de PAC recomendado (mL/min)": jarras_recomendadas,
         "Dosis PAC recomendada (mg/L)": dosis_mgL
     })
  
@@ -995,7 +1055,7 @@ def calcular_rango_pac(df, config_key, caudal, turbiedad, ph,
         "caudal": "Caudal a tratar (L/s)", "turbiedad": "Turbiedad de agua cruda (UNT)",
         "ph": "pH de agua cruda", "alcalinidad_cruda": "Alcalinidad de agua cruda (mg/L)",
         "alcalinidad_encalada": "Alcalinidad de agua encalada (mg/L)",
-        "pac_ml_min": "Caudal PAC (mL/min)", "distancia": "Distancia"
+        "pac_ml_min": "Caudal de PAC (mL/min)", "distancia": "Distancia"
     })
  
     return {
@@ -1129,7 +1189,7 @@ body {{ background: transparent; font-family: 'Inter', sans-serif; padding: 4px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }}
 .tk-header {{ text-align:center; margin-bottom: 8px; }}
-.tk-kicker {{ font-size: 11px; font-weight: 800; color: #334155; letter-spacing: 1.1px; text-transform: uppercase; }}
+.tk-kicker {{ font-size: 11px; font-weight: 800; color: #334155; letter-spacing: 1.1px; text-transform: none; }}
 .tk-status {{
   margin: 8px auto 0 auto; display:inline-flex; align-items:center; gap:6px;
   background: {accent_soft}; color: {accent}; border: 1.3px solid {accent};
@@ -1278,7 +1338,7 @@ body {
 }
 .formula-name {
     font-size: 12px;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: .55px;
     font-weight: 800;
     color: #4E6F8A;
@@ -1424,7 +1484,7 @@ def mostrar_calculadora_pac():
  
     tabla_inicial = pd.DataFrame({
         "Hora inicio": ["07:00"], "Hora final": ["08:00"],
-        "Caudal PAC (mL/min)": [100.0], "Densidad PAC (g/mL)": [1.33]
+        "Caudal de PAC (mL/min)": [100.0], "Densidad del PAC (g/mL)": [1.33]
     })
  
     if "tabla_consumos_pac" not in st.session_state:
@@ -1436,7 +1496,7 @@ def mostrar_calculadora_pac():
             st.session_state.tabla_consumos_pac = pd.concat([
                 st.session_state.tabla_consumos_pac,
                 pd.DataFrame({"Hora inicio": [""], "Hora final": [""],
-                              "Caudal PAC (mL/min)": [0.0], "Densidad PAC (g/mL)": [1.33]})
+                              "Caudal de PAC (mL/min)": [0.0], "Densidad del PAC (g/mL)": [1.33]})
             ], ignore_index=True)
             st.rerun()
     with c_btn2:
@@ -1458,8 +1518,8 @@ def mostrar_calculadora_pac():
         column_config={
             "Hora inicio":         st.column_config.TextColumn("Hora inicio",          help="Ejemplo: 07:00 o 7", width="medium"),
             "Hora final":          st.column_config.TextColumn("Hora final",           help="Ejemplo: 08:30 o 8", width="medium"),
-            "Caudal PAC (mL/min)": st.column_config.NumberColumn("Caudal PAC (mL/min)", min_value=0.0,  step=0.1,  format="%.2f", width="medium"),
-            "Densidad PAC (g/mL)": st.column_config.NumberColumn("Densidad PAC (g/mL)", min_value=0.01, step=0.01, format="%.2f", width="medium"),
+            "Caudal de PAC (mL/min)": st.column_config.NumberColumn("Caudal de PAC (mL/min)", min_value=0.0,  step=0.1,  format="%.2f", width="medium"),
+            "Densidad del PAC (g/mL)": st.column_config.NumberColumn("Densidad del PAC (g/mL)", min_value=0.01, step=0.01, format="%.2f", width="medium"),
         }
     )
  
@@ -1478,13 +1538,13 @@ def mostrar_calculadora_pac():
  
     df_calc["Hora inicio"]         = df_calc["Hora inicio"].apply(normalizar_hora)
     df_calc["Hora final"]          = df_calc["Hora final"].apply(normalizar_hora)
-    df_calc["Caudal PAC (mL/min)"] = pd.to_numeric(df_calc["Caudal PAC (mL/min)"], errors="coerce")
-    df_calc["Densidad PAC (g/mL)"] = pd.to_numeric(df_calc["Densidad PAC (g/mL)"], errors="coerce")
+    df_calc["Caudal de PAC (mL/min)"] = pd.to_numeric(df_calc["Caudal de PAC (mL/min)"], errors="coerce")
+    df_calc["Densidad del PAC (g/mL)"] = pd.to_numeric(df_calc["Densidad del PAC (g/mL)"], errors="coerce")
     df_calc["Min inicio"]          = df_calc["Hora inicio"].apply(hora_a_minutos)
     df_calc["Min final"]           = df_calc["Hora final"].apply(hora_a_minutos)
  
     df_validas = df_calc.dropna(subset=[
-        "Hora inicio", "Hora final", "Caudal PAC (mL/min)", "Densidad PAC (g/mL)", "Min inicio", "Min final"
+        "Hora inicio", "Hora final", "Caudal de PAC (mL/min)", "Densidad del PAC (g/mL)", "Min inicio", "Min final"
     ]).copy()
  
     if df_validas.empty:
@@ -1495,7 +1555,7 @@ def mostrar_calculadora_pac():
     df_validas = df_validas[
         (df_validas["Min inicio"] >= 0) & (df_validas["Min inicio"] <= 1440) &
         (df_validas["Min final"]  >= 0) & (df_validas["Min final"]  <= 1440) &
-        (df_validas["Caudal PAC (mL/min)"] >= 0) & (df_validas["Densidad PAC (g/mL)"] > 0)
+        (df_validas["Caudal de PAC (mL/min)"] >= 0) & (df_validas["Densidad del PAC (g/mL)"] > 0)
     ].copy()
  
     if df_validas.empty:
@@ -1508,9 +1568,9 @@ def mostrar_calculadora_pac():
         df_validas["Min final"] - df_validas["Min inicio"],
         (24*60 - df_validas["Min inicio"]) + df_validas["Min final"]
     )
-    df_validas["Consumo (g)"]            = df_validas["Tiempo (min)"] * df_validas["Caudal PAC (mL/min)"] * df_validas["Densidad PAC (g/mL)"]
+    df_validas["Consumo (g)"]            = df_validas["Tiempo (min)"] * df_validas["Caudal de PAC (mL/min)"] * df_validas["Densidad del PAC (g/mL)"]
     df_validas["Consumo (kg)"]           = df_validas["Consumo (g)"] / 1000
-    df_validas["Volumen consumido (m³)"] = df_validas["Consumo (kg)"] / (df_validas["Densidad PAC (g/mL)"] * 1000)
+    df_validas["Volumen consumido (m³)"] = df_validas["Consumo (kg)"] / (df_validas["Densidad del PAC (g/mL)"] * 1000)
     df_validas["Descenso altura (m)"]    = df_validas["Volumen consumido (m³)"] / area_tanque
     df_validas["Altura estimada (m)"]    = (altura_pasada - df_validas["Descenso altura (m)"].cumsum()).clip(lower=0)
  
@@ -1523,7 +1583,7 @@ def mostrar_calculadora_pac():
     df_mostrar.insert(0, "No.", range(1, len(df_mostrar) + 1))
     df_mostrar = df_mostrar[[
         "No.", "Hora inicio", "Hora final", "Tiempo (min)",
-        "Caudal PAC (mL/min)", "Densidad PAC (g/mL)",
+        "Caudal de PAC (mL/min)", "Densidad del PAC (g/mL)",
         "Consumo (g)", "Consumo (kg)", "Descenso altura (m)", "Altura estimada (m)"
     ]]
  
@@ -1540,7 +1600,7 @@ def mostrar_calculadora_pac():
     mostrar_tabla_profesional(
         df_mostrar,
         formatos={
-            "Tiempo (min)": "{:.1f}", "Caudal PAC (mL/min)": "{:.1f}", "Densidad PAC (g/mL)": "{:.2f}",
+            "Tiempo (min)": "{:.1f}", "Caudal de PAC (mL/min)": "{:.1f}", "Densidad del PAC (g/mL)": "{:.2f}",
             "Consumo (g)": "{:.2f}", "Consumo (kg)": "{:.4f}",
             "Descenso altura (m)": "{:.4f}", "Altura estimada (m)": "{:.4f}"
         }
@@ -1865,7 +1925,7 @@ body {{
   font-weight: 800;
   color: #ffffff;
   letter-spacing: 1.5px;
-  text-transform: uppercase;
+  text-transform: none;
 }}
 .hdr-sub {{
   font-size: 0.65rem;
@@ -1903,7 +1963,7 @@ body {{
   font-size: 0.62rem;
   font-weight: 700;
   color: #1e3a5f;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 1px;
   margin-bottom: 7px;
   border-bottom: 1px solid #e8f0fb;
@@ -1926,7 +1986,7 @@ body {{
   border: 2px solid {nivel_color};
   color: {nivel_color};
   background: {nivel_color}18;
-  text-transform: uppercase;
+  text-transform: none;
 }}
 
 /* ── MÉTRICAS ── */
@@ -1961,7 +2021,7 @@ body {{
   font-size: 0.60rem;
   font-weight: 600;
   color: #4E7F9F;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.7px;
   display: block;
   margin-bottom: 3px;
@@ -2005,7 +2065,7 @@ body {{
   font-size: 0.9rem;
   font-weight: 800;
   color: {accion_color};
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.8px;
 }}
 .accion-sub {{
@@ -2031,7 +2091,7 @@ body {{
   font-size: 0.58rem;
   font-weight: 600;
   color: #4E7F9F;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.7px;
   display: block;
   margin-bottom: 2px;
@@ -2181,7 +2241,7 @@ body {{
   font-size: 0.58rem;
   font-weight: 600;
   color: #4E7F9F;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.6px;
   display: block;
   margin-bottom: 2px;
@@ -2208,7 +2268,7 @@ body {{
 .lim-lbl {{
   font-size: 0.60rem;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.6px;
   display: block;
   margin-bottom: 3px;
@@ -2243,7 +2303,7 @@ body {{
   font-size: 0.58rem;
   font-weight: 600;
   color: #4E7F9F;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.5px;
   display: block;
   margin-bottom: 2px;
@@ -3330,7 +3390,7 @@ def mostrar_panel_scada_tanques():
             nivel_cunduy_cm = st.number_input("Nivel Cunduy (cm)", min_value=0.0, value=281.35, step=0.1, format="%.2f", key="scada_niv_cunduy")
             vol_cunduy = st.number_input("Volumen Cunduy (m³)", min_value=0.0, value=2145.74, step=1.0, format="%.2f", key="scada_vol_cunduy")
             cap_cunduy = st.number_input("Capacidad Cunduy (m³, opcional)", min_value=0.0, value=0.0, step=10.0, format="%.2f", key="scada_cap_cunduy", help="Si no tienes la capacidad, déjalo en 0.")
-            pres_torasso = st.number_input("Presión Torasso (mca)", min_value=0.0, value=21.18, step=0.1, format="%.2f", key="scada_pres_torasso")
+            pres_torasso = st.number_input("Presión Torasso (m.c.a.)", min_value=0.0, value=21.18, step=0.1, format="%.2f", key="scada_pres_torasso")
             apertura_cunduy = st.number_input("Apertura válvula Cunduy (%)", min_value=0.0, max_value=100.0, value=27.50, step=0.5, format="%.2f", key="scada_apertura_cunduy")
             st.markdown("</div>", unsafe_allow_html=True)
         with cc2:
@@ -3345,7 +3405,7 @@ def mostrar_panel_scada_tanques():
             vol_malvinas = st.number_input("Volumen Malvinas (m³)", min_value=0.0, value=1726.11, step=1.0, format="%.2f", key="scada_vol_malvinas")
             cap_malvinas = st.number_input("Capacidad Malvinas (m³, opcional)", min_value=0.0, value=0.0, step=10.0, format="%.2f", key="scada_cap_malvinas")
             apertura_malvinas = st.number_input("Apertura válvula Malvinas (%)", min_value=0.0, max_value=100.0, value=55.0, step=0.5, format="%.2f", key="scada_apertura_malvinas")
-            pres_ant_torres = st.number_input("Presión entrada Antonio Torres (mca)", min_value=0.0, value=55.64, step=0.1, format="%.2f", key="scada_pres_ant_torres")
+            pres_ant_torres = st.number_input("Presión entrada Antonio Torres (m.c.a.)", min_value=0.0, value=55.64, step=0.1, format="%.2f", key="scada_pres_ant_torres")
             st.markdown("</div>", unsafe_allow_html=True)
 
         salida_malvinas_total = q_sal_malvinas + (q_angeles + q_comfaca + q_andes if sumar_ramales else 0.0)
@@ -4533,16 +4593,30 @@ st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
 # ENCABEZADO
 # =========================================
 planta_badge = st.session_state.get("planta_usuario", "")
+logo_servaf_b64 = obtener_logo_servaf_base64()
+
+if logo_servaf_b64:
+    logo_header_html = f"""
+    <div class="header-logo-card">
+        <img src="data:image/png;base64,{logo_servaf_b64}" alt="SERVAF">
+    </div>
+    """
+else:
+    logo_header_html = '<div class="header-logo">💧 SERVAF</div>'
+
 st.markdown(f"""
 <div class="app-header">
-    <div class="header-logo">💧 SERVAF</div>
+    <div class="header-left-brand">
+        Dirección Producción
+        <span>y Tratamiento</span>
+    </div>
     <div class="header-title">
         HERRAMIENTA WEB DE APOYO PARA OPERACIÓN<br>
-        <span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.55)">
+        <span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.72)">
             Planta de Tratamiento Agua Potable · Diviso & Caldas
         </span>
     </div>
-    <div class="header-badge">PTAP · {planta_badge}</div>
+    {logo_header_html}
 </div>
 """, unsafe_allow_html=True)
  
@@ -4603,7 +4677,7 @@ MENU_PROFESIONAL_CSS = """
     font-size: 0.91rem;
     font-weight: 850;
     color: #005B8E;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.045em;
     margin-bottom: 0.2rem;
 }
@@ -5076,20 +5150,20 @@ def mostrar_despacho_historico_scada():
         st.markdown("**Capacidades y alturas para convertir nivel a volumen cuando el archivo no trae volumen**")
         a1, a2, a3, a4, a5 = st.columns(5)
         with a1:
-            cap_4400 = st.number_input("Cap. Diviso 4400", min_value=1.0, value=4400.0, step=10.0, key="hist_cap_4400")
-            alt_4400 = st.number_input("Alt. lleno 4400 (m)", min_value=0.1, value=5.67, step=0.01, key="hist_alt_4400")
+            cap_4400 = st.number_input("Capacidad Diviso 4400 (m³)", min_value=1.0, value=4400.0, step=10.0, key="hist_cap_4400")
+            alt_4400 = st.number_input("Altura lleno 4400 (m)", min_value=0.1, value=5.67, step=0.01, key="hist_alt_4400")
         with a2:
-            cap_1100 = st.number_input("Cap. Diviso 1100", min_value=1.0, value=1100.0, step=10.0, key="hist_cap_1100")
-            alt_1100 = st.number_input("Alt. lleno 1100 (m)", min_value=0.1, value=4.02, step=0.01, key="hist_alt_1100")
+            cap_1100 = st.number_input("Capacidad Diviso 1100 (m³)", min_value=1.0, value=1100.0, step=10.0, key="hist_cap_1100")
+            alt_1100 = st.number_input("Altura lleno 1100 (m)", min_value=0.1, value=4.02, step=0.01, key="hist_alt_1100")
         with a3:
-            cap_cunduy = st.number_input("Cap. Cunduy", min_value=1.0, value=2727.0, step=10.0, key="hist_cap_cunduy")
-            alt_cunduy = st.number_input("Alt. lleno Cunduy (m)", min_value=0.1, value=3.57, step=0.01, key="hist_alt_cunduy")
+            cap_cunduy = st.number_input("Capacidad Cunduy (m³)", min_value=1.0, value=2727.0, step=10.0, key="hist_cap_cunduy")
+            alt_cunduy = st.number_input("Altura lleno Cunduy (m)", min_value=0.1, value=3.57, step=0.01, key="hist_alt_cunduy")
         with a4:
-            cap_malvinas = st.number_input("Cap. Malvinas", min_value=1.0, value=4020.0, step=10.0, key="hist_cap_malvinas")
-            alt_malvinas = st.number_input("Alt. lleno Malvinas (m)", min_value=0.1, value=3.75, step=0.01, key="hist_alt_malvinas")
+            cap_malvinas = st.number_input("Capacidad Malvinas (m³)", min_value=1.0, value=4020.0, step=10.0, key="hist_cap_malvinas")
+            alt_malvinas = st.number_input("Altura lleno Malvinas (m)", min_value=0.1, value=3.75, step=0.01, key="hist_alt_malvinas")
         with a5:
-            cap_caldas = st.number_input("Cap. Caldas", min_value=1.0, value=1365.0, step=10.0, key="hist_cap_caldas")
-            alt_caldas = st.number_input("Alt. lleno Caldas (m)", min_value=0.1, value=2.85, step=0.01, key="hist_alt_caldas")
+            cap_caldas = st.number_input("Capacidad Caldas (m³)", min_value=1.0, value=1365.0, step=10.0, key="hist_cap_caldas")
+            alt_caldas = st.number_input("Altura lleno Caldas (m)", min_value=0.1, value=2.85, step=0.01, key="hist_alt_caldas")
 
     st.markdown("<div class='titulo-seccion-resultado'>Mapeo de columnas del SCADA</div>", unsafe_allow_html=True)
     with st.expander("Seleccionar columnas del archivo", expanded=True):
@@ -5500,10 +5574,10 @@ with col_form:
     st.number_input("Caudal a tratar (L/s)",           value=st.session_state.rec_caudal,    step=1.0,  key="rec_caudal")
     st.number_input("Turbiedad del agua cruda (UNT)",  value=st.session_state.rec_turbiedad, step=0.1,  key="rec_turbiedad")
     st.number_input("pH del agua cruda",               value=st.session_state.rec_ph,        step=0.01, format="%.2f", key="rec_ph")
-    st.number_input("Alcalinidad agua cruda (mg/L)",   value=st.session_state.rec_alc_cruda, step=1.0,  key="rec_alc_cruda")
+    st.number_input("Alcalinidad del agua cruda (mg/L)",   value=st.session_state.rec_alc_cruda, step=1.0,  key="rec_alc_cruda")
  
     if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
-        st.number_input("Alcalinidad agua encalada (mg/L)", value=st.session_state.rec_alc_enc, step=1.0, key="rec_alc_enc")
+        st.number_input("Alcalinidad del agua encalada (mg/L)", value=st.session_state.rec_alc_enc, step=1.0, key="rec_alc_enc")
  
     st.number_input("Densidad del PAC (g/mL)", value=st.session_state.rec_densidad, step=0.01, format="%.2f", key="rec_densidad")
     st.slider("Registros históricos a evaluar", min_value=5, max_value=30,
@@ -5577,7 +5651,7 @@ with col_result:
         mostrar_tabla_profesional(
             resultado["tabla_jarras"],
             formatos={
-                "Caudal PAC recomendado (mL/min)": "{:.1f}",
+                "Caudal de PAC recomendado (mL/min)": "{:.1f}",
                 "Dosis PAC recomendada (mg/L)": "{:.2f}",
             }
         )
@@ -5589,7 +5663,7 @@ with col_result:
         fmt = {
             "Caudal a tratar (L/s)": "{:.1f}", "Turbiedad de agua cruda (UNT)": "{:.1f}",
             "pH de agua cruda": "{:.2f}", "Alcalinidad de agua cruda (mg/L)": "{:.1f}",
-            "Caudal PAC (mL/min)": "{:.1f}", "Distancia": "{:.3f}"
+            "Caudal de PAC (mL/min)": "{:.1f}", "Distancia": "{:.3f}"
         }
         if "Alcalinidad de agua encalada (mg/L)" in resultado["similares_filtrados"].columns:
             fmt["Alcalinidad de agua encalada (mg/L)"] = "{:.1f}"
@@ -5599,10 +5673,10 @@ with col_result:
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Visualización</div>", unsafe_allow_html=True)
  
-        df_grafica = resultado["similares_filtrados"].sort_values("Caudal PAC (mL/min)")
+        df_grafica = resultado["similares_filtrados"].sort_values("Caudal de PAC (mL/min)")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=df_grafica["Caudal PAC (mL/min)"], y=df_grafica["Turbiedad de agua cruda (UNT)"],
+            x=df_grafica["Caudal de PAC (mL/min)"], y=df_grafica["Turbiedad de agua cruda (UNT)"],
             mode="lines+markers", name="Históricos",
             line=dict(color="#008ACB", width=2.2, shape="spline"),
             marker=dict(size=8, color="#008ACB", line=dict(color="white", width=2), symbol="circle"),
@@ -5614,11 +5688,11 @@ with col_result:
             marker=dict(size=14, color="#2DB9B0", line=dict(color="#003A70", width=2), symbol="star")
         ))
         fig.update_layout(
-            title=dict(text="Caudal PAC vs Turbiedad - Registros similares",
+            title=dict(text="Caudal de PAC vs. turbiedad - registros similares",
                        font=dict(family="Syne", size=14, color="#003A70")),
             plot_bgcolor="white", paper_bgcolor="white",
             font=dict(family="DM Sans", color="#003A70", size=12),
-            xaxis=dict(title="Caudal PAC (mL/min)", gridcolor="#E3F2F8", linecolor="#CFE5F4"),
+            xaxis=dict(title="Caudal de PAC (mL/min)", gridcolor="#E3F2F8", linecolor="#CFE5F4"),
             yaxis=dict(title="Turbiedad (UNT)",      gridcolor="#E3F2F8", linecolor="#CFE5F4"),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             margin=dict(l=20, r=20, t=50, b=20), height=360
