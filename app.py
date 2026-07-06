@@ -3472,217 +3472,12 @@ def mostrar_calculadora_tanque():
 
 
 # =========================================
-# PANEL SCADA / BALANCE HIDRÁULICO DE TANQUES
+# SISTEMA HIDRÁULICO DE TANQUES
 # =========================================
-def mostrar_panel_scada_tanques():
-    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown("<div class='etiqueta'>📊 Panel SCADA · niveles, volúmenes y flujos</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='texto-panel'>Este panel permite copiar las lecturas del SCADA o cargar un histórico exportado para interpretar el balance hidráulico de Diviso, Cunduy y Malvinas. Los cálculos no reemplazan la instrucción operativa del Director de Producción y Tratamiento o del Valvulero.</div>",
-        unsafe_allow_html=True
-    )
-
-    def estado_por_porcentaje(pct):
-        if pct is None or np.isnan(pct):
-            return "Sin capacidad", "No se puede calcular %"
-        if pct >= 95:
-            return "Crítico alto", "Riesgo de rebose: revisar entrada, salidas y maniobras."
-        if pct >= 85:
-            return "Alto", "Verificar riesgo de rebose y salidas activas."
-        if pct <= 15:
-            return "Crítico bajo", "Riesgo de desabastecimiento: revisar producción, demanda o fuga."
-        if pct <= 30:
-            return "Bajo", "Mantener seguimiento y revisar demanda."
-        return "Normal", "Continuar seguimiento por SCADA o lectura física."
-
-    def tiempo_a_limite(volumen_actual, capacidad, q_neto_ls, minimo_pct=20):
-        if q_neto_ls is None or abs(q_neto_ls) < 0.01 or capacidad <= 0:
-            return "No aplica"
-        if q_neto_ls > 0:
-            faltante = capacidad - volumen_actual
-            if faltante <= 0:
-                return "Ya está en límite superior"
-            horas = faltante / (q_neto_ls * 3.6)
-            return f"{horas:.1f} h para llenar"
-        limite_min = capacidad * minimo_pct / 100
-        disponible = volumen_actual - limite_min
-        if disponible <= 0:
-            return "Ya está en nivel mínimo"
-        horas = disponible / (abs(q_neto_ls) * 3.6)
-        return f"{horas:.1f} h hasta {minimo_pct:.0f}%"
-
-    def leer_tabla_historica(uploaded_file):
-        if uploaded_file is None:
-            return None
-        nombre = uploaded_file.name.lower()
-        try:
-            if nombre.endswith(".csv"):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
-            return df
-        except Exception as e:
-            st.error(f"No pude leer el archivo: {e}")
-            return None
-
-    planta_usuario = st.session_state.get("planta_usuario", "Diviso")
-    planta_default = "Diviso" if planta_usuario == "Diviso" else "Caldas"
-    planta = st.radio("Planta", ["Diviso", "Caldas"], index=0 if planta_default == "Diviso" else 1, horizontal=True, key="scada_planta")
-
-    if planta == "Diviso":
-        st.markdown("<div class='titulo-seccion-resultado'>Lecturas principales del sistema Diviso</div>", unsafe_allow_html=True)
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            nivel_4400_cm = st.number_input("Nivel tanque 4400 (cm)", min_value=0.0, value=352.0, step=0.1, format="%.2f", key="scada_nivel_4400")
-            vol_4400 = st.number_input("Volumen tanque 4400 (m³)", min_value=0.0, value=2729.94, step=1.0, format="%.2f", key="scada_vol_4400")
-            cap_4400 = st.number_input("Capacidad 4400 (m³)", min_value=1.0, value=4400.0, step=10.0, format="%.2f", key="scada_cap_4400")
-        with c2:
-            nivel_1100_cm = st.number_input("Nivel tanque 1100 (cm)", min_value=0.0, value=381.0, step=0.1, format="%.2f", key="scada_nivel_1100")
-            vol_1100 = st.number_input("Volumen tanque 1100 (m³)", min_value=0.0, value=1043.39, step=1.0, format="%.2f", key="scada_vol_1100")
-            cap_1100 = st.number_input("Capacidad 1100 (m³)", min_value=1.0, value=1100.0, step=10.0, format="%.2f", key="scada_cap_1100")
-        with c3:
-            q_salida_diviso = st.number_input("Caudal salida Diviso (L/s)", min_value=0.0, value=312.43, step=0.5, format="%.2f", key="scada_q_salida_diviso")
-            q_entrada_diviso = st.number_input("Caudal entrada a tanques Diviso (L/s)", min_value=0.0, value=0.0, step=0.5, format="%.2f", key="scada_q_entrada_diviso", help="Coloca 0 si no tienes ese dato. Si tienes macromedición de producción total, úsala aquí.")
-        with c4:
-            volumen_diviso = vol_4400 + vol_1100
-            capacidad_diviso = cap_4400 + cap_1100
-            pct_diviso = volumen_diviso / capacidad_diviso * 100 if capacidad_diviso > 0 else np.nan
-            estado_diviso, recomendacion_diviso = estado_por_porcentaje(pct_diviso)
-            st.metric("Volumen Diviso", f"{volumen_diviso:,.2f} m³")
-            st.metric("% almacenamiento Diviso", f"{pct_diviso:.1f}%")
-            st.caption(f"Estado: {estado_diviso}. {recomendacion_diviso}")
-
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-        st.markdown("<div class='titulo-seccion-resultado'>Cunduy y Malvinas</div>", unsafe_allow_html=True)
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            st.markdown("<div class='bloque-mini'><div class='titulo-mini'>Tanque Cunduy</div>", unsafe_allow_html=True)
-            q_ent_cunduy = st.number_input("Caudal entrada Cunduy (L/s)", min_value=0.0, value=111.36, step=0.5, format="%.2f", key="scada_ent_cunduy")
-            q_sal_cunduy = st.number_input("Caudal salida Cunduy (L/s)", min_value=0.0, value=130.22, step=0.5, format="%.2f", key="scada_sal_cunduy")
-            nivel_cunduy_cm = st.number_input("Nivel Cunduy (cm)", min_value=0.0, value=281.35, step=0.1, format="%.2f", key="scada_niv_cunduy")
-            vol_cunduy = st.number_input("Volumen Cunduy (m³)", min_value=0.0, value=2145.74, step=1.0, format="%.2f", key="scada_vol_cunduy")
-            cap_cunduy = st.number_input("Capacidad Cunduy (m³, opcional)", min_value=0.0, value=0.0, step=10.0, format="%.2f", key="scada_cap_cunduy", help="Si no tienes la capacidad, déjalo en 0.")
-            pres_torasso = st.number_input("Presión Torasso (m.c.a.)", min_value=0.0, value=21.18, step=0.1, format="%.2f", key="scada_pres_torasso")
-            apertura_cunduy = st.number_input("Apertura válvula Cunduy (%)", min_value=0.0, max_value=100.0, value=27.50, step=0.5, format="%.2f", key="scada_apertura_cunduy")
-            st.markdown("</div>", unsafe_allow_html=True)
-        with cc2:
-            st.markdown("<div class='bloque-mini'><div class='titulo-mini'>Tanque Malvinas</div>", unsafe_allow_html=True)
-            q_ent_malvinas = st.number_input("Caudal entrada Malvinas (L/s)", min_value=0.0, value=183.78, step=0.5, format="%.2f", key="scada_ent_malvinas")
-            q_sal_malvinas = st.number_input("Caudal salida Malvinas (L/s)", min_value=0.0, value=154.19, step=0.5, format="%.2f", key="scada_sal_malvinas")
-            q_angeles = st.number_input("Caudal Ángeles (L/s)", min_value=0.0, value=11.55, step=0.5, format="%.2f", key="scada_q_angeles")
-            q_comfaca = st.number_input("Caudal Comfaca Nísola - Villa Susana (L/s)", min_value=0.0, value=3.22, step=0.5, format="%.2f", key="scada_q_comfaca")
-            q_andes = st.number_input("Caudal Andes Altos 6\" (L/s)", min_value=0.0, value=8.72, step=0.5, format="%.2f", key="scada_q_andes")
-            sumar_ramales = st.checkbox("Sumar Ángeles, Comfaca y Andes como salidas adicionales", value=True, key="scada_sumar_ramales")
-            nivel_malvinas_cm = st.number_input("Nivel Malvinas (cm)", min_value=0.0, value=160.81, step=0.1, format="%.2f", key="scada_niv_malvinas")
-            vol_malvinas = st.number_input("Volumen Malvinas (m³)", min_value=0.0, value=1726.11, step=1.0, format="%.2f", key="scada_vol_malvinas")
-            cap_malvinas = st.number_input("Capacidad Malvinas (m³, opcional)", min_value=0.0, value=0.0, step=10.0, format="%.2f", key="scada_cap_malvinas")
-            apertura_malvinas = st.number_input("Apertura válvula Malvinas (%)", min_value=0.0, max_value=100.0, value=55.0, step=0.5, format="%.2f", key="scada_apertura_malvinas")
-            pres_ant_torres = st.number_input("Presión entrada Antonio Torres (m.c.a.)", min_value=0.0, value=55.64, step=0.1, format="%.2f", key="scada_pres_ant_torres")
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        salida_malvinas_total = q_sal_malvinas + (q_angeles + q_comfaca + q_andes if sumar_ramales else 0.0)
-        q_neto_cunduy = q_ent_cunduy - q_sal_cunduy
-        q_neto_malvinas = q_ent_malvinas - salida_malvinas_total
-        q_neto_diviso = q_entrada_diviso - q_salida_diviso if q_entrada_diviso > 0 else None
-        vol_total_sistema = volumen_diviso + vol_cunduy + vol_malvinas
-
-        st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-        r1, r2, r3, r4 = st.columns(4)
-        r1.metric("Volumen total sistema", f"{vol_total_sistema:,.2f} m³")
-        r2.metric("Balance Cunduy", f"{q_neto_cunduy:+.2f} L/s", f"{q_neto_cunduy*3.6:+.1f} m³/h")
-        r3.metric("Balance Malvinas", f"{q_neto_malvinas:+.2f} L/s", f"{q_neto_malvinas*3.6:+.1f} m³/h")
-        r4.metric("Balance Diviso", "Sin entrada" if q_neto_diviso is None else f"{q_neto_diviso:+.2f} L/s")
-
-        data_vol = pd.DataFrame([
-            {"Elemento": "Tanque 4400", "Volumen actual (m³)": vol_4400, "Capacidad (m³)": cap_4400},
-            {"Elemento": "Tanque 1100", "Volumen actual (m³)": vol_1100, "Capacidad (m³)": cap_1100},
-            {"Elemento": "Cunduy", "Volumen actual (m³)": vol_cunduy, "Capacidad (m³)": cap_cunduy if cap_cunduy > 0 else np.nan},
-            {"Elemento": "Malvinas", "Volumen actual (m³)": vol_malvinas, "Capacidad (m³)": cap_malvinas if cap_malvinas > 0 else np.nan},
-        ])
-        data_vol["% almacenamiento"] = data_vol["Volumen actual (m³)"] / data_vol["Capacidad (m³)"] * 100
-
-        fig_vol = go.Figure()
-        fig_vol.add_trace(go.Bar(x=data_vol["Elemento"], y=data_vol["Volumen actual (m³)"], name="Volumen actual"))
-        fig_vol.add_trace(go.Bar(x=data_vol["Elemento"], y=data_vol["Capacidad (m³)"], name="Capacidad"))
-        fig_vol.update_layout(title="Volumen actual vs capacidad", barmode="group", height=360, margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor="white", paper_bgcolor="white")
-        st.plotly_chart(fig_vol, use_container_width=True)
-
-        balance_df = pd.DataFrame([
-            {"Unidad": "Cunduy", "Entrada (L/s)": q_ent_cunduy, "Salida calculada (L/s)": q_sal_cunduy, "Balance neto (L/s)": q_neto_cunduy, "Cambio estimado (m³/h)": q_neto_cunduy*3.6, "Tiempo estimado": tiempo_a_limite(vol_cunduy, cap_cunduy, q_neto_cunduy) if cap_cunduy > 0 else "Capacidad no definida"},
-            {"Unidad": "Malvinas", "Entrada (L/s)": q_ent_malvinas, "Salida calculada (L/s)": salida_malvinas_total, "Balance neto (L/s)": q_neto_malvinas, "Cambio estimado (m³/h)": q_neto_malvinas*3.6, "Tiempo estimado": tiempo_a_limite(vol_malvinas, cap_malvinas, q_neto_malvinas) if cap_malvinas > 0 else "Capacidad no definida"},
-        ])
-        mostrar_tabla_profesional(
-            balance_df,
-            formatos={
-                "Entrada (L/s)": "{:.2f}", "Salida calculada (L/s)": "{:.2f}",
-                "Balance neto (L/s)": "{:+.2f}", "Cambio estimado (m³/h)": "{:+.2f}"
-            }
-        )
-
-        alertas = []
-        if q_neto_cunduy < -10:
-            alertas.append("Cunduy está bajando: la salida supera la entrada. Revisar consumo, apertura, presión Torasso o posible fuga.")
-        elif q_neto_cunduy > 10:
-            alertas.append("Cunduy está subiendo: revisar riesgo de rebose o si la demanda bajó.")
-        if q_neto_malvinas < -10:
-            alertas.append("Malvinas está bajando: la salida total supera la entrada. Revisar ramales y presión de entrada.")
-        elif q_neto_malvinas > 10:
-            alertas.append("Malvinas está subiendo: revisar si hay salidas cerradas, baja demanda o aumento de entrada.")
-        if pct_diviso >= 85:
-            alertas.append("Diviso tiene almacenamiento alto: verificar caudal de entrada, salidas activas y riesgo de rebose.")
-        if not alertas:
-            alertas.append("Condición general sin alerta fuerte con los valores ingresados. Mantener seguimiento.")
-        st.markdown("<div class='caja-rango'><b>Interpretación operativa</b><br>" + "<br>".join([f"• {a}" for a in alertas]) + "</div>", unsafe_allow_html=True)
-
-    else:
-        st.markdown("<div class='titulo-seccion-resultado'>Lecturas principales PTAP Caldas</div>", unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            nivel_caldas_cm = st.number_input("Nivel tanque Caldas (cm)", min_value=0.0, value=250.0, step=0.1, format="%.2f", key="scada_nivel_caldas")
-            vol_caldas = st.number_input("Volumen Caldas (m³)", min_value=0.0, value=950.0, step=1.0, format="%.2f", key="scada_vol_caldas")
-            cap_caldas = st.number_input("Capacidad Caldas (m³)", min_value=1.0, value=1365.0, step=10.0, format="%.2f", key="scada_cap_caldas")
-        with c2:
-            q_salida_caldas = st.number_input("Caudal total salidas Caldas (L/s)", min_value=0.0, value=160.0, step=0.5, format="%.2f", key="scada_q_salida_caldas")
-            q_entrada_estimada = st.number_input("Entrada estimada al tanque (L/s)", min_value=0.0, value=0.0, step=0.5, format="%.2f", key="scada_q_entrada_estimada_caldas", help="Caldas no tiene macromedidor de entrada: puedes estimarlo con cambio de nivel o dejarlo en 0.")
-        with c3:
-            pct_caldas = vol_caldas / cap_caldas * 100
-            q_neto_caldas = q_entrada_estimada - q_salida_caldas if q_entrada_estimada > 0 else None
-            estado_caldas, recomendacion_caldas = estado_por_porcentaje(pct_caldas)
-            st.metric("% almacenamiento Caldas", f"{pct_caldas:.1f}%")
-            st.metric("Balance Caldas", "Sin entrada" if q_neto_caldas is None else f"{q_neto_caldas:+.2f} L/s")
-            st.caption(f"Estado: {estado_caldas}. {recomendacion_caldas}")
-        st.markdown("<div class='caja-rango'><b>Nota Caldas</b><br>Como la entrada al tanque no cuenta con macromedidor, la entrada debe estimarse con el cambio de volumen/nivel más las salidas macromedidas.</div>", unsafe_allow_html=True)
-
-    st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
-    with st.expander("📁 Cargar histórico exportado del SCADA", expanded=False):
-        st.caption("Puedes cargar CSV o Excel. Ideal: una columna de fecha/hora y columnas numéricas como nivel, volumen, caudal o presión. Si el archivo viene en formato ancho, la app permite seleccionar qué columnas graficar.")
-        archivo = st.file_uploader("Archivo histórico SCADA", type=["csv", "xlsx", "xls"], key="scada_historico")
-        df_hist = leer_tabla_historica(archivo)
-        if df_hist is not None and not df_hist.empty:
-            mostrar_tabla_profesional(df_hist.head(30), height=420)
-            fecha_cols = [c for c in df_hist.columns if "fecha" in str(c).lower() or "hora" in str(c).lower() or "time" in str(c).lower()]
-            col_fecha = st.selectbox("Columna de fecha/hora", options=[None] + fecha_cols + list(df_hist.columns), key="scada_col_fecha")
-            num_cols = [c for c in df_hist.columns if pd.api.types.is_numeric_dtype(df_hist[c])]
-            cols_graf = st.multiselect("Variables para graficar", options=num_cols, default=num_cols[:5], key="scada_cols_graf")
-            if cols_graf:
-                fig_hist = go.Figure()
-                x = df_hist[col_fecha] if col_fecha else df_hist.index
-                for col in cols_graf:
-                    fig_hist.add_trace(go.Scatter(x=x, y=df_hist[col], mode="lines", name=str(col)))
-                fig_hist.update_layout(title="Tendencias importadas del SCADA", height=430, margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor="white", paper_bgcolor="white")
-                st.plotly_chart(fig_hist, use_container_width=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# =========================================
-# DESPACHO OPERATIVO DE TANQUES
-# =========================================
-def mostrar_despacho_operativo():
+def mostrar_sistema_hidraulico():
     """
-    Simulador de decisión operativa para saber si se puede despachar agua,
-    cuánto caudal es seguro despachar, y en cuánto tiempo se llenan o vacían
-    los tanques con la condición actual y con la condición recomendada.
+    Simulador de apoyo hidráulico para evaluar niveles, volúmenes calculados,
+    caudales de entrada/salida, balance y recomendación de apertura o cierre.
 
     IMPORTANTE: No controla válvulas reales. Solo apoya la decisión operativa.
     Toda maniobra debe ser autorizada por Director de Producción y Tratamiento
@@ -3690,12 +3485,12 @@ def mostrar_despacho_operativo():
     """
 
     st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown("<div class='etiqueta'>🚦 Despacho operativo · abrir, cerrar o mantener válvulas</div>", unsafe_allow_html=True)
+    st.markdown("<div class='etiqueta'>💧 Sistema hidráulico · tanques, caudales y válvulas</div>", unsafe_allow_html=True)
     st.markdown(
-        "<div class='texto-panel'>Este panel responde lo que necesitas en operación: "
-        "<b>si se puede despachar agua</b>, <b>cuánto caudal se puede enviar</b>, "
-        "<b>si conviene abrir, cerrar o mantener válvulas</b> y <b>en cuánto tiempo se llena o se vacía cada tanque</b>. "
-        "No acciona válvulas reales; genera una recomendación para revisar con el Director de Producción y Tratamiento o Valvulero.</div>",
+        "<div class='texto-panel'>Este módulo permite trabajar solo con el <b>nivel del tanque</b>. "
+        "La app calcula internamente el volumen estimado, evalúa el balance hidráulico y recomienda "
+        "si conviene <b>abrir, cerrar, reducir o mantener</b> los caudales. "
+        "No acciona válvulas reales; es una herramienta de apoyo para revisar con el Director de Producción y Tratamiento o Valvulero.</div>",
         unsafe_allow_html=True,
     )
 
@@ -3718,6 +3513,19 @@ def mostrar_despacho_operativo():
         if h <= 0:
             return f"{m} min"
         return f"{h} h {m:02d} min"
+
+    def volumen_por_nivel(nivel_m, nivel_max_m, capacidad_m3):
+        """Calcula volumen estimado con relación lineal nivel/capacidad."""
+        nivel_m = max(float(nivel_m), 0.0)
+        nivel_max_m = max(float(nivel_max_m), 0.0001)
+        capacidad_m3 = max(float(capacidad_m3), 0.0)
+        return clamp((nivel_m / nivel_max_m) * capacidad_m3, 0.0, capacidad_m3)
+
+    def mostrar_volumen_calculado(volumen, capacidad, nivel, nivel_max):
+        pct = volumen / max(capacidad, 0.0001) * 100.0
+        st.caption(f"Volumen calculado: {volumen:,.2f} m³ · {pct:.1f}% · Nivel máx. usado: {nivel_max:.2f} m")
+        if nivel > nivel_max:
+            st.warning("El nivel ingresado supera el nivel máximo configurado. El volumen se limita a la capacidad del tanque.")
 
     def tiempo_a_limite(vol_actual, cap, q_neto_ls, min_pct, alto_pct=100.0):
         """Retorna tiempo a llenar o mínimo operativo según el signo del neto."""
@@ -3747,13 +3555,13 @@ def mostrar_despacho_operativo():
             return pct, "Alto controlado", "🟡"
         return pct, "Normal", "🟢"
 
-    def eval_tanque(nombre, vol, cap, q_in, q_out, min_pct, objetivo_pct, alto_pct):
+    def eval_tanque(nombre, vol, cap, q_in, q_out, min_pct, objetivo_pct, alto_pct, nivel=None):
         q_neto = float(q_in) - float(q_out)
         pct, estado, icono = estado_volumen(vol, cap, min_pct, objetivo_pct, alto_pct)
         tendencia, t_limite, horas_limite = tiempo_a_limite(vol, cap, q_neto, min_pct, alto_pct)
-        return {
+        fila = {
             "Tanque": nombre,
-            "Volumen (m³)": float(vol),
+            "Volumen calculado (m³)": float(vol),
             "Capacidad (m³)": float(cap),
             "%": pct,
             "Entrada (L/s)": float(q_in),
@@ -3765,6 +3573,9 @@ def mostrar_despacho_operativo():
             "Tiempo a límite": t_limite,
             "_horas_limite": horas_limite,
         }
+        if nivel is not None:
+            fila["Nivel (m)"] = float(nivel)
+        return fila
 
     def requerimiento_entrada_destino(vol, cap, q_salida, horizonte_h, objetivo_pct, alto_pct):
         """
@@ -3779,7 +3590,6 @@ def mostrar_despacho_operativo():
         q_obj = q_salida + (objetivo - vol) / (3.6 * horizonte_h)
         pct = vol / cap * 100.0
         if pct >= alto_pct:
-            # Si está alto, prioriza cerrar/reducir entrada, pero sin dejar necesariamente en cero si hay demanda alta.
             q_obj = min(q_obj, q_salida * 0.70)
         return max(0.0, q_obj)
 
@@ -3804,44 +3614,59 @@ def mostrar_despacho_operativo():
 
     col_top1, col_top2, col_top3 = st.columns([0.9, 0.8, 1.2], gap="medium")
     with col_top1:
-        modo = st.radio("Sistema a evaluar", ["Diviso", "Caldas"], index=index_modo, horizontal=True, key="desp_modo")
+        modo = st.radio("Sistema a evaluar", ["Diviso", "Caldas"], index=index_modo, horizontal=True, key="sish_modo")
     with col_top2:
-        horizonte_h = st.number_input("Horizonte de análisis (horas)", min_value=0.25, value=6.0, step=0.5, format="%.2f", key="desp_horizonte")
+        horizonte_h = st.number_input("Horizonte de análisis (horas)", min_value=0.25, value=6.0, step=0.5, format="%.2f", key="sish_horizonte")
     with col_top3:
-        st.info("Usa el horizonte para preguntar: ¿con estos caudales, qué pasa en las próximas horas?")
+        st.info("Ingresa niveles y caudales actuales. El volumen se calcula automáticamente a partir del nivel.")
 
     with st.expander("⚙️ Criterios de decisión", expanded=False):
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            min_pct = st.number_input("Mínimo operativo (%)", min_value=1.0, max_value=80.0, value=30.0, step=1.0, key="desp_min_pct")
+            min_pct = st.number_input("Mínimo operativo (%)", min_value=1.0, max_value=80.0, value=30.0, step=1.0, key="sish_min_pct")
         with c2:
-            objetivo_pct = st.number_input("Nivel objetivo (%)", min_value=10.0, max_value=95.0, value=70.0, step=1.0, key="desp_obj_pct")
+            objetivo_pct = st.number_input("Nivel objetivo (%)", min_value=10.0, max_value=95.0, value=70.0, step=1.0, key="sish_obj_pct")
         with c3:
-            alto_pct = st.number_input("Alto / rebose operativo (%)", min_value=50.0, max_value=100.0, value=90.0, step=1.0, key="desp_alto_pct")
+            alto_pct = st.number_input("Alto / rebose operativo (%)", min_value=50.0, max_value=100.0, value=90.0, step=1.0, key="sish_alto_pct")
         with c4:
-            margen_ls = st.number_input("Margen estable (L/s)", min_value=0.0, value=5.0, step=1.0, key="desp_margen")
-        st.caption("Puedes ajustar estos porcentajes cuando SERVAF defina límites reales por SCADA o regla física de cada tanque.")
+            margen_ls = st.number_input("Margen estable (L/s)", min_value=0.0, value=5.0, step=1.0, key="sish_margen")
+        st.caption("Estos criterios definen cuándo la app considera bajo, normal o alto un tanque.")
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # DIVISO → CUNDUY / MALVINAS
-    # ═══════════════════════════════════════════════════════════════════════════
     if modo == "Diviso":
+        with st.expander("⚙️ Geometría para convertir nivel a volumen", expanded=False):
+            g1, g2, g3, g4 = st.columns(4)
+            with g1:
+                cap_4400 = st.number_input("Capacidad tanque 4400 (m³)", min_value=1.0, value=4400.0, step=10.0, format="%.2f", key="sish_cap_4400")
+                nivel_max_4400 = st.number_input("Nivel máximo tanque 4400 (m)", min_value=0.10, value=5.67, step=0.01, format="%.2f", key="sish_nmax_4400")
+            with g2:
+                cap_1100 = st.number_input("Capacidad tanque 1100 (m³)", min_value=1.0, value=1100.0, step=10.0, format="%.2f", key="sish_cap_1100")
+                nivel_max_1100 = st.number_input("Nivel máximo tanque 1100 (m)", min_value=0.10, value=4.02, step=0.01, format="%.2f", key="sish_nmax_1100")
+            with g3:
+                cap_cunduy = st.number_input("Capacidad operativa Cunduy (m³)", min_value=1.0, value=3000.0, step=10.0, format="%.2f", key="sish_cap_cunduy")
+                nivel_max_cunduy = st.number_input("Nivel máximo Cunduy (m)", min_value=0.10, value=3.93, step=0.01, format="%.2f", key="sish_nmax_cunduy")
+            with g4:
+                cap_malvinas = st.number_input("Capacidad operativa Malvinas (m³)", min_value=1.0, value=4000.0, step=10.0, format="%.2f", key="sish_cap_malvinas")
+                nivel_max_malvinas = st.number_input("Nivel máximo Malvinas (m)", min_value=0.10, value=3.73, step=0.01, format="%.2f", key="sish_nmax_malvinas")
+            st.caption("Normalmente no se cambia en operación. Sirve para convertir nivel en volumen mediante una relación lineal nivel/capacidad.")
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>1) Tanques fuente: Diviso 4400 m³ + 1100 m³</div>", unsafe_allow_html=True)
 
         d1, d2, d3, d4 = st.columns(4)
         with d1:
-            vol_4400 = st.number_input("Volumen actual tanque 4400 (m³)", min_value=0.0, value=2729.94, step=10.0, format="%.2f", key="desp_vol_4400")
-            cap_4400 = st.number_input("Capacidad tanque 4400 (m³)", min_value=1.0, value=4400.0, step=10.0, format="%.2f", key="desp_cap_4400")
+            nivel_4400 = st.number_input("Nivel actual tanque 4400 (m)", min_value=0.0, max_value=max(nivel_max_4400 * 1.2, 1.0), value=3.52, step=0.01, format="%.2f", key="sish_nivel_4400", help="Ingresa el nivel en metros. Ejemplo: 3.52")
+            vol_4400 = volumen_por_nivel(nivel_4400, nivel_max_4400, cap_4400)
+            mostrar_volumen_calculado(vol_4400, cap_4400, nivel_4400, nivel_max_4400)
         with d2:
-            vol_1100 = st.number_input("Volumen actual tanque 1100 (m³)", min_value=0.0, value=1043.39, step=10.0, format="%.2f", key="desp_vol_1100")
-            cap_1100 = st.number_input("Capacidad tanque 1100 (m³)", min_value=1.0, value=1100.0, step=10.0, format="%.2f", key="desp_cap_1100")
+            nivel_1100 = st.number_input("Nivel actual tanque 1100 (m)", min_value=0.0, max_value=max(nivel_max_1100 * 1.2, 1.0), value=3.81, step=0.01, format="%.2f", key="sish_nivel_1100", help="Ingresa el nivel en metros. Ejemplo: 3.81")
+            vol_1100 = volumen_por_nivel(nivel_1100, nivel_max_1100, cap_1100)
+            mostrar_volumen_calculado(vol_1100, cap_1100, nivel_1100, nivel_max_1100)
         with d3:
-            q_prod_diviso = st.number_input("Entrada / producción total Diviso (L/s)", min_value=0.0, value=350.0, step=1.0, format="%.2f", key="desp_q_prod_diviso")
-            q_salida_diviso_actual = st.number_input("Salida total actual desde Diviso (L/s)", min_value=0.0, value=312.43, step=1.0, format="%.2f", key="desp_q_sal_diviso")
+            q_prod_diviso = st.number_input("Entrada / producción total Diviso (L/s)", min_value=0.0, value=350.0, step=1.0, format="%.2f", key="sish_q_prod_diviso")
+            q_salida_diviso_actual = st.number_input("Salida total actual desde Diviso (L/s)", min_value=0.0, value=312.43, step=1.0, format="%.2f", key="sish_q_sal_diviso")
         with d4:
-            q_otras_salidas = st.number_input("Otras salidas no dirigidas a Cunduy/Malvinas (L/s)", min_value=0.0, value=0.0, step=1.0, format="%.2f", key="desp_q_otras_diviso")
-            q_limite_conduccion = st.number_input("Límite máximo de conducción/despacho (L/s)", min_value=1.0, value=450.0, step=5.0, format="%.2f", key="desp_q_limite_diviso")
+            q_otras_salidas = st.number_input("Otras salidas no dirigidas a Cunduy/Malvinas (L/s)", min_value=0.0, value=0.0, step=1.0, format="%.2f", key="sish_q_otras_diviso")
+            q_limite_conduccion = st.number_input("Límite máximo de conducción (L/s)", min_value=1.0, value=450.0, step=5.0, format="%.2f", key="sish_q_limite_diviso")
 
         vol_diviso = vol_4400 + vol_1100
         cap_diviso = cap_4400 + cap_1100
@@ -3856,34 +3681,35 @@ def mostrar_despacho_operativo():
         c_col, m_col = st.columns(2, gap="large")
         with c_col:
             st.markdown("<div class='bloque-mini'><div class='titulo-mini'>Tanque Cunduy</div>", unsafe_allow_html=True)
-            vol_cunduy = st.number_input("Volumen actual Cunduy (m³)", min_value=0.0, value=2145.74, step=10.0, format="%.2f", key="desp_vol_cunduy")
-            cap_cunduy = st.number_input("Capacidad operativa Cunduy (m³)", min_value=1.0, value=3000.0, step=10.0, format="%.2f", key="desp_cap_cunduy")
-            q_ent_cunduy_actual = st.number_input("Caudal actual hacia Cunduy (L/s)", min_value=0.0, value=111.36, step=1.0, format="%.2f", key="desp_q_ent_cunduy")
-            q_sal_cunduy = st.number_input("Salida / demanda Cunduy (L/s)", min_value=0.0, value=130.22, step=1.0, format="%.2f", key="desp_q_sal_cunduy")
-            q_max_cunduy = st.number_input("Máximo permitido a Cunduy (L/s)", min_value=0.0, value=220.0, step=5.0, format="%.2f", key="desp_q_max_cunduy")
+            nivel_cunduy = st.number_input("Nivel actual Cunduy (m)", min_value=0.0, max_value=max(nivel_max_cunduy * 1.2, 1.0), value=2.81, step=0.01, format="%.2f", key="sish_nivel_cunduy")
+            vol_cunduy = volumen_por_nivel(nivel_cunduy, nivel_max_cunduy, cap_cunduy)
+            mostrar_volumen_calculado(vol_cunduy, cap_cunduy, nivel_cunduy, nivel_max_cunduy)
+            q_ent_cunduy_actual = st.number_input("Caudal actual hacia Cunduy (L/s)", min_value=0.0, value=111.36, step=1.0, format="%.2f", key="sish_q_ent_cunduy")
+            q_sal_cunduy = st.number_input("Salida / demanda Cunduy (L/s)", min_value=0.0, value=130.22, step=1.0, format="%.2f", key="sish_q_sal_cunduy")
+            q_max_cunduy = st.number_input("Máximo permitido a Cunduy (L/s)", min_value=0.0, value=220.0, step=5.0, format="%.2f", key="sish_q_max_cunduy")
             st.markdown("</div>", unsafe_allow_html=True)
         with m_col:
             st.markdown("<div class='bloque-mini'><div class='titulo-mini'>Tanque Malvinas</div>", unsafe_allow_html=True)
-            vol_malvinas = st.number_input("Volumen actual Malvinas (m³)", min_value=0.0, value=1726.11, step=10.0, format="%.2f", key="desp_vol_malvinas")
-            cap_malvinas = st.number_input("Capacidad operativa Malvinas (m³)", min_value=1.0, value=4000.0, step=10.0, format="%.2f", key="desp_cap_malvinas")
-            q_ent_malvinas_actual = st.number_input("Caudal actual hacia Malvinas (L/s)", min_value=0.0, value=183.78, step=1.0, format="%.2f", key="desp_q_ent_malvinas")
-            q_sal_malvinas_base = st.number_input("Salida principal Malvinas (L/s)", min_value=0.0, value=154.19, step=1.0, format="%.2f", key="desp_q_sal_malvinas")
-            sumar_ramales = st.checkbox("Sumar Ángeles, Comfaca y Andes como salidas", value=True, key="desp_sumar_ramales_malvinas")
+            nivel_malvinas = st.number_input("Nivel actual Malvinas (m)", min_value=0.0, max_value=max(nivel_max_malvinas * 1.2, 1.0), value=1.61, step=0.01, format="%.2f", key="sish_nivel_malvinas")
+            vol_malvinas = volumen_por_nivel(nivel_malvinas, nivel_max_malvinas, cap_malvinas)
+            mostrar_volumen_calculado(vol_malvinas, cap_malvinas, nivel_malvinas, nivel_max_malvinas)
+            q_ent_malvinas_actual = st.number_input("Caudal actual hacia Malvinas (L/s)", min_value=0.0, value=183.78, step=1.0, format="%.2f", key="sish_q_ent_malvinas")
+            q_sal_malvinas_base = st.number_input("Salida principal Malvinas (L/s)", min_value=0.0, value=154.19, step=1.0, format="%.2f", key="sish_q_sal_malvinas")
+            sumar_ramales = st.checkbox("Sumar Ángeles, Comfaca y Andes como salidas", value=True, key="sish_sumar_ramales_malvinas")
             if sumar_ramales:
                 r1, r2, r3 = st.columns(3)
                 with r1:
-                    q_angeles = st.number_input("Ángeles (L/s)", min_value=0.0, value=11.55, step=0.5, format="%.2f", key="desp_q_angeles")
+                    q_angeles = st.number_input("Ángeles (L/s)", min_value=0.0, value=11.55, step=0.5, format="%.2f", key="sish_q_angeles")
                 with r2:
-                    q_comfaca = st.number_input("Comfaca / Villa Susana (L/s)", min_value=0.0, value=3.22, step=0.5, format="%.2f", key="desp_q_comfaca")
+                    q_comfaca = st.number_input("Comfaca / Villa Susana (L/s)", min_value=0.0, value=3.22, step=0.5, format="%.2f", key="sish_q_comfaca")
                 with r3:
-                    q_andes = st.number_input("Andes Altos 6'' (L/s)", min_value=0.0, value=8.72, step=0.5, format="%.2f", key="desp_q_andes")
+                    q_andes = st.number_input("Andes Altos 6'' (L/s)", min_value=0.0, value=8.72, step=0.5, format="%.2f", key="sish_q_andes")
             else:
                 q_angeles = q_comfaca = q_andes = 0.0
             q_sal_malvinas = q_sal_malvinas_base + q_angeles + q_comfaca + q_andes
-            q_max_malvinas = st.number_input("Máximo permitido a Malvinas (L/s)", min_value=0.0, value=260.0, step=5.0, format="%.2f", key="desp_q_max_malvinas")
+            q_max_malvinas = st.number_input("Máximo permitido a Malvinas (L/s)", min_value=0.0, value=260.0, step=5.0, format="%.2f", key="sish_q_max_malvinas")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # Requerimientos por destino para llegar al objetivo en el horizonte.
         req_cunduy = requerimiento_entrada_destino(vol_cunduy, cap_cunduy, q_sal_cunduy, horizonte_h, objetivo_pct, alto_pct)
         req_malvinas = requerimiento_entrada_destino(vol_malvinas, cap_malvinas, q_sal_malvinas, horizonte_h, objetivo_pct, alto_pct)
 
@@ -3897,23 +3723,20 @@ def mostrar_despacho_operativo():
         q_total_recomendado_destinos = q_rec_cunduy + q_rec_malvinas
         q_salida_diviso_recomendada = q_total_recomendado_destinos + q_otras_salidas
 
-        # Evaluación actual y propuesta.
-        # Distribución automática de caudales de Diviso 4400/1100 por capacidad para estimar tiempos individuales.
         frac_4400 = cap_4400 / max(cap_diviso, 0.0001)
         frac_1100 = cap_1100 / max(cap_diviso, 0.0001)
-        eval_4400_actual = eval_tanque("Diviso 4400 actual", vol_4400, cap_4400, q_prod_diviso * frac_4400, q_salida_diviso_actual * frac_4400, min_pct, objetivo_pct, alto_pct)
-        eval_1100_actual = eval_tanque("Diviso 1100 actual", vol_1100, cap_1100, q_prod_diviso * frac_1100, q_salida_diviso_actual * frac_1100, min_pct, objetivo_pct, alto_pct)
+        eval_4400_actual = eval_tanque("Diviso 4400 actual", vol_4400, cap_4400, q_prod_diviso * frac_4400, q_salida_diviso_actual * frac_4400, min_pct, objetivo_pct, alto_pct, nivel_4400)
+        eval_1100_actual = eval_tanque("Diviso 1100 actual", vol_1100, cap_1100, q_prod_diviso * frac_1100, q_salida_diviso_actual * frac_1100, min_pct, objetivo_pct, alto_pct, nivel_1100)
         eval_diviso_actual = eval_tanque("Diviso total actual", vol_diviso, cap_diviso, q_prod_diviso, q_salida_diviso_actual, min_pct, objetivo_pct, alto_pct)
-        eval_cunduy_actual = eval_tanque("Cunduy actual", vol_cunduy, cap_cunduy, q_ent_cunduy_actual, q_sal_cunduy, min_pct, objetivo_pct, alto_pct)
-        eval_malvinas_actual = eval_tanque("Malvinas actual", vol_malvinas, cap_malvinas, q_ent_malvinas_actual, q_sal_malvinas, min_pct, objetivo_pct, alto_pct)
+        eval_cunduy_actual = eval_tanque("Cunduy actual", vol_cunduy, cap_cunduy, q_ent_cunduy_actual, q_sal_cunduy, min_pct, objetivo_pct, alto_pct, nivel_cunduy)
+        eval_malvinas_actual = eval_tanque("Malvinas actual", vol_malvinas, cap_malvinas, q_ent_malvinas_actual, q_sal_malvinas, min_pct, objetivo_pct, alto_pct, nivel_malvinas)
 
-        eval_4400_prop = eval_tanque("Diviso 4400 recomendado", vol_4400, cap_4400, q_prod_diviso * frac_4400, q_salida_diviso_recomendada * frac_4400, min_pct, objetivo_pct, alto_pct)
-        eval_1100_prop = eval_tanque("Diviso 1100 recomendado", vol_1100, cap_1100, q_prod_diviso * frac_1100, q_salida_diviso_recomendada * frac_1100, min_pct, objetivo_pct, alto_pct)
+        eval_4400_prop = eval_tanque("Diviso 4400 recomendado", vol_4400, cap_4400, q_prod_diviso * frac_4400, q_salida_diviso_recomendada * frac_4400, min_pct, objetivo_pct, alto_pct, nivel_4400)
+        eval_1100_prop = eval_tanque("Diviso 1100 recomendado", vol_1100, cap_1100, q_prod_diviso * frac_1100, q_salida_diviso_recomendada * frac_1100, min_pct, objetivo_pct, alto_pct, nivel_1100)
         eval_diviso_prop = eval_tanque("Diviso total recomendado", vol_diviso, cap_diviso, q_prod_diviso, q_salida_diviso_recomendada, min_pct, objetivo_pct, alto_pct)
-        eval_cunduy_prop = eval_tanque("Cunduy recomendado", vol_cunduy, cap_cunduy, q_rec_cunduy, q_sal_cunduy, min_pct, objetivo_pct, alto_pct)
-        eval_malvinas_prop = eval_tanque("Malvinas recomendado", vol_malvinas, cap_malvinas, q_rec_malvinas, q_sal_malvinas, min_pct, objetivo_pct, alto_pct)
+        eval_cunduy_prop = eval_tanque("Cunduy recomendado", vol_cunduy, cap_cunduy, q_rec_cunduy, q_sal_cunduy, min_pct, objetivo_pct, alto_pct, nivel_cunduy)
+        eval_malvinas_prop = eval_tanque("Malvinas recomendado", vol_malvinas, cap_malvinas, q_rec_malvinas, q_sal_malvinas, min_pct, objetivo_pct, alto_pct, nivel_malvinas)
 
-        # Mensaje de decisión central.
         cunduy_pct = vol_cunduy / max(cap_cunduy, 0.0001) * 100
         malvinas_pct = vol_malvinas / max(cap_malvinas, 0.0001) * 100
         destinos_bajos = (cunduy_pct < objetivo_pct - 5) or (malvinas_pct < objetivo_pct - 5)
@@ -3926,11 +3749,11 @@ def mostrar_despacho_operativo():
             color_decision = "#e63946"
             detalle_decision = f"Diviso está en {pct_diviso:.1f}%. Prioriza recuperar nivel. Salida segura total estimada: {q_total_seguro_salida:.2f} L/s."
         elif q_salida_diviso_actual > q_total_seguro_salida + margen_ls:
-            decision = "REDUCIR DESPACHO DESDE DIVISO"
+            decision = "REDUCIR SALIDA DESDE DIVISO"
             color_decision = "#e76f51"
             detalle_decision = f"La salida actual ({q_salida_diviso_actual:.2f} L/s) supera la salida segura estimada ({q_total_seguro_salida:.2f} L/s)."
         elif destinos_bajos and q_extra_disponible > margen_ls:
-            decision = "PUEDE ABRIR / AUMENTAR DESPACHO DESDE DIVISO"
+            decision = "PUEDE ABRIR / AUMENTAR CAUDAL DESDE DIVISO"
             color_decision = "#2DB9A3"
             detalle_decision = f"Hay margen aproximado de +{q_extra_disponible:.2f} L/s hacia Cunduy/Malvinas sin bajar Diviso del mínimo en {horizonte_h:.1f} h."
         elif destinos_altos or fuente_alta:
@@ -3938,21 +3761,21 @@ def mostrar_despacho_operativo():
             color_decision = "#f4a261"
             detalle_decision = "Revisa si los destinos o Diviso están altos. Evita seguir llenando tanques con riesgo de rebose."
         else:
-            decision = "MANTENER DESPACHO Y SEGUIMIENTO"
+            decision = "MANTENER CAUDALES Y SEGUIMIENTO"
             color_decision = "#008ACB"
             detalle_decision = "No se observa una necesidad fuerte de abrir o cerrar con los datos ingresados."
 
         st.markdown(f"""
         <div style="background:white;border-left:7px solid {color_decision};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
+            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión sugerida del sistema hidráulico</div>
             <div style="font-size:1.35rem;font-weight:900;color:{color_decision};margin:0.2rem 0">{decision}</div>
             <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle_decision}</div>
         </div>
         """, unsafe_allow_html=True)
 
         r1, r2, r3, r4 = st.columns(4)
-        r1.metric("Volumen Diviso", f"{vol_diviso:,.2f} m³", f"{pct_diviso:.1f}%")
-        r2.metric("Despacho seguro total", f"{q_total_seguro_salida:.2f} L/s")
+        r1.metric("Volumen calculado Diviso", f"{vol_diviso:,.2f} m³", f"{pct_diviso:.1f}%")
+        r2.metric("Salida segura total", f"{q_total_seguro_salida:.2f} L/s")
         r3.metric("Disponible hacia C/M", f"{q_seguro_para_destinos:.2f} L/s")
         r4.metric("Ajuste vs actual", f"{q_extra_disponible:+.2f} L/s")
 
@@ -3960,6 +3783,7 @@ def mostrar_despacho_operativo():
         reco_df = pd.DataFrame([
             {
                 "Destino": "Cunduy",
+                "Nivel actual (m)": nivel_cunduy,
                 "Caudal actual (L/s)": q_ent_cunduy_actual,
                 "Caudal requerido al objetivo (L/s)": req_cunduy,
                 "Caudal recomendado (L/s)": q_rec_cunduy,
@@ -3969,6 +3793,7 @@ def mostrar_despacho_operativo():
             },
             {
                 "Destino": "Malvinas",
+                "Nivel actual (m)": nivel_malvinas,
                 "Caudal actual (L/s)": q_ent_malvinas_actual,
                 "Caudal requerido al objetivo (L/s)": req_malvinas,
                 "Caudal recomendado (L/s)": q_rec_malvinas,
@@ -3980,6 +3805,7 @@ def mostrar_despacho_operativo():
         mostrar_tabla_profesional(
             reco_df,
             formatos={
+                "Nivel actual (m)": "{:.2f}",
                 "Caudal actual (L/s)": "{:.2f}",
                 "Caudal requerido al objetivo (L/s)": "{:.2f}",
                 "Caudal recomendado (L/s)": "{:.2f}",
@@ -3997,7 +3823,8 @@ def mostrar_despacho_operativo():
         mostrar_tabla_profesional(
             tiempos_df,
             formatos={
-                "Volumen (m³)": "{:,.2f}",
+                "Nivel (m)": "{:.2f}",
+                "Volumen calculado (m³)": "{:,.2f}",
                 "Capacidad (m³)": "{:,.2f}",
                 "%": "{:.1f}%",
                 "Entrada (L/s)": "{:.2f}",
@@ -4008,10 +3835,10 @@ def mostrar_despacho_operativo():
         )
 
         fig = go.Figure()
-        fig.add_trace(go.Bar(name="Volumen actual", x=["Diviso", "Cunduy", "Malvinas"], y=[vol_diviso, vol_cunduy, vol_malvinas]))
+        fig.add_trace(go.Bar(name="Volumen calculado", x=["Diviso", "Cunduy", "Malvinas"], y=[vol_diviso, vol_cunduy, vol_malvinas]))
         fig.add_trace(go.Bar(name="Capacidad", x=["Diviso", "Cunduy", "Malvinas"], y=[cap_diviso, cap_cunduy, cap_malvinas], opacity=0.35))
         fig.update_layout(
-            title="Volumen actual vs capacidad operativa",
+            title="Volumen calculado desde nivel vs capacidad operativa",
             barmode="overlay",
             height=360,
             plot_bgcolor="white",
@@ -4025,35 +3852,41 @@ def mostrar_despacho_operativo():
         if abs(no_contabilizado) > margen_ls:
             st.warning(
                 f"Diferencia entre salida Diviso y entradas registradas en destinos: {no_contabilizado:+.2f} L/s. "
-                "Puede ser retardo hidráulico, lectura SCADA en tiempos diferentes, pérdidas o una salida no incluida."
+                "Puede ser retardo hidráulico, lecturas en momentos diferentes, pérdidas o una salida no incluida."
             )
 
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#48B9EA">
         <b>Cómo leer este resultado</b><br>
-        • <b>Despacho seguro total</b>: caudal máximo aproximado que Diviso puede sacar durante el horizonte sin bajar del mínimo operativo, limitado por conducción.<br>
+        • <b>Salida segura total</b>: caudal máximo aproximado que Diviso puede sacar durante el horizonte sin bajar del mínimo operativo, limitado por conducción.<br>
         • <b>Caudal recomendado por destino</b>: entrada sugerida hacia Cunduy y Malvinas para acercarlos al nivel objetivo.<br>
         • Si aparece <b>cerrar/reducir</b>, no significa cerrar todo: significa bajar gradualmente la salida hasta el valor recomendado y verificar tendencia.
         </div>
         """, unsafe_allow_html=True)
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # CALDAS → SECTORES / SALIDAS
-    # ═══════════════════════════════════════════════════════════════════════════
     else:
+        with st.expander("⚙️ Geometría para convertir nivel a volumen", expanded=False):
+            g1, g2 = st.columns(2)
+            with g1:
+                cap_caldas = st.number_input("Capacidad tanque Caldas (m³)", min_value=1.0, value=1365.0, step=10.0, format="%.2f", key="sish_cap_caldas")
+            with g2:
+                nivel_max_caldas = st.number_input("Nivel máximo tanque Caldas (m)", min_value=0.10, value=3.59, step=0.01, format="%.2f", key="sish_nmax_caldas")
+            st.caption("Normalmente no se cambia en operación. Sirve para convertir nivel en volumen mediante una relación lineal nivel/capacidad.")
+
         st.markdown("<hr class='hr-suave'>", unsafe_allow_html=True)
         st.markdown("<div class='titulo-seccion-resultado'>Tanque PTAP Caldas · decisión de apertura o cierre de salidas</div>", unsafe_allow_html=True)
 
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            vol_caldas = st.number_input("Volumen actual Caldas (m³)", min_value=0.0, value=950.0, step=10.0, format="%.2f", key="desp_vol_caldas")
-            cap_caldas = st.number_input("Capacidad Caldas (m³)", min_value=1.0, value=1365.0, step=10.0, format="%.2f", key="desp_cap_caldas")
+            nivel_caldas = st.number_input("Nivel actual Caldas (m)", min_value=0.0, max_value=max(nivel_max_caldas * 1.2, 1.0), value=2.50, step=0.01, format="%.2f", key="sish_nivel_caldas")
+            vol_caldas = volumen_por_nivel(nivel_caldas, nivel_max_caldas, cap_caldas)
+            mostrar_volumen_calculado(vol_caldas, cap_caldas, nivel_caldas, nivel_max_caldas)
         with c2:
-            q_entrada_caldas = st.number_input("Entrada estimada / producción a tanque (L/s)", min_value=0.0, value=170.0, step=1.0, format="%.2f", key="desp_q_ent_caldas")
-            q_salida_caldas = st.number_input("Salida total actual Caldas (L/s)", min_value=0.0, value=160.0, step=1.0, format="%.2f", key="desp_q_sal_caldas")
+            q_entrada_caldas = st.number_input("Entrada estimada / producción a tanque (L/s)", min_value=0.0, value=170.0, step=1.0, format="%.2f", key="sish_q_ent_caldas")
+            q_salida_caldas = st.number_input("Salida total actual Caldas (L/s)", min_value=0.0, value=160.0, step=1.0, format="%.2f", key="sish_q_sal_caldas")
         with c3:
-            q_limite_salida_caldas = st.number_input("Límite máximo salida Caldas (L/s)", min_value=1.0, value=230.0, step=5.0, format="%.2f", key="desp_q_lim_caldas")
-            considerar_sectores = st.checkbox("Distribuir salida por sectores", value=True, key="desp_sectores_caldas")
+            q_limite_salida_caldas = st.number_input("Límite máximo salida Caldas (L/s)", min_value=1.0, value=230.0, step=5.0, format="%.2f", key="sish_q_lim_caldas")
+            considerar_sectores = st.checkbox("Distribuir salida por sectores", value=True, key="sish_sectores_caldas")
         with c4:
             pct_caldas, estado_caldas, icono_caldas = estado_volumen(vol_caldas, cap_caldas, min_pct, objetivo_pct, alto_pct)
             st.metric("Estado Caldas", f"{pct_caldas:.1f}%", estado_caldas)
@@ -4061,15 +3894,15 @@ def mostrar_despacho_operativo():
         if considerar_sectores:
             s1, s2, s3, s4, s5 = st.columns(5)
             with s1:
-                q_centro = st.number_input("Centro (L/s)", min_value=0.0, value=40.0, step=1.0, format="%.2f", key="desp_q_centro")
+                q_centro = st.number_input("Centro (L/s)", min_value=0.0, value=40.0, step=1.0, format="%.2f", key="sish_q_centro")
             with s2:
-                q_ciudadela1 = st.number_input("Ciudadela I (L/s)", min_value=0.0, value=35.0, step=1.0, format="%.2f", key="desp_q_ciudadela1")
+                q_ciudadela1 = st.number_input("Ciudadela I (L/s)", min_value=0.0, value=35.0, step=1.0, format="%.2f", key="sish_q_ciudadela1")
             with s3:
-                q_ciudadela2 = st.number_input("Ciudadela II (L/s)", min_value=0.0, value=35.0, step=1.0, format="%.2f", key="desp_q_ciudadela2")
+                q_ciudadela2 = st.number_input("Ciudadela II (L/s)", min_value=0.0, value=35.0, step=1.0, format="%.2f", key="sish_q_ciudadela2")
             with s4:
-                q_heliconias = st.number_input("Heliconias (L/s)", min_value=0.0, value=25.0, step=1.0, format="%.2f", key="desp_q_heliconias")
+                q_heliconias = st.number_input("Heliconias (L/s)", min_value=0.0, value=25.0, step=1.0, format="%.2f", key="sish_q_heliconias")
             with s5:
-                q_acolsure = st.number_input("Acolsure (L/s)", min_value=0.0, value=25.0, step=1.0, format="%.2f", key="desp_q_acolsure")
+                q_acolsure = st.number_input("Acolsure (L/s)", min_value=0.0, value=25.0, step=1.0, format="%.2f", key="sish_q_acolsure")
             q_salida_caldas = q_centro + q_ciudadela1 + q_ciudadela2 + q_heliconias + q_acolsure
             st.caption(f"Salida total calculada por sectores: {q_salida_caldas:.2f} L/s")
 
@@ -4104,19 +3937,19 @@ def mostrar_despacho_operativo():
             detalle = "El balance no exige abrir ni cerrar con fuerza. Mantén seguimiento de nivel, salidas y producción."
             q_salida_recomendada = q_salida_caldas
 
-        eval_caldas_actual = eval_tanque("Caldas actual", vol_caldas, cap_caldas, q_entrada_caldas, q_salida_caldas, min_pct, objetivo_pct, alto_pct)
-        eval_caldas_prop = eval_tanque("Caldas recomendado", vol_caldas, cap_caldas, q_entrada_caldas, q_salida_recomendada, min_pct, objetivo_pct, alto_pct)
+        eval_caldas_actual = eval_tanque("Caldas actual", vol_caldas, cap_caldas, q_entrada_caldas, q_salida_caldas, min_pct, objetivo_pct, alto_pct, nivel_caldas)
+        eval_caldas_prop = eval_tanque("Caldas recomendado", vol_caldas, cap_caldas, q_entrada_caldas, q_salida_recomendada, min_pct, objetivo_pct, alto_pct, nivel_caldas)
 
         st.markdown(f"""
         <div style="background:white;border-left:7px solid {color_decision};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión operativa sugerida</div>
+            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión sugerida del sistema hidráulico</div>
             <div style="font-size:1.35rem;font-weight:900;color:{color_decision};margin:0.2rem 0">{decision}</div>
             <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle}</div>
         </div>
         """, unsafe_allow_html=True)
 
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Volumen Caldas", f"{vol_caldas:,.2f} m³", f"{pct_caldas:.1f}%")
+        m1.metric("Volumen calculado Caldas", f"{vol_caldas:,.2f} m³", f"{pct_caldas:.1f}%")
         m2.metric("Salida actual", f"{q_salida_caldas:.2f} L/s")
         m3.metric("Salida segura", f"{q_salida_segura_caldas:.2f} L/s")
         m4.metric("Ajuste sugerido", f"{q_salida_recomendada - q_salida_caldas:+.2f} L/s")
@@ -4125,7 +3958,8 @@ def mostrar_despacho_operativo():
         mostrar_tabla_profesional(
             tabla_caldas,
             formatos={
-                "Volumen (m³)": "{:,.2f}",
+                "Nivel (m)": "{:.2f}",
+                "Volumen calculado (m³)": "{:,.2f}",
                 "Capacidad (m³)": "{:,.2f}",
                 "%": "{:.1f}%",
                 "Entrada (L/s)": "{:.2f}",
@@ -4156,7 +3990,7 @@ def mostrar_despacho_operativo():
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#48B9EA">
         <b>Nota para Caldas</b><br>
-        Como la entrada al tanque no tiene macromedidor, la entrada debe estimarse con producción, cambio de nivel y salidas macromedidas. Si la entrada estimada no es confiable, confirma con lectura física o tendencia SCADA antes de maniobrar.
+        Como la entrada al tanque no tiene macromedidor, la entrada debe estimarse con producción, cambio de nivel y salidas macromedidas. Si la entrada estimada no es confiable, confirma con lectura física antes de maniobrar.
         </div>
         """, unsafe_allow_html=True)
 
@@ -4167,7 +4001,7 @@ def mostrar_despacho_operativo():
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_despacho"):
+    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_sistema_hidraulico"):
         st.session_state.vista = "menu"
         st.rerun()
 
@@ -4896,15 +4730,15 @@ MENU_PROFESIONAL_CSS = """
 st.markdown(MENU_PROFESIONAL_CSS, unsafe_allow_html=True)
 
 
+if st.session_state.vista in ("scada", "historico_scada", "tanque"):
+    st.session_state.vista = "despacho"
+
 def nombre_vista_actual(vista):
     nombres = {
         "menu": "Inicio",
         "recomendacion": "Recomendación PAC",
         "calculadora": "Calculadora PAC",
-        "tanque": "Calculadora de tanque",
-        "scada": "Panel SCADA",
-        "despacho": "Despacho operativo",
-        "historico_scada": "Despacho histórico SCADA",
+        "despacho": "Sistema hidráulico",
         "documentos": "Documentos del sistema",
     }
     return nombres.get(vista, "Inicio")
@@ -4943,27 +4777,13 @@ with col_pac:
 with col_hid:
     st.markdown("""
     <div class="menu-pro-group">
-        <div class="menu-pro-group-title">🏗️ Tanques, SCADA y despacho</div>
-        <div class="menu-pro-group-text">Evalúa niveles, volúmenes, entradas, salidas, válvulas y tiempos de llenado o vaciado.</div>
+        <div class="menu-pro-group-title">🏗️ Sistema hidráulico</div>
+        <div class="menu-pro-group-text">Evalúa niveles, volúmenes calculados, entradas, salidas, válvulas y tiempos de llenado o vaciado.</div>
     </div>
     """, unsafe_allow_html=True)
-    h1, h2, h3, h4 = st.columns(4, gap="small")
-    with h1:
-        if st.button("Tanques", use_container_width=True, key="btn_ir_tanque", type="primary" if st.session_state.vista == "tanque" else "secondary"):
-            st.session_state.vista = "tanque"
-            st.rerun()
-    with h2:
-        if st.button("Panel SCADA", use_container_width=True, key="btn_ir_scada", type="primary" if st.session_state.vista == "scada" else "secondary"):
-            st.session_state.vista = "scada"
-            st.rerun()
-    with h3:
-        if st.button("Despacho", use_container_width=True, key="btn_ir_despacho", type="primary" if st.session_state.vista == "despacho" else "secondary"):
-            st.session_state.vista = "despacho"
-            st.rerun()
-    with h4:
-        if st.button("Histórico", use_container_width=True, key="btn_ir_historico_scada", type="primary" if st.session_state.vista == "historico_scada" else "secondary"):
-            st.session_state.vista = "historico_scada"
-            st.rerun()
+    if st.button("Sistema hidráulico", use_container_width=True, key="btn_ir_sistema_hidraulico", type="primary" if st.session_state.vista == "despacho" else "secondary"):
+        st.session_state.vista = "despacho"
+        st.rerun()
 
 with col_doc:
     st.markdown("""
@@ -5004,644 +4824,14 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================================
-# ANÁLISIS HISTÓRICO SCADA PARA DESPACHO
-# =========================================
-def mostrar_despacho_historico_scada():
-    """
-    Permite cargar un Excel/CSV exportado del SCADA y analizar el despacho hidráulico:
-    - Últimas 48 horas, última semana, último mes o todo el archivo.
-    - Balance por tanque.
-    - Tiempos estimados de llenado/vaciado.
-    - Caudal requerido por tanque.
-    - Recomendación de apertura/cierre considerando la T Cunduy-Malvinas.
-
-    Nota: no controla válvulas. Solo genera recomendación de apoyo operativo.
-    """
-    st.markdown("<div class='bloque'>", unsafe_allow_html=True)
-    st.markdown("<div class='etiqueta'>📈 Despacho histórico SCADA · análisis por Excel</div>", unsafe_allow_html=True)
-    st.markdown(
-        "<div class='texto-panel'>Sube un archivo exportado del SCADA, por ejemplo de las últimas 48 horas o del último mes. "
-        "La app analiza niveles, volúmenes, caudales y la conducción tipo <b>T</b>: la línea llega a Cunduy, una parte entra al tanque Cunduy y el remanente continúa hacia Malvinas.</div>",
-        unsafe_allow_html=True,
-    )
-
-    def normalizar_txt(txt):
-        txt = str(txt).strip().lower()
-        txt = unicodedata.normalize("NFKD", txt).encode("ascii", "ignore").decode("ascii")
-        txt = re.sub(r"[^a-z0-9]+", " ", txt)
-        return re.sub(r"\s+", " ", txt).strip()
-
-    def leer_archivo_scada(archivo):
-        try:
-            nombre = archivo.name.lower()
-            if nombre.endswith(".csv"):
-                try:
-                    return pd.read_csv(archivo)
-                except Exception:
-                    archivo.seek(0)
-                    return pd.read_csv(archivo, sep=";")
-            return pd.read_excel(archivo)
-        except Exception as e:
-            st.error(f"No pude leer el archivo. Revisa que sea Excel o CSV válido. Detalle: {e}")
-            return None
-
-    def limpiar_num(s):
-        return pd.to_numeric(
-            s.astype(str)
-            .str.replace(" ", "", regex=False)
-            .str.replace(".", "", regex=False)
-            .str.replace(",", ".", regex=False),
-            errors="coerce"
-        )
-
-    def preparar_num(df, col):
-        if not col or col == "No usar" or col not in df.columns:
-            return pd.Series([np.nan] * len(df), index=df.index, dtype="float64")
-        if pd.api.types.is_numeric_dtype(df[col]):
-            return pd.to_numeric(df[col], errors="coerce")
-        return limpiar_num(df[col])
-
-    def guess_col(df, grupos, excluir=None):
-        excluir = set(excluir or [])
-        nombres = {c: normalizar_txt(c) for c in df.columns if c not in excluir}
-        for grupo in grupos:
-            tokens = [normalizar_txt(t) for t in grupo]
-            for col, norm in nombres.items():
-                if all(t in norm for t in tokens):
-                    return col
-        return None
-
-    def selector_col(label, df, grupos, key, permitir_no=True, excluir=None):
-        opciones = ["No usar"] + list(df.columns) if permitir_no else list(df.columns)
-        adiv = guess_col(df, grupos, excluir=excluir)
-        index = opciones.index(adiv) if adiv in opciones else 0
-        return st.selectbox(label, opciones, index=index, key=key)
-
-    def ultimo_valor(serie):
-        serie = pd.to_numeric(serie, errors="coerce").dropna()
-        if serie.empty:
-            return np.nan
-        return float(serie.iloc[-1])
-
-    def primer_valor(serie):
-        serie = pd.to_numeric(serie, errors="coerce").dropna()
-        if serie.empty:
-            return np.nan
-        return float(serie.iloc[0])
-
-    def promedio(serie):
-        serie = pd.to_numeric(serie, errors="coerce")
-        if serie.dropna().empty:
-            return np.nan
-        return float(serie.mean())
-
-    def q_to_m3h(q_ls):
-        if q_ls is None or not np.isfinite(q_ls):
-            return np.nan
-        return float(q_ls) * 3.6
-
-    def fmt_q(q):
-        if q is None or not np.isfinite(q):
-            return "Sin dato"
-        return f"{q:.2f} L/s"
-
-    def fmt_m3(v):
-        if v is None or not np.isfinite(v):
-            return "Sin dato"
-        return f"{v:,.2f} m³"
-
-    def fmt_pct(p):
-        if p is None or not np.isfinite(p):
-            return "Sin dato"
-        return f"{p:.1f}%"
-
-    def fmt_tiempo(horas):
-        if horas is None or not np.isfinite(horas) or horas < 0:
-            return "No aplica"
-        if horas > 999:
-            return ">999 h"
-        h = int(horas)
-        m = int(round((horas - h) * 60))
-        if m == 60:
-            h += 1
-            m = 0
-        if h <= 0:
-            return f"{m} min"
-        return f"{h} h {m:02d} min"
-
-    def nivel_a_metros(serie):
-        s = pd.to_numeric(serie, errors="coerce")
-        med = s.dropna().median() if not s.dropna().empty else np.nan
-        if np.isfinite(med) and med > 20:
-            return s / 100.0
-        return s
-
-    def volumen_desde_vol_o_nivel(df, col_vol, col_nivel, capacidad, altura_lleno):
-        if col_vol and col_vol != "No usar" and col_vol in df.columns:
-            return preparar_num(df, col_vol).clip(lower=0)
-        if col_nivel and col_nivel != "No usar" and col_nivel in df.columns:
-            nivel_m = nivel_a_metros(preparar_num(df, col_nivel))
-            altura = max(float(altura_lleno), 0.0001)
-            return (nivel_m / altura * float(capacidad)).clip(lower=0, upper=float(capacidad) * 1.2)
-        return pd.Series([np.nan] * len(df), index=df.index, dtype="float64")
-
-    def tiempo_a_limite(vol_actual, capacidad, q_balance, min_pct, alto_pct):
-        if not np.isfinite(vol_actual) or not np.isfinite(q_balance):
-            return "Sin dato", "Sin dato", np.nan
-        cap = max(float(capacidad), 0.0001)
-        v_min = cap * min_pct / 100.0
-        v_alto = cap * alto_pct / 100.0
-        q_m3h = q_to_m3h(q_balance)
-        if not np.isfinite(q_m3h) or abs(q_m3h) < 0.001:
-            return "Estable", "No aplica", np.nan
-        if q_m3h > 0:
-            horas = max(0.0, (v_alto - vol_actual) / q_m3h)
-            return "Subiendo", fmt_tiempo(horas), horas
-        horas = max(0.0, (vol_actual - v_min) / abs(q_m3h))
-        return "Bajando", fmt_tiempo(horas), horas
-
-    def estado_y_accion(nombre, pct, q_balance, tiempo_limite_h, min_pct, objetivo_pct, alto_pct):
-        if pct is None or not np.isfinite(pct):
-            return "⚪ Sin nivel", "Revisar columna de nivel/volumen", "#4E6F8A"
-        if pct <= min_pct:
-            return "🔴 Bajo crítico", "Abrir/aumentar entrada si es posible y reducir salidas no prioritarias", "#e63946"
-        if pct >= alto_pct:
-            return "🔴 Alto", "Cerrar/reducir entrada o aumentar salida controlada para evitar rebose", "#e63946"
-        if q_balance is not None and np.isfinite(q_balance) and q_balance < -5 and tiempo_limite_h is not None and np.isfinite(tiempo_limite_h) and tiempo_limite_h <= 6:
-            return "🟠 Bajando rápido", "Reducir salidas o aumentar entrada; verificar demanda/fuga", "#e76f51"
-        if pct < objetivo_pct - 5:
-            return "🟠 Bajo", "Abrir/aumentar entrada gradualmente hasta recuperar objetivo", "#f4a261"
-        if pct > objetivo_pct + 10:
-            return "🟡 Alto controlado", "Mantener o reducir entrada; priorizar despacho si otros tanques lo requieren", "#f4a261"
-        return "🟢 Normal", "Mantener válvulas y seguimiento", "#2DB9A3"
-
-    def requerir_entrada(vol_actual, capacidad, q_salida, horizonte_h, objetivo_pct):
-        if not np.isfinite(vol_actual) or not np.isfinite(q_salida):
-            return np.nan
-        cap = max(float(capacidad), 0.0001)
-        objetivo = cap * objetivo_pct / 100.0
-        h = max(float(horizonte_h), 0.25)
-        return max(0.0, float(q_salida) + (objetivo - float(vol_actual)) / (3.6 * h))
-
-    def crear_fila(nombre, vol_series, cap, q_in_series, q_out_series, periodo_h, min_pct, objetivo_pct, alto_pct, horizonte_h):
-        vol_actual = ultimo_valor(vol_series)
-        vol_inicial = primer_valor(vol_series)
-        pct = vol_actual / cap * 100.0 if np.isfinite(vol_actual) and cap > 0 else np.nan
-        q_in = promedio(q_in_series)
-        q_out = promedio(q_out_series)
-        # Si no hay entrada pero sí nivel y salida, estima entrada desde el cambio real de volumen.
-        if not np.isfinite(q_in) and np.isfinite(q_out) and np.isfinite(vol_actual) and np.isfinite(vol_inicial) and periodo_h > 0:
-            q_nivel = (vol_actual - vol_inicial) / (3.6 * periodo_h)
-            q_in = max(0.0, q_out + q_nivel)
-        q_balance = q_in - q_out if np.isfinite(q_in) and np.isfinite(q_out) else np.nan
-        tendencia, tiempo_limite, horas_limite = tiempo_a_limite(vol_actual, cap, q_balance, min_pct, alto_pct)
-        estado, accion, color = estado_y_accion(nombre, pct, q_balance, horas_limite, min_pct, objetivo_pct, alto_pct)
-        objetivo_m3 = cap * objetivo_pct / 100.0
-        falta = max(0.0, objetivo_m3 - vol_actual) if np.isfinite(vol_actual) else np.nan
-        sobra = max(0.0, vol_actual - cap * alto_pct / 100.0) if np.isfinite(vol_actual) else np.nan
-        q_req = requerir_entrada(vol_actual, cap, q_out, horizonte_h, objetivo_pct)
-        return {
-            "Tanque": nombre,
-            "Volumen actual (m³)": vol_actual,
-            "Capacidad (m³)": cap,
-            "Nivel actual (%)": pct,
-            "Falta a objetivo (m³)": falta,
-            "Sobra sobre alto (m³)": sobra,
-            "Entrada promedio/estimada (L/s)": q_in,
-            "Salida promedio (L/s)": q_out,
-            "Balance (L/s)": q_balance,
-            "Cambio (m³/h)": q_to_m3h(q_balance),
-            "Tendencia": tendencia,
-            "Tiempo a límite": tiempo_limite,
-            "Estado": estado,
-            "Acción sugerida": accion,
-            "Entrada requerida a objetivo (L/s)": q_req,
-            "_color": color,
-            "_horas_limite": horas_limite,
-        }
-
-    archivo = st.file_uploader(
-        "Sube el Excel o CSV exportado del SCADA",
-        type=["xlsx", "xls", "csv"],
-        key="hist_scada_file",
-        help="Puedes subir un archivo de 48 horas, una semana o un mes. La app detecta columnas, pero también puedes seleccionarlas manualmente.",
-    )
-
-    if archivo is None:
-        st.info("Sube el archivo SCADA para activar el análisis histórico de despacho.")
-        st.markdown("""
-        <div class="caja-rango" style="border-left-color:#48B9EA">
-        <b>Columnas ideales del archivo SCADA</b><br>
-        Fecha/hora, niveles o volúmenes de tanques, caudal salida Diviso, entrada/salida Cunduy, entrada/salida Malvinas,
-        caudales Ángeles/Comfaca/Andes si aplican, y para Caldas entrada estimada o salida total/sectores.<br><br>
-        Si el archivo no trae volúmenes, la app puede convertir nivel a volumen usando capacidad y altura de lleno configurables.
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_hist_scada_vacio"):
-            st.session_state.vista = "menu"
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-        return
-
-    df = leer_archivo_scada(archivo)
-    if df is None or df.empty:
-        st.markdown("</div>", unsafe_allow_html=True)
-        return
-
-    df = df.copy()
-    df.columns = [str(c).strip() for c in df.columns]
-    st.success(f"Archivo cargado: {archivo.name} · {len(df):,} filas · {len(df.columns)} columnas")
-
-    with st.expander("Vista previa del archivo", expanded=False):
-        mostrar_tabla_profesional(df.head(30), height=420)
-        st.caption("Si alguna columna no se detecta bien, selecciónala manualmente en el mapeo de columnas.")
-
-    col_fecha_guess = guess_col(df, [["fecha", "hora"], ["timestamp"], ["time"], ["fecha"], ["hora"]])
-    col_fecha = st.selectbox("Columna de fecha/hora", ["No usar"] + list(df.columns), index=(["No usar"] + list(df.columns)).index(col_fecha_guess) if col_fecha_guess in df.columns else 0, key="hist_col_fecha")
-
-    if col_fecha != "No usar":
-        df["__fecha_scada__"] = pd.to_datetime(df[col_fecha], errors="coerce", dayfirst=True)
-        df = df.dropna(subset=["__fecha_scada__"]).sort_values("__fecha_scada__")
-    else:
-        df["__fecha_scada__"] = pd.RangeIndex(start=0, stop=len(df), step=1)
-
-    if df.empty:
-        st.error("La columna de fecha/hora no se pudo interpretar. Selecciona otra columna o usa 'No usar'.")
-        st.markdown("</div>", unsafe_allow_html=True)
-        return
-
-    p1, p2, p3 = st.columns([1.0, 1.0, 1.1], gap="medium")
-    with p1:
-        periodo = st.selectbox("Periodo a analizar", ["Todo el archivo", "Últimas 48 horas", "Últimos 7 días", "Último mes", "Personalizado"], key="hist_periodo")
-    with p2:
-        horizonte_h = st.number_input("Horizonte para recomendación (horas)", min_value=0.25, value=6.0, step=0.5, format="%.2f", key="hist_horizonte")
-    with p3:
-        sistema = st.radio("Sistema", ["Diviso → Cunduy/Malvinas", "Caldas"], horizontal=True, key="hist_sistema")
-
-    if col_fecha != "No usar":
-        fecha_max = df["__fecha_scada__"].max()
-        fecha_min = df["__fecha_scada__"].min()
-        if periodo == "Últimas 48 horas":
-            df_f = df[df["__fecha_scada__"] >= fecha_max - pd.Timedelta(hours=48)].copy()
-        elif periodo == "Últimos 7 días":
-            df_f = df[df["__fecha_scada__"] >= fecha_max - pd.Timedelta(days=7)].copy()
-        elif periodo == "Último mes":
-            df_f = df[df["__fecha_scada__"] >= fecha_max - pd.Timedelta(days=31)].copy()
-        elif periodo == "Personalizado":
-            cini, cfin = st.columns(2)
-            with cini:
-                f_ini = st.date_input("Desde", value=fecha_min.date(), key="hist_fecha_ini")
-            with cfin:
-                f_fin = st.date_input("Hasta", value=fecha_max.date(), key="hist_fecha_fin")
-            df_f = df[(df["__fecha_scada__"].dt.date >= f_ini) & (df["__fecha_scada__"].dt.date <= f_fin)].copy()
-        else:
-            df_f = df.copy()
-        if not df_f.empty:
-            horas_periodo = max((df_f["__fecha_scada__"].max() - df_f["__fecha_scada__"].min()).total_seconds() / 3600.0, 0.25)
-            st.caption(f"Periodo usado: {df_f['__fecha_scada__'].min()} → {df_f['__fecha_scada__'].max()} · {horas_periodo:.2f} horas · {len(df_f):,} registros")
-        else:
-            horas_periodo = 0.25
-    else:
-        df_f = df.copy()
-        horas_periodo = st.number_input("Duración aproximada del archivo (horas)", min_value=0.25, value=48.0, step=1.0, key="hist_duracion_sin_fecha")
-
-    if df_f.empty:
-        st.error("No hay datos en el periodo seleccionado.")
-        st.markdown("</div>", unsafe_allow_html=True)
-        return
-
-    with st.expander("⚙️ Criterios y capacidades", expanded=False):
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            min_pct = st.number_input("Mínimo operativo (%)", min_value=1.0, max_value=80.0, value=30.0, step=1.0, key="hist_min_pct")
-        with c2:
-            objetivo_pct = st.number_input("Objetivo (%)", min_value=10.0, max_value=95.0, value=70.0, step=1.0, key="hist_obj_pct")
-        with c3:
-            alto_pct = st.number_input("Alto / rebose operativo (%)", min_value=50.0, max_value=100.0, value=90.0, step=1.0, key="hist_alto_pct")
-        with c4:
-            margen_ls = st.number_input("Margen para recomendar ajuste (L/s)", min_value=0.0, value=5.0, step=1.0, key="hist_margen_ls")
-
-        st.markdown("**Capacidades y alturas para convertir nivel a volumen cuando el archivo no trae volumen**")
-        a1, a2, a3, a4, a5 = st.columns(5)
-        with a1:
-            cap_4400 = st.number_input("Capacidad Diviso 4400 (m³)", min_value=1.0, value=4400.0, step=10.0, key="hist_cap_4400")
-            alt_4400 = st.number_input("Altura lleno 4400 (m)", min_value=0.1, value=5.67, step=0.01, key="hist_alt_4400")
-        with a2:
-            cap_1100 = st.number_input("Capacidad Diviso 1100 (m³)", min_value=1.0, value=1100.0, step=10.0, key="hist_cap_1100")
-            alt_1100 = st.number_input("Altura lleno 1100 (m)", min_value=0.1, value=4.02, step=0.01, key="hist_alt_1100")
-        with a3:
-            cap_cunduy = st.number_input("Capacidad Cunduy (m³)", min_value=1.0, value=2727.0, step=10.0, key="hist_cap_cunduy")
-            alt_cunduy = st.number_input("Altura lleno Cunduy (m)", min_value=0.1, value=3.57, step=0.01, key="hist_alt_cunduy")
-        with a4:
-            cap_malvinas = st.number_input("Capacidad Malvinas (m³)", min_value=1.0, value=4020.0, step=10.0, key="hist_cap_malvinas")
-            alt_malvinas = st.number_input("Altura lleno Malvinas (m)", min_value=0.1, value=3.75, step=0.01, key="hist_alt_malvinas")
-        with a5:
-            cap_caldas = st.number_input("Capacidad Caldas (m³)", min_value=1.0, value=1365.0, step=10.0, key="hist_cap_caldas")
-            alt_caldas = st.number_input("Altura lleno Caldas (m)", min_value=0.1, value=2.85, step=0.01, key="hist_alt_caldas")
-
-    st.markdown("<div class='titulo-seccion-resultado'>Mapeo de columnas del SCADA</div>", unsafe_allow_html=True)
-    with st.expander("Seleccionar columnas del archivo", expanded=True):
-        if sistema == "Diviso → Cunduy/Malvinas":
-            st.markdown("**Volúmenes o niveles**")
-            m1, m2, m3, m4 = st.columns(4)
-            with m1:
-                col_vol_4400 = selector_col("Volumen 4400", df_f, [["volumen", "4400"], ["vol", "4400"]], "hist_vol_4400")
-                col_niv_4400 = selector_col("Nivel 4400", df_f, [["nivel", "4400"], ["tanque", "4400"]], "hist_niv_4400")
-            with m2:
-                col_vol_1100 = selector_col("Volumen 1100", df_f, [["volumen", "1100"], ["vol", "1100"]], "hist_vol_1100")
-                col_niv_1100 = selector_col("Nivel 1100", df_f, [["nivel", "1100"], ["tanque", "1100"]], "hist_niv_1100")
-            with m3:
-                col_vol_cunduy = selector_col("Volumen Cunduy", df_f, [["volumen", "cunduy"], ["vol", "cunduy"]], "hist_vol_cunduy")
-                col_niv_cunduy = selector_col("Nivel Cunduy", df_f, [["nivel", "cunduy"], ["tanque", "cunduy"]], "hist_niv_cunduy")
-            with m4:
-                col_vol_malvinas = selector_col("Volumen Malvinas", df_f, [["volumen", "malvinas"], ["vol", "malvinas"]], "hist_vol_malvinas")
-                col_niv_malvinas = selector_col("Nivel Malvinas", df_f, [["nivel", "malvinas"], ["tanque", "malvinas"]], "hist_niv_malvinas")
-
-            st.markdown("**Caudales**")
-            q1, q2, q3, q4 = st.columns(4)
-            with q1:
-                col_q_prod_diviso = selector_col("Producción/entrada Diviso", df_f, [["produccion", "diviso"], ["entrada", "diviso"]], "hist_q_prod_diviso")
-                col_q_salida_diviso = selector_col("Caudal salida Diviso a línea T", df_f, [["caudal", "salida", "diviso"], ["salida", "diviso"]], "hist_q_salida_diviso")
-            with q2:
-                col_q_ent_cunduy = selector_col("Entrada Cunduy", df_f, [["caudal", "entrada", "cunduy"], ["entrada", "cunduy"]], "hist_q_ent_cunduy")
-                col_q_sal_cunduy = selector_col("Salida Cunduy", df_f, [["caudal", "salida", "cunduy"], ["salida", "cunduy"]], "hist_q_sal_cunduy")
-            with q3:
-                col_q_ent_malvinas = selector_col("Entrada Malvinas", df_f, [["caudal", "entrada", "malvinas"], ["entrada", "malvinas"]], "hist_q_ent_malvinas")
-                col_q_sal_malvinas = selector_col("Salida Malvinas", df_f, [["caudal", "salida", "malvinas"], ["salida", "malvinas"]], "hist_q_sal_malvinas")
-            with q4:
-                col_q_angeles = selector_col("Ángeles", df_f, [["angeles"], ["angeles", "caudal"]], "hist_q_angeles")
-                col_q_comfaca = selector_col("Comfaca/Villa Susana", df_f, [["comfaca"], ["villa", "susana"], ["nisola"]], "hist_q_comfaca")
-                col_q_andes = selector_col("Andes Altos 6", df_f, [["andes"], ["altos", "6"]], "hist_q_andes")
-        else:
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                col_vol_caldas = selector_col("Volumen Caldas", df_f, [["volumen", "caldas"], ["vol", "caldas"]], "hist_vol_caldas")
-                col_niv_caldas = selector_col("Nivel Caldas", df_f, [["nivel", "caldas"], ["tanque", "caldas"]], "hist_niv_caldas")
-            with c2:
-                col_q_ent_caldas = selector_col("Entrada/producción Caldas", df_f, [["entrada", "caldas"], ["produccion", "caldas"]], "hist_q_ent_caldas")
-                col_q_sal_caldas = selector_col("Salida total Caldas", df_f, [["salida", "caldas"], ["caudal", "salida"]], "hist_q_sal_caldas")
-            with c3:
-                col_q_centro = selector_col("Centro", df_f, [["centro"]], "hist_q_centro")
-                col_q_ciud1 = selector_col("Ciudadela I", df_f, [["ciudadela", "i"], ["ciudadela", "1"]], "hist_q_ciud1")
-                col_q_ciud2 = selector_col("Ciudadela II", df_f, [["ciudadela", "ii"], ["ciudadela", "2"]], "hist_q_ciud2")
-                col_q_heliconias = selector_col("Heliconias", df_f, [["heliconias"]], "hist_q_heliconias")
-                col_q_acolsure = selector_col("Acolsure", df_f, [["acolsure"]], "hist_q_acolsure")
-
-    if sistema == "Diviso → Cunduy/Malvinas":
-        v4400 = volumen_desde_vol_o_nivel(df_f, col_vol_4400, col_niv_4400, cap_4400, alt_4400)
-        v1100 = volumen_desde_vol_o_nivel(df_f, col_vol_1100, col_niv_1100, cap_1100, alt_1100)
-        vcunduy = volumen_desde_vol_o_nivel(df_f, col_vol_cunduy, col_niv_cunduy, cap_cunduy, alt_cunduy)
-        vmalvinas = volumen_desde_vol_o_nivel(df_f, col_vol_malvinas, col_niv_malvinas, cap_malvinas, alt_malvinas)
-        vdiviso = v4400.fillna(0) + v1100.fillna(0)
-        cap_diviso = cap_4400 + cap_1100
-
-        q_prod_diviso = preparar_num(df_f, col_q_prod_diviso)
-        q_salida_diviso = preparar_num(df_f, col_q_salida_diviso)
-        q_ent_cunduy = preparar_num(df_f, col_q_ent_cunduy)
-        q_sal_cunduy = preparar_num(df_f, col_q_sal_cunduy)
-        q_ent_malvinas_directa = preparar_num(df_f, col_q_ent_malvinas)
-        q_sal_malvinas_base = preparar_num(df_f, col_q_sal_malvinas)
-        q_angeles = preparar_num(df_f, col_q_angeles).fillna(0)
-        q_comfaca = preparar_num(df_f, col_q_comfaca).fillna(0)
-        q_andes = preparar_num(df_f, col_q_andes).fillna(0)
-
-        sumar_ramales = st.checkbox("Sumar Ángeles, Comfaca/Villa Susana y Andes como salida adicional de Malvinas", value=True, key="hist_sumar_ramales_malvinas")
-        q_sal_malvinas = q_sal_malvinas_base.fillna(0) + (q_angeles + q_comfaca + q_andes if sumar_ramales else 0)
-
-        # Estimar producción Diviso si no viene columna de entrada/producción.
-        q_neto_diviso_por_nivel = (ultimo_valor(vdiviso) - primer_valor(vdiviso)) / (3.6 * horas_periodo) if horas_periodo > 0 and np.isfinite(ultimo_valor(vdiviso)) and np.isfinite(primer_valor(vdiviso)) else np.nan
-        if promedio(q_prod_diviso) is None or not np.isfinite(promedio(q_prod_diviso)):
-            q_prod_diviso_est = q_salida_diviso + q_neto_diviso_por_nivel
-        else:
-            q_prod_diviso_est = q_prod_diviso
-
-        # T Cunduy-Malvinas: lo que no entra a Cunduy continúa a Malvinas.
-        q_pasa_a_malvinas_por_t = q_salida_diviso - q_ent_cunduy
-        if promedio(q_ent_malvinas_directa) is not None and np.isfinite(promedio(q_ent_malvinas_directa)):
-            q_ent_malvinas = q_ent_malvinas_directa
-            fuente_malvinas = "entrada directa medida en SCADA"
-        else:
-            q_ent_malvinas = q_pasa_a_malvinas_por_t
-            fuente_malvinas = "estimada por T: salida Diviso - entrada Cunduy"
-
-        fila_diviso = crear_fila("Diviso total 4400+1100", vdiviso, cap_diviso, q_prod_diviso_est, q_salida_diviso, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
-        fila_4400 = crear_fila("Diviso 4400", v4400, cap_4400, pd.Series([np.nan]*len(df_f)), pd.Series([np.nan]*len(df_f)), horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
-        fila_1100 = crear_fila("Diviso 1100", v1100, cap_1100, pd.Series([np.nan]*len(df_f)), pd.Series([np.nan]*len(df_f)), horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
-        fila_cunduy = crear_fila("Cunduy", vcunduy, cap_cunduy, q_ent_cunduy, q_sal_cunduy, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
-        fila_malvinas = crear_fila("Malvinas", vmalvinas, cap_malvinas, q_ent_malvinas, q_sal_malvinas, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
-
-        tabla = pd.DataFrame([fila_diviso, fila_4400, fila_1100, fila_cunduy, fila_malvinas])
-
-        vol_diviso = fila_diviso["Volumen actual (m³)"]
-        pct_diviso = fila_diviso["Nivel actual (%)"]
-        v_min_diviso = cap_diviso * min_pct / 100.0
-        reserva_diviso_ls = max(0.0, (vol_diviso - v_min_diviso) / (3.6 * horizonte_h)) if np.isfinite(vol_diviso) else 0.0
-        q_prod_prom = promedio(q_prod_diviso_est)
-        q_linea_actual = promedio(q_salida_diviso)
-        q_limite_linea = st.number_input("Límite hidráulico aproximado de línea Diviso → Cunduy/Malvinas (L/s)", min_value=1.0, value=max(450.0, q_linea_actual if np.isfinite(q_linea_actual) else 450.0), step=5.0, key="hist_limite_linea_t")
-        q_despacho_seguro = min(q_limite_linea, max(0.0, (q_prod_prom if np.isfinite(q_prod_prom) else 0.0) + reserva_diviso_ls))
-
-        q_req_cunduy = fila_cunduy["Entrada requerida a objetivo (L/s)"]
-        q_req_malvinas = fila_malvinas["Entrada requerida a objetivo (L/s)"]
-        suma_req = sum([q for q in [q_req_cunduy, q_req_malvinas] if np.isfinite(q)])
-        if suma_req > q_despacho_seguro and suma_req > 0:
-            factor = q_despacho_seguro / suma_req
-            q_rec_cunduy = q_req_cunduy * factor if np.isfinite(q_req_cunduy) else 0.0
-            q_rec_malvinas = q_req_malvinas * factor if np.isfinite(q_req_malvinas) else 0.0
-        else:
-            q_rec_cunduy = q_req_cunduy if np.isfinite(q_req_cunduy) else 0.0
-            q_rec_malvinas = q_req_malvinas if np.isfinite(q_req_malvinas) else 0.0
-        q_linea_rec = q_rec_cunduy + q_rec_malvinas
-        q_cunduy_actual = promedio(q_ent_cunduy)
-        q_malvinas_actual = promedio(q_ent_malvinas)
-
-        if not np.isfinite(q_linea_actual):
-            decision = "FALTAN COLUMNAS DE CAUDAL PARA DECISIÓN COMPLETA"
-            color = "#e76f51"
-            detalle = "Selecciona caudal salida Diviso y caudales de Cunduy/Malvinas para calcular apertura o cierre."
-        elif pct_diviso <= min_pct:
-            decision = "REDUCIR DESPACHO DESDE DIVISO"
-            color = "#e63946"
-            detalle = "Diviso está cerca o por debajo del mínimo operativo. Prioriza recuperar nivel antes de aumentar envío a Cunduy/Malvinas."
-        elif q_linea_rec > q_linea_actual + margen_ls:
-            decision = "PUEDE AUMENTAR DESPACHO DESDE DIVISO"
-            color = "#2DB9A3"
-            detalle = f"Los destinos requieren más entrada y Diviso tiene margen. Línea recomendada aproximada: {q_linea_rec:.2f} L/s."
-        elif q_linea_rec < q_linea_actual - margen_ls:
-            decision = "REDUCIR O CERRAR PARCIALMENTE DESPACHO DESDE DIVISO"
-            color = "#e76f51"
-            detalle = f"Con el objetivo configurado, la línea está enviando más de lo requerido. Línea recomendada aproximada: {q_linea_rec:.2f} L/s."
-        else:
-            decision = "MANTENER DESPACHO Y SEGUIMIENTO"
-            color = "#008ACB"
-            detalle = "La línea está cerca del caudal requerido para el horizonte seleccionado."
-
-        st.markdown(f"""
-        <div style="background:white;border-left:7px solid {color};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
-            <div style="font-size:1.35rem;font-weight:900;color:{color};margin:0.2rem 0">{decision}</div>
-            <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Diviso actual", fmt_pct(pct_diviso), fmt_m3(vol_diviso))
-        k2.metric("Despacho seguro", fmt_q(q_despacho_seguro))
-        k3.metric("Línea actual", fmt_q(q_linea_actual))
-        k4.metric("Línea recomendada", fmt_q(q_linea_rec), f"{q_linea_rec - q_linea_actual:+.2f} L/s" if np.isfinite(q_linea_actual) else None)
-
-        st.markdown("<div class='titulo-seccion-resultado'>Reparto recomendado en la T Cunduy-Malvinas</div>", unsafe_allow_html=True)
-        t_df = pd.DataFrame([
-            {"Punto": "Ramal que entra a Cunduy", "Caudal actual/estimado (L/s)": q_cunduy_actual, "Caudal recomendado (L/s)": q_rec_cunduy, "Acción": "Abrir/aumentar" if q_rec_cunduy > (q_cunduy_actual if np.isfinite(q_cunduy_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_cunduy_actual) and q_rec_cunduy < q_cunduy_actual - margen_ls else "Mantener")},
-            {"Punto": f"Remanente hacia Malvinas ({fuente_malvinas})", "Caudal actual/estimado (L/s)": q_malvinas_actual, "Caudal recomendado (L/s)": q_rec_malvinas, "Acción": "Abrir/aumentar" if q_rec_malvinas > (q_malvinas_actual if np.isfinite(q_malvinas_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_malvinas_actual) and q_rec_malvinas < q_malvinas_actual - margen_ls else "Mantener")},
-            {"Punto": "Salida total Diviso por línea T", "Caudal actual/estimado (L/s)": q_linea_actual, "Caudal recomendado (L/s)": q_linea_rec, "Acción": "Abrir/aumentar" if q_linea_rec > (q_linea_actual if np.isfinite(q_linea_actual) else 0) + margen_ls else ("Cerrar/reducir" if np.isfinite(q_linea_actual) and q_linea_rec < q_linea_actual - margen_ls else "Mantener")},
-        ])
-        mostrar_tabla_profesional(
-            t_df,
-            formatos={"Caudal actual/estimado (L/s)": "{:.2f}", "Caudal recomendado (L/s)": "{:.2f}"},
-            na_rep="Sin dato"
-        )
-
-        st.markdown("<div class='titulo-seccion-resultado'>Balance y tiempos por tanque</div>", unsafe_allow_html=True)
-        tabla_mostrar = tabla.drop(columns=["_color", "_horas_limite"])
-        mostrar_tabla_profesional(
-            tabla_mostrar,
-            formatos={
-                "Volumen actual (m³)": "{:,.2f}",
-                "Capacidad (m³)": "{:,.2f}",
-                "Nivel actual (%)": "{:.1f}%",
-                "Falta a objetivo (m³)": "{:,.2f}",
-                "Sobra sobre alto (m³)": "{:,.2f}",
-                "Entrada promedio/estimada (L/s)": "{:.2f}",
-                "Salida promedio (L/s)": "{:.2f}",
-                "Balance (L/s)": "{:+.2f}",
-                "Cambio (m³/h)": "{:+.2f}",
-                "Entrada requerida a objetivo (L/s)": "{:.2f}",
-            },
-            na_rep="Sin dato"
-        )
-
-        fig = go.Figure()
-        x = df_f["__fecha_scada__"] if col_fecha != "No usar" else df_f.index
-        for nombre, serie in [("Diviso total", vdiviso), ("Cunduy", vcunduy), ("Malvinas", vmalvinas)]:
-            if not serie.dropna().empty:
-                fig.add_trace(go.Scatter(x=x, y=serie, mode="lines", name=nombre))
-        if fig.data:
-            fig.update_layout(title="Volúmenes históricos del periodo seleccionado", height=420, margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor="white", paper_bgcolor="white", yaxis_title="Volumen (m³)")
-            st.plotly_chart(fig, use_container_width=True)
-
-        if promedio(q_pasa_a_malvinas_por_t) is not None and np.isfinite(promedio(q_pasa_a_malvinas_por_t)) and promedio(q_pasa_a_malvinas_por_t) < -margen_ls:
-            st.warning("La fórmula de la T dio caudal negativo hacia Malvinas. Revisa si las lecturas no son simultáneas o si la columna de entrada Cunduy no corresponde al ramal correcto.")
-
-    else:
-        vcaldas = volumen_desde_vol_o_nivel(df_f, col_vol_caldas, col_niv_caldas, cap_caldas, alt_caldas)
-        q_ent_caldas = preparar_num(df_f, col_q_ent_caldas)
-        q_sal_caldas_total = preparar_num(df_f, col_q_sal_caldas)
-        q_sectores = pd.Series([0.0] * len(df_f), index=df_f.index)
-        for col in [col_q_centro, col_q_ciud1, col_q_ciud2, col_q_heliconias, col_q_acolsure]:
-            q_sectores = q_sectores + preparar_num(df_f, col).fillna(0)
-        if promedio(q_sal_caldas_total) is None or not np.isfinite(promedio(q_sal_caldas_total)):
-            q_sal_caldas = q_sectores.replace(0, np.nan)
-        else:
-            q_sal_caldas = q_sal_caldas_total
-
-        fila_caldas = crear_fila("Caldas", vcaldas, cap_caldas, q_ent_caldas, q_sal_caldas, horas_periodo, min_pct, objetivo_pct, alto_pct, horizonte_h)
-        q_req = fila_caldas["Entrada requerida a objetivo (L/s)"]
-        q_in_prom = fila_caldas["Entrada promedio/estimada (L/s)"]
-        q_out_prom = fila_caldas["Salida promedio (L/s)"]
-        pct = fila_caldas["Nivel actual (%)"]
-        if pct <= min_pct:
-            decision = "CERRAR O REDUCIR SALIDAS DE CALDAS"
-            color = "#e63946"
-            detalle = "El tanque está bajo. Prioriza recuperación de nivel y verifica producción/entrada estimada."
-        elif pct >= alto_pct:
-            decision = "PUEDE ABRIR/AUMENTAR SALIDAS DE CALDAS"
-            color = "#2DB9A3"
-            detalle = "El tanque está alto. Puede aumentar salida de forma gradual si la continuidad lo permite."
-        elif np.isfinite(q_in_prom) and np.isfinite(q_out_prom) and q_out_prom > q_in_prom + margen_ls:
-            decision = "REDUCIR SALIDA O AUMENTAR PRODUCCIÓN DE CALDAS"
-            color = "#e76f51"
-            detalle = "La salida promedio supera la entrada estimada y el tanque tenderá a bajar."
-        else:
-            decision = "MANTENER CALDAS Y SEGUIMIENTO"
-            color = "#008ACB"
-            detalle = "El balance no exige una maniobra fuerte con los datos del periodo."
-
-        st.markdown(f"""
-        <div style="background:white;border-left:7px solid {color};border-radius:16px;padding:1rem 1.2rem;box-shadow:0 4px 18px rgba(10,22,40,0.08);margin-top:1rem;margin-bottom:1rem">
-            <div style="font-size:0.78rem;color:#4E6F8A;font-weight:800;text-transform:uppercase;letter-spacing:0.7px">Decisión con archivo SCADA</div>
-            <div style="font-size:1.35rem;font-weight:900;color:{color};margin:0.2rem 0">{decision}</div>
-            <div style="font-size:0.94rem;color:#003A70;line-height:1.55">{detalle}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Nivel Caldas", fmt_pct(pct), fmt_m3(fila_caldas["Volumen actual (m³)"]))
-        m2.metric("Entrada promedio", fmt_q(q_in_prom))
-        m3.metric("Salida promedio", fmt_q(q_out_prom))
-        m4.metric("Entrada requerida objetivo", fmt_q(q_req))
-
-        tabla = pd.DataFrame([fila_caldas]).drop(columns=["_color", "_horas_limite"])
-        mostrar_tabla_profesional(
-            tabla,
-            formatos={
-                "Volumen actual (m³)": "{:,.2f}",
-                "Capacidad (m³)": "{:,.2f}",
-                "Nivel actual (%)": "{:.1f}%",
-                "Falta a objetivo (m³)": "{:,.2f}",
-                "Sobra sobre alto (m³)": "{:,.2f}",
-                "Entrada promedio/estimada (L/s)": "{:.2f}",
-                "Salida promedio (L/s)": "{:.2f}",
-                "Balance (L/s)": "{:+.2f}",
-                "Cambio (m³/h)": "{:+.2f}",
-                "Entrada requerida a objetivo (L/s)": "{:.2f}",
-            },
-            na_rep="Sin dato"
-        )
-
-        fig = go.Figure()
-        x = df_f["__fecha_scada__"] if col_fecha != "No usar" else df_f.index
-        if not vcaldas.dropna().empty:
-            fig.add_trace(go.Scatter(x=x, y=vcaldas, mode="lines", name="Caldas"))
-        if fig.data:
-            fig.update_layout(title="Volumen histórico Caldas", height=420, margin=dict(l=20, r=20, t=50, b=20), plot_bgcolor="white", paper_bgcolor="white", yaxis_title="Volumen (m³)")
-            st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("""
-    <div class="caja-rango" style="border-left-color:#e63946">
-    <b>Advertencia operativa</b><br>
-    El análisis depende de que las columnas estén bien seleccionadas y de que las lecturas sean simultáneas. Si hay caudal negativo en la T, saltos raros o diferencias fuertes, confirma en SCADA/campo antes de maniobrar. La app no acciona válvulas reales.
-    </div>
-    """, unsafe_allow_html=True)
-
-    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_hist_scada"):
-        st.session_state.vista = "menu"
-        st.rerun()
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# =========================================
 # VISTAS
 # =========================================
 if st.session_state.vista == "calculadora":
     mostrar_calculadora_pac()
     st.stop()
  
-if st.session_state.vista == "tanque":
-    mostrar_calculadora_tanque()
-    st.stop()
-
-if st.session_state.vista == "scada":
-    mostrar_panel_scada_tanques()
-    st.stop()
-
 if st.session_state.vista == "despacho":
-    mostrar_despacho_operativo()
-    st.stop()
-
-if st.session_state.vista == "historico_scada":
-    mostrar_despacho_historico_scada()
+    mostrar_sistema_hidraulico()
     st.stop()
 
 if st.session_state.vista == "documentos":
