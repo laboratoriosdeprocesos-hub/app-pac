@@ -563,6 +563,162 @@ div[data-testid="stMetricValue"] > div { color: #003A70 !important; }
     filter: drop-shadow(0 2px 4px rgba(0, 30, 70, 0.18));
 }
 
+
+/* ===============================
+   CORRECCIÓN VISUAL DE INPUTS STREAMLIT
+   Quita el aviso "Press Enter to apply", elimina bordes rojos feos
+   y deja campos más limpios/profesionales.
+   =============================== */
+[data-testid="InputInstructions"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+}
+
+.stTextInput,
+.stNumberInput,
+.stTextArea,
+.stDateInput,
+.stTimeInput,
+.stSelectbox {
+    margin-bottom: 0.65rem !important;
+}
+
+.stTextInput div[data-baseweb="input"],
+.stNumberInput div[data-baseweb="input"],
+.stDateInput div[data-baseweb="input"],
+.stTimeInput div[data-baseweb="input"] {
+    background: #FFFFFF !important;
+    border: 1.5px solid #CFE5F4 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 3px 10px rgba(0, 58, 112, 0.045) !important;
+    min-height: 46px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+    overflow: hidden !important;
+}
+
+.stTextInput div[data-baseweb="input"]:focus-within,
+.stNumberInput div[data-baseweb="input"]:focus-within,
+.stDateInput div[data-baseweb="input"]:focus-within,
+.stTimeInput div[data-baseweb="input"]:focus-within {
+    background: #FFFFFF !important;
+    border-color: #008ACB !important;
+    box-shadow: 0 0 0 3px rgba(0, 138, 203, 0.13), 0 5px 14px rgba(0, 58, 112, 0.075) !important;
+    outline: none !important;
+}
+
+.stTextInput div[data-baseweb="input"] input,
+.stNumberInput div[data-baseweb="input"] input,
+.stDateInput div[data-baseweb="input"] input,
+.stTimeInput div[data-baseweb="input"] input {
+    background: transparent !important;
+    color: #003A70 !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    min-height: 44px !important;
+    font-size: 0.96rem !important;
+    font-weight: 500 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.stTextInput div[data-baseweb="input"] input:focus,
+.stNumberInput div[data-baseweb="input"] input:focus,
+.stDateInput div[data-baseweb="input"] input:focus,
+.stTimeInput div[data-baseweb="input"] input:focus {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.stTextInput input::placeholder,
+.stNumberInput input::placeholder,
+.stDateInput input::placeholder,
+.stTimeInput input::placeholder,
+.stTextArea textarea::placeholder {
+    color: #8FA8BC !important;
+    opacity: 1 !important;
+}
+
+.stTextArea textarea {
+    background: #FFFFFF !important;
+    color: #003A70 !important;
+    border: 1.5px solid #CFE5F4 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 3px 10px rgba(0, 58, 112, 0.045) !important;
+    font-size: 0.96rem !important;
+    font-weight: 500 !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.stTextArea textarea:focus {
+    border-color: #008ACB !important;
+    box-shadow: 0 0 0 3px rgba(0, 138, 203, 0.13), 0 5px 14px rgba(0, 58, 112, 0.075) !important;
+    outline: none !important;
+}
+
+.stTextInput svg,
+.stNumberInput svg,
+.stDateInput svg,
+.stTimeInput svg,
+.stSelectbox svg {
+    color: #315C7E !important;
+    opacity: 0.78 !important;
+}
+
+.stTextInput button,
+.stNumberInput button,
+.stDateInput button,
+.stTimeInput button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #315C7E !important;
+}
+
+/* Evita que el borde rojo del navegador o de BaseWeb quede marcado visualmente */
+input:invalid,
+input:required,
+input:focus:invalid,
+input:focus-visible,
+textarea:focus-visible {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+div[data-baseweb="input"][aria-invalid="true"],
+div[data-baseweb="input"]:has(input[aria-invalid="true"]) {
+    border-color: #CFE5F4 !important;
+    box-shadow: 0 3px 10px rgba(0, 58, 112, 0.045) !important;
+}
+
+div[data-baseweb="input"][aria-invalid="true"]:focus-within,
+div[data-baseweb="input"]:has(input[aria-invalid="true"]):focus-within {
+    border-color: #008ACB !important;
+    box-shadow: 0 0 0 3px rgba(0, 138, 203, 0.13), 0 5px 14px rgba(0, 58, 112, 0.075) !important;
+}
+
+/* Selectbox limpio */
+.stSelectbox div[data-baseweb="select"] > div {
+    background: #FFFFFF !important;
+    border: 1.5px solid #CFE5F4 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 3px 10px rgba(0, 58, 112, 0.045) !important;
+    min-height: 46px !important;
+    color: #003A70 !important;
+}
+
+.stSelectbox div[data-baseweb="select"] > div:focus-within,
+.stSelectbox div[data-baseweb="select"] > div:hover {
+    border-color: #008ACB !important;
+    box-shadow: 0 0 0 3px rgba(0, 138, 203, 0.13), 0 5px 14px rgba(0, 58, 112, 0.075) !important;
+}
+
 </style>
 """
  
