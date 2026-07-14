@@ -4152,9 +4152,114 @@ body {{
 """
         components.html(html, height=500, scrolling=False)
 
-    def input_entrada(nombre_tanque, key_base, q_macro_default, nivel_actual, capacidad, nivel_max, salida_ls, forzar_estimacion=False):
-        """Entrada por macromedidor o estimada con diferencia de nivel."""
+    def mostrar_tarjetas_formula_modulos_4400(q_mod_500, q_mod_150, q_total):
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+window.MathJax = {{
+  tex: {{ inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }},
+  svg: {{ fontCache: 'global' }}
+}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+* {{ box-sizing: border-box; }}
+body {{
+    margin:0;
+    padding:0;
+    background:transparent;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:#003A70;
+}}
+.calc-wrap {{
+    background: linear-gradient(135deg, #F7FCFF 0%, #eef7ff 100%);
+    border:1px solid #d6e8f7;
+    border-left:6px solid #48B9EA;
+    border-radius:18px;
+    padding:16px 18px;
+    box-shadow:0 6px 22px rgba(10,22,40,.06);
+}}
+.calc-title {{
+    color:#005B8E;
+    font-size:15px;
+    font-weight:850;
+    margin-bottom:12px;
+}}
+.calc-grid {{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(260px, 1fr));
+    gap:12px;
+}}
+.calc-card {{
+    background:#FFFFFF;
+    border:1px solid #CFE5F4;
+    border-radius:16px;
+    padding:13px 14px 11px 14px;
+    min-height:132px;
+    box-shadow:0 4px 16px rgba(10,22,40,.055);
+}}
+.calc-card-wide {{ grid-column:1 / -1; min-height:125px; }}
+.calc-name {{
+    font-size:12px;
+    letter-spacing:.35px;
+    font-weight:800;
+    color:#4E6F8A;
+    margin-bottom:6px;
+}}
+.calc-eq {{
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#004A8F;
+    overflow-x:auto;
+}}
+.calc-note {{
+    margin-top:7px;
+    color:#4E6F8A;
+    line-height:1.45;
+    font-size:12px;
+}}
+@media (max-width:760px) {{
+    .calc-grid {{ grid-template-columns:1fr; }}
+    .calc-card {{ min-height:auto; }}
+}}
+</style>
+</head>
+<body>
+<div class="calc-wrap">
+    <div class="calc-title">📘 Entrada al tanque 4400 por módulos</div>
+    <div class="calc-grid">
+        <div class="calc-card">
+            <div class="calc-name">1. Módulo 500</div>
+            <div class="calc-eq">\[Q_{{M500}}={q_mod_500:.2f}\;L/s\]</div>
+            <div class="calc-note">Caudal producido por el módulo de 500 antes de unirse con el módulo 150.</div>
+        </div>
+        <div class="calc-card">
+            <div class="calc-name">2. Módulo 150</div>
+            <div class="calc-eq">\[Q_{{M150}}={q_mod_150:.2f}\;L/s\]</div>
+            <div class="calc-note">Caudal producido por el módulo de 150 antes de unirse con el módulo 500.</div>
+        </div>
+        <div class="calc-card calc-card-wide">
+            <div class="calc-name">3. Entrada total al tanque 4400</div>
+            <div class="calc-eq">\[Q_{{entrada,4400}}=Q_{{M500}}+Q_{{M150}}={q_mod_500:.2f}+{q_mod_150:.2f}={q_total:.2f}\;L/s\]</div>
+            <div class="calc-note">El agua producida por ambos módulos se une en una sola conducción antes de alimentar el tanque 4400 m³.</div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+"""
+        components.html(html, height=360, scrolling=False)
+
+    def input_entrada(nombre_tanque, key_base, q_macro_default, nivel_actual, capacidad, nivel_max, salida_ls, forzar_estimacion=False, permitir_modulos=False):
+        """Entrada por macromedidor, estimada con diferencia de nivel o, para Diviso 4400, desglosada por módulos."""
         opciones = ["Tengo macromedidor / dato de entrada", "Estimar por diferencia de nivel"]
+        if permitir_modulos:
+            opciones.append("Desglosar módulos 500 + 150")
         idx = 1 if forzar_estimacion else 0
         modo = st.radio(
             f"Entrada a {nombre_tanque}",
@@ -4172,7 +4277,36 @@ body {{
                 format="%.2f",
                 key=f"{key_base}_q_entrada_macro",
             )
-            return q_in, None
+            return q_in, {"Modo entrada": "Macromedidor", "Q entrada (L/s)": q_in}
+
+        if modo == "Desglosar módulos 500 + 150":
+            c1, c2 = st.columns(2)
+            with c1:
+                q_mod_500 = st.number_input(
+                    "Producción módulo 500 (L/s)",
+                    min_value=0.0,
+                    value=350.0,
+                    step=1.0,
+                    format="%.2f",
+                    key=f"{key_base}_q_mod_500_entrada",
+                )
+            with c2:
+                q_mod_150 = st.number_input(
+                    "Producción módulo 150 (L/s)",
+                    min_value=0.0,
+                    value=120.0,
+                    step=1.0,
+                    format="%.2f",
+                    key=f"{key_base}_q_mod_150_entrada",
+                )
+            q_in = q_mod_500 + q_mod_150
+            mostrar_tarjetas_formula_modulos_4400(q_mod_500, q_mod_150, q_in)
+            return q_in, {
+                "Modo entrada": "Módulos 500 + 150",
+                "Módulo 500 (L/s)": q_mod_500,
+                "Módulo 150 (L/s)": q_mod_150,
+                "Q entrada (L/s)": q_in,
+            }
 
         c1, c2 = st.columns(2)
         with c1:
@@ -4211,11 +4345,13 @@ body {{
             q_in=q_in,
         )
         return q_in, {
+            "Modo entrada": "Estimación por nivel",
             "Nivel anterior (m)": nivel_anterior,
             "Tiempo entre lecturas (min)": periodo_min,
             "Δh (m)": delta_h,
             "ΔV (m³)": delta_v,
             "Q neto por nivel (L/s)": q_neto_ls,
+            "Q entrada (L/s)": q_in,
         }
 
     def accion_por_ajuste(delta, margen):
@@ -4312,45 +4448,42 @@ body {{
         incluir_malvinas = "Tanque Malvinas" in selector
 
         # ── Tanque 4400 ─────────────────────────────────────────────────
-        card_inicio("Tanque Diviso 4400 m³", "Recibe el agua producida por los módulos 500 y 150 unidos en una sola entrada. Sus salidas principales son: línea hacia el tanque 1100, línea Cunduy-Malvinas, Línea de Occidente y otras si existen.")
+        card_inicio(
+            "Tanque Diviso 4400 m³",
+            "Recibe el agua producida por los módulos 500 y 150 unidos en una sola entrada. "
+            "Sus salidas principales son: línea Cunduy-Malvinas, Línea de Occidente, transferencia al tanque 1100 m³ y otras si existen. "
+            "La transferencia al 1100 se calcula desde la sección del tanque 1100, salvo que uses salida total del 4400."
+        )
         t1, t2 = st.columns([1, 1.15], gap="large")
         with t1:
-            nivel_4400 = st.number_input("Nivel actual 4400 (m)", min_value=0.0, max_value=max(nmax_4400 * 1.3, 1.0), value=3.52, step=0.01, format="%.2f", key="sish2_nivel_4400")
+            nivel_4400 = st.number_input(
+                "Nivel actual 4400 (m)",
+                min_value=0.0,
+                max_value=max(nmax_4400 * 1.3, 1.0),
+                value=3.52,
+                step=0.01,
+                format="%.2f",
+                key="sish2_nivel_4400",
+            )
             vol_4400 = volumen_por_nivel(nivel_4400, nmax_4400, cap_4400)
             st.caption(f"Volumen calculado: {vol_4400:,.2f} m³ · {pct_tanque(vol_4400, cap_4400):.1f}%")
-            modo_prod_4400 = st.radio(
-                "Entrada al tanque 4400",
-                ["Usar producción total", "Desglosar módulos 500 + 150"],
-                horizontal=True,
-                key="sish2_modo_prod_4400",
+            st.markdown(
+                "<div class='mini-note'><b>Entrada del 4400:</b> se calcula después de la entrada del tanque 1100, "
+                "para que el balance del 4400 incluya correctamente la transferencia 4400 → 1100 cuando se trabaja por salidas desglosadas.</div>",
+                unsafe_allow_html=True,
             )
-            if modo_prod_4400 == "Usar producción total":
-                q_prod_diviso = st.number_input(
-                    "Producción total hacia tanque 4400 (L/s)",
-                    min_value=0.0,
-                    value=350.0,
-                    step=1.0,
-                    format="%.2f",
-                    key="sish2_q_prod_diviso",
-                )
-                st.caption("Este valor representa la suma del agua producida por los módulos 500 y 150.")
-            else:
-                p500, p150 = st.columns(2)
-                with p500:
-                    q_mod_500 = st.number_input("Módulo 500 (L/s)", min_value=0.0, value=250.0, step=1.0, format="%.2f", key="sish2_q_mod_500")
-                with p150:
-                    q_mod_150 = st.number_input("Módulo 150 (L/s)", min_value=0.0, value=100.0, step=1.0, format="%.2f", key="sish2_q_mod_150")
-                q_prod_diviso = q_mod_500 + q_mod_150
-                st.caption(f"Producción total calculada: {q_prod_diviso:.2f} L/s = módulo 500 + módulo 150.")
         with t2:
             salidas_4400_default = [
-                ("Línea 4400 → tanque 1100", 35.00 if incluir_1100 else 0.00),
                 ("Línea Cunduy-Malvinas", 295.14 if (incluir_cunduy or incluir_malvinas) else 0.00),
-                ("Línea de Occidente", 0.00),
+                ("Línea de Occidente", 21.29),
                 ("Otras salidas 4400", 0.00),
             ]
-            q_salida_4400, det_salidas_4400, modo_salida_4400 = input_salidas(
-                "tanque 4400", salidas_4400_default, 312.43, "sish2_4400", "Salidas del tanque 4400"
+            q_salida_4400_base, det_salidas_4400, modo_salida_4400 = input_salidas(
+                "tanque 4400",
+                salidas_4400_default,
+                312.43,
+                "sish2_4400",
+                "Salidas del tanque 4400",
             )
             linea_cm_definida = False
             if incluir_cunduy or incluir_malvinas:
@@ -4361,38 +4494,56 @@ body {{
                         f"Línea Cunduy-Malvinas considerada como una sola conducción: {q_linea_cunduy_malvinas:.2f} L/s. "
                         "Luego se reparte en la T: entrada a Cunduy + caudal que continúa hacia Malvinas."
                     )
+                    st.markdown(
+                        "<div class='mini-note'><b>Salida 4400 → 1100:</b> no se digita aquí. "
+                        "Se toma automáticamente de la entrada calculada o medida del tanque 1100. "
+                        "Así evitas escribir un dato que no conoces y el balance queda consistente.</div>",
+                        unsafe_allow_html=True,
+                    )
                 else:
                     q_linea_cunduy_malvinas = 0.0
                     st.caption(
                         "En modo salida total, el valor del tanque 4400 representa toda la salida del tanque, "
-                        "incluida la línea Cunduy-Malvinas y las demás salidas. Por eso no se pide un caudal separado de esa línea. "
-                        "Si necesitas analizar el reparto de la línea hacia Cunduy y Malvinas, usa la opción Desglosar por salidas."
+                        "incluida la transferencia al 1100, la línea Cunduy-Malvinas y las demás salidas. "
+                        "Por eso no se suma aparte la entrada del 1100 para el balance del 4400."
                     )
             else:
                 q_linea_cunduy_malvinas = 0.0
-        q_in_4400, est_4400 = input_entrada("tanque 4400", "sish2_4400", q_prod_diviso, nivel_4400, cap_4400, nmax_4400, q_salida_4400)
-        mostrar_resumen_tanque("4400", nivel_4400, vol_4400, cap_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)
         card_fin()
 
-        # En modo desglosado, tomamos la línea real 4400 → 1100 desde las salidas del 4400.
-        # La conducción Cunduy-Malvinas NO se maneja como dos salidas separadas desde Diviso:
-        # desde el 4400 sale una sola línea; en la T entra una parte a Cunduy y el restante continúa a Malvinas.
-        q_hacia_1100 = det_salidas_4400.get("Línea 4400 → tanque 1100", 0.0) if modo_salida_4400 == "Desglosar por salidas" else 0.0
+        # Variables base antes de evaluar los destinos
+        q_hacia_1100 = 0.0
         q_entrada_cunduy = 0.0
         q_derivacion_cunduy_no_eval = 0.0
         q_continua_malvinas = q_linea_cunduy_malvinas if incluir_malvinas else 0.0
-
-        filas_eval = [evaluar_tanque("Diviso 4400", nivel_4400, cap_4400, nmax_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)]
         reqs_destinos = []
+        filas_destinos = []
 
         # ── Tanque 1100 ─────────────────────────────────────────────────
         if incluir_1100:
-            card_inicio("Tanque Diviso 1100 m³", "Este tanque es alimentado por el tanque 4400. Sus salidas principales son Comuna Oriental, La Paz, Álamos, Altos de Colinas, Sebastopol y otro. La entrada puede tomarse por macromedidor o estimarse por diferencia de nivel.")
+            card_inicio(
+                "Tanque Diviso 1100 m³",
+                "Este tanque es alimentado por el tanque 4400. Sus salidas principales son Comuna Oriental, La Paz, Álamos, Altos de Colinas, Sebastopol y otro. "
+                "La entrada puede tomarse por macromedidor, si algún día existe, o estimarse matemáticamente con diferencia de nivel."
+            )
             c1, c2 = st.columns([1, 1.15], gap="large")
             with c1:
-                nivel_1100 = st.number_input("Nivel actual 1100 (m)", min_value=0.0, max_value=max(nmax_1100 * 1.3, 1.0), value=3.81, step=0.01, format="%.2f", key="sish2_nivel_1100")
+                nivel_1100 = st.number_input(
+                    "Nivel actual 1100 (m)",
+                    min_value=0.0,
+                    max_value=max(nmax_1100 * 1.3, 1.0),
+                    value=3.81,
+                    step=0.01,
+                    format="%.2f",
+                    key="sish2_nivel_1100",
+                )
                 vol_1100 = volumen_por_nivel(nivel_1100, nmax_1100, cap_1100)
                 st.caption(f"Volumen calculado: {vol_1100:,.2f} m³ · {pct_tanque(vol_1100, cap_1100):.1f}%")
+                st.markdown(
+                    "<div class='mini-note'><b>Entrada 4400 → 1100:</b> si no tienes macromedidor, usa la opción "
+                    "<b>Estimar por diferencia de nivel</b>. La app calcula la entrada con el cambio de nivel, el tiempo entre lecturas y las salidas del 1100.</div>",
+                    unsafe_allow_html=True,
+                )
             with c2:
                 q_salida_1100, det_salidas_1100, modo_salida_1100 = input_salidas(
                     "tanque 1100",
@@ -4408,35 +4559,85 @@ body {{
                     "sish2_1100",
                     "Salidas del tanque 1100",
                 )
-            q_default_entrada_1100 = q_hacia_1100 if q_hacia_1100 > 0.01 else 35.0
+
             q_in_1100, est_1100 = input_entrada(
                 "tanque 1100 desde tanque 4400",
                 "sish2_1100",
-                q_default_entrada_1100,
+                35.0,
                 nivel_1100,
                 cap_1100,
                 nmax_1100,
                 q_salida_1100,
                 forzar_estimacion=False,
             )
+            q_hacia_1100 = q_in_1100
+
             if modo_salida_4400 == "Desglosar por salidas":
-                diferencia_entrada_1100 = q_in_1100 - q_hacia_1100
                 st.markdown(
-                    f"<div class='mini-note'><b>Relación 4400 → 1100:</b> en las salidas del 4400 registraste {q_hacia_1100:.2f} L/s hacia el 1100. "
-                    f"La entrada usada para el balance del 1100 es {q_in_1100:.2f} L/s. Diferencia: {diferencia_entrada_1100:+.2f} L/s. "
-                    "Si ambos datos corresponden al mismo macromedidor, deberían coincidir; si no coinciden, revisa tiempos de lectura, macro o estimación por nivel.</div>",
+                    f"<div class='mini-note'><b>Transferencia automática 4400 → 1100:</b> la app usará {q_hacia_1100:.2f} L/s "
+                    "como salida del tanque 4400 hacia el tanque 1100. Ese valor viene de la entrada medida o estimada del 1100.</div>",
                     unsafe_allow_html=True,
                 )
             else:
                 st.markdown(
-                    "<div class='mini-note'><b>Relación 4400 → 1100:</b> como el tanque 4400 está en modo salida total, la salida total incluye la transferencia al 1100 pero no permite separarla. Por eso la entrada del 1100 se toma del macromedidor, del dato operativo o de la estimación por diferencia de nivel.</div>",
+                    f"<div class='mini-note'><b>Entrada usada para el 1100:</b> {q_hacia_1100:.2f} L/s. "
+                    "Como el tanque 4400 está en modo salida total, este valor se usa para el balance del 1100, "
+                    "pero no se suma de nuevo a la salida total del 4400 para evitar doble conteo.</div>",
                     unsafe_allow_html=True,
                 )
+
             mostrar_resumen_tanque("1100", nivel_1100, vol_1100, cap_1100, q_in_1100, q_salida_1100, min_pct, objetivo_pct, alto_pct)
             req_1100 = requerimiento_entrada(vol_1100, cap_1100, q_salida_1100, horizonte_h, objetivo_pct, alto_pct)
-            reqs_destinos.append({"Destino": "Tanque 1100", "Entrada actual (L/s)": q_in_1100, "Entrada requerida (L/s)": req_1100, "Máximo sugerido (L/s)": max(req_1100, q_in_1100, 80.0)})
-            filas_eval.append(evaluar_tanque("Diviso 1100", nivel_1100, cap_1100, nmax_1100, q_in_1100, q_salida_1100, min_pct, objetivo_pct, alto_pct))
+            reqs_destinos.append({
+                "Destino": "Tanque 1100",
+                "Entrada actual (L/s)": q_in_1100,
+                "Entrada requerida (L/s)": req_1100,
+                "Máximo sugerido (L/s)": max(req_1100, q_in_1100, 80.0),
+            })
+            filas_destinos.append(evaluar_tanque("Diviso 1100", nivel_1100, cap_1100, nmax_1100, q_in_1100, q_salida_1100, min_pct, objetivo_pct, alto_pct))
             card_fin()
+        else:
+            nivel_1100 = 0.0
+            vol_1100 = 0.0
+            q_salida_1100 = 0.0
+            q_in_1100 = 0.0
+
+        # ── Balance final del tanque 4400 ────────────────────────────────
+        if modo_salida_4400 == "Desglosar por salidas":
+            q_salida_4400 = q_salida_4400_base + (q_hacia_1100 if incluir_1100 else 0.0)
+            det_salidas_4400["Transferencia automática 4400 → 1100"] = q_hacia_1100 if incluir_1100 else 0.0
+            st.markdown("<div class='titulo-seccion-resultado'>Balance final del tanque 4400 m³</div>", unsafe_allow_html=True)
+            b1, b2, b3 = st.columns(3)
+            b1.metric("Salidas directas 4400", f"{q_salida_4400_base:.2f} L/s")
+            b2.metric("Transferencia al 1100", f"{q_hacia_1100:.2f} L/s")
+            b3.metric("Salida total calculada 4400", f"{q_salida_4400:.2f} L/s")
+            st.markdown(
+                "<div class='mini-note'><b>Cálculo:</b> salida total 4400 = salidas directas registradas "
+                "+ entrada medida/estimada del tanque 1100. Esta es la salida que se usa para el balance del 4400.</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            q_salida_4400 = q_salida_4400_base
+            st.markdown("<div class='titulo-seccion-resultado'>Balance final del tanque 4400 m³</div>", unsafe_allow_html=True)
+            st.markdown(
+                f"<div class='mini-note'><b>Modo salida total:</b> se usa {q_salida_4400:.2f} L/s como salida total del 4400. "
+                "Este valor ya debe incluir la transferencia al 1100, Cunduy-Malvinas, Línea de Occidente y otras salidas.</div>",
+                unsafe_allow_html=True,
+            )
+
+        q_in_4400, est_4400 = input_entrada(
+            "tanque 4400",
+            "sish2_4400",
+            470.20,
+            nivel_4400,
+            cap_4400,
+            nmax_4400,
+            q_salida_4400,
+            permitir_modulos=True,
+        )
+        mostrar_resumen_tanque("4400", nivel_4400, vol_4400, cap_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)
+
+        filas_eval = [evaluar_tanque("Diviso 4400", nivel_4400, cap_4400, nmax_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)] + filas_destinos
 
         # ── Cunduy ───────────────────────────────────────────────────────
         if incluir_cunduy:
