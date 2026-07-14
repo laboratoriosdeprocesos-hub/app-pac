@@ -4450,9 +4450,9 @@ body {{
         # ── Tanque 4400 ─────────────────────────────────────────────────
         card_inicio(
             "Tanque Diviso 4400 m³",
-            "Recibe el agua producida por los módulos 500 y 150 unidos en una sola entrada. "
-            "Sus salidas principales son: línea Cunduy-Malvinas, Línea de Occidente, transferencia al tanque 1100 m³ y otras si existen. "
-            "La transferencia al 1100 se calcula desde la sección del tanque 1100, salvo que uses salida total del 4400."
+            "Recibe una sola entrada de agua producida por los módulos 500 y 150 ya unidos antes del tanque. "
+            "Esa entrada se usa como macromedidor total; si el macro falla, se estima con diferencia de nivel del 4400 y sus salidas. "
+            "Sus salidas principales son: línea Cunduy-Malvinas, Línea de Occidente, transferencia al tanque 1100 m³ y otras si existen."
         )
         t1, t2 = st.columns([1, 1.15], gap="large")
         with t1:
@@ -4468,8 +4468,9 @@ body {{
             vol_4400 = volumen_por_nivel(nivel_4400, nmax_4400, cap_4400)
             st.caption(f"Volumen calculado: {vol_4400:,.2f} m³ · {pct_tanque(vol_4400, cap_4400):.1f}%")
             st.markdown(
-                "<div class='mini-note'><b>Entrada del 4400:</b> se calcula después de la entrada del tanque 1100, "
-                "para que el balance del 4400 incluya correctamente la transferencia 4400 → 1100 cuando se trabaja por salidas desglosadas.</div>",
+                "<div class='mini-note'><b>Entrada del 4400:</b> usa el macromedidor de entrada total al tanque. "
+                "Si ese macro no está disponible, selecciona estimación por diferencia de nivel. En ese caso la app usa: "
+                "salidas del 4400 + cambio de volumen observado.</div>",
                 unsafe_allow_html=True,
             )
         with t2:
@@ -4562,7 +4563,7 @@ body {{
 
             q_in_1100, est_1100 = input_entrada(
                 "tanque 1100 desde tanque 4400",
-                "sish2_1100",
+                "sish3_1100_entrada",
                 35.0,
                 nivel_1100,
                 cap_1100,
@@ -4571,6 +4572,12 @@ body {{
                 forzar_estimacion=False,
             )
             q_hacia_1100 = q_in_1100
+            st.markdown(
+                f"<div class='mini-note'><b>Identidad hidráulica obligatoria:</b> "
+                f"Q<sub>4400→1100</sub> = Q<sub>entrada,1100</sub> = {q_hacia_1100:.2f} L/s. "
+                "El tanque 1100 no tiene otra entrada en este modelo.</div>",
+                unsafe_allow_html=True,
+            )
 
             if modo_salida_4400 == "Desglosar por salidas":
                 st.markdown(
@@ -4609,11 +4616,11 @@ body {{
             st.markdown("<div class='titulo-seccion-resultado'>Balance final del tanque 4400 m³</div>", unsafe_allow_html=True)
             b1, b2, b3 = st.columns(3)
             b1.metric("Salidas directas 4400", f"{q_salida_4400_base:.2f} L/s")
-            b2.metric("Transferencia al 1100", f"{q_hacia_1100:.2f} L/s")
-            b3.metric("Salida total calculada 4400", f"{q_salida_4400:.2f} L/s")
+            b2.metric("Salida 4400 → 1100", f"{q_hacia_1100:.2f} L/s")
+            b3.metric("Salida total 4400", f"{q_salida_4400:.2f} L/s")
             st.markdown(
-                "<div class='mini-note'><b>Cálculo:</b> salida total 4400 = salidas directas registradas "
-                "+ entrada medida/estimada del tanque 1100. Esta es la salida que se usa para el balance del 4400.</div>",
+                "<div class='mini-note'><b>Cálculo:</b> salida total 4400 = línea Cunduy-Malvinas + Línea de Occidente + otras salidas directas "
+                "+ transferencia 4400 → 1100. La transferencia al 1100 es exactamente la entrada medida o estimada del tanque 1100.</div>",
                 unsafe_allow_html=True,
             )
         else:
@@ -4627,15 +4634,49 @@ body {{
 
         q_in_4400, est_4400 = input_entrada(
             "tanque 4400",
-            "sish2_4400",
+            "sish3_4400_entrada",
             470.20,
             nivel_4400,
             cap_4400,
             nmax_4400,
             q_salida_4400,
-            permitir_modulos=True,
+            permitir_modulos=False,
         )
         mostrar_resumen_tanque("4400", nivel_4400, vol_4400, cap_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)
+
+        q_deficit_4400 = q_salida_4400 - q_in_4400
+        q_transferencia_sostenible = max(0.0, q_in_4400 - q_salida_4400_base)
+        st.markdown("<div class='titulo-seccion-resultado'>Revisión de coherencia hidráulica 4400 → 1100</div>", unsafe_allow_html=True)
+        cco1, cco2, cco3 = st.columns(3)
+        cco1.metric("Entrada total 4400", f"{q_in_4400:.2f} L/s")
+        cco2.metric("Salida total 4400", f"{q_salida_4400:.2f} L/s", f"{q_salida_4400 - q_in_4400:+.2f} L/s")
+        cco3.metric("Transferencia estable máxima al 1100", f"{q_transferencia_sostenible:.2f} L/s")
+        st.markdown(
+            f"<div class='mini-note'><b>Lógica:</b> para que el 4400 no baje, debe cumplirse "
+            f"<b>Q salida total 4400 ≤ Q entrada 4400</b>. Como las salidas directas son {q_salida_4400_base:.2f} L/s, "
+            f"la transferencia al 1100 sostenible sin bajar el 4400 es aproximadamente "
+            f"<b>{q_transferencia_sostenible:.2f} L/s</b>. Si la transferencia calculada al 1100 es mayor, el 4400 solo puede sostenerlo usando agua almacenada y bajando de nivel.</div>",
+            unsafe_allow_html=True,
+        )
+        if incluir_1100 and q_hacia_1100 > q_transferencia_sostenible + max(margen_ls, 0.5):
+            st.warning(
+                f"La transferencia calculada al 1100 ({q_hacia_1100:.2f} L/s) supera la transferencia estable disponible "
+                f"desde el 4400 ({q_transferencia_sostenible:.2f} L/s). Para que ese dato sea coherente, el tanque 4400 debe estar bajando de nivel "
+                f"o alguna lectura de entrada/salida no corresponde al mismo periodo."
+            )
+        if q_deficit_4400 > max(margen_ls, 0.5):
+            descenso_m3h_4400 = q_deficit_4400 * 3.6
+            horas_a_vacio_operativo = vol_4400 / descenso_m3h_4400 if descenso_m3h_4400 > 0 else None
+            st.warning(
+                f"La salida total del 4400 supera la entrada por {q_deficit_4400:.2f} L/s. "
+                f"Eso no significa que la fórmula esté mala: significa que el tanque 4400 está bajando a {descenso_m3h_4400:.2f} m³/h. "
+                f"Con el volumen actual, si se mantiene así, el tanque podría agotarse aproximadamente en {fmt_tiempo(horas_a_vacio_operativo)}. "
+                f"Revisa si la entrada al 1100, sus salidas y el periodo de niveles corresponden al mismo momento de operación."
+            )
+        elif q_in_4400 - q_salida_4400 > max(margen_ls, 0.5):
+            st.success(f"Balance coherente: el 4400 está subiendo o recuperando volumen en {(q_in_4400-q_salida_4400)*3.6:.2f} m³/h.")
+        else:
+            st.info("Balance casi estable: la entrada y la salida total del 4400 están dentro del margen configurado.")
 
         filas_eval = [evaluar_tanque("Diviso 4400", nivel_4400, cap_4400, nmax_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)] + filas_destinos
 
