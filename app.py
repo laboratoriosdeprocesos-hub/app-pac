@@ -1794,9 +1794,9 @@ body {
             <div class="formula-note">Se aplica cuando el tanque está bajando. Ayuda a prevenir desabastecimiento.</div>
         </div>
 
-        <div class="formula-card">
+        <div class="formula-card formula-card-wide">
             <div class="formula-name">17. Balance tanque Diviso 4400 m³</div>
-            <div class="formula-eq">\[Q_{neto,4400}=Q_{prod}-\left(Q_{1100}+Q_{linea\,CunMal}+\sum Q_{directas}\right)\]</div>
+            <div class="formula-eq">\[\begin{aligned}Q_{neto,4400}&=Q_{prod}-Q_{salida,4400}\\[4pt]Q_{salida,4400}&=Q_{1100}+Q_{linea\,CunMal}+\sum Q_{directas}\end{aligned}\]</div>
             <div class="formula-note">Cunduy y Malvinas no se restan como dos salidas separadas del 4400; se usa una sola línea Cunduy-Malvinas.</div>
         </div>
 
@@ -1806,9 +1806,9 @@ body {
             <div class="formula-note">La entrada al 1100 m³ se toma como derivación desde el 4400 m³ cuando está seleccionado.</div>
         </div>
 
-        <div class="formula-card">
+        <div class="formula-card formula-card-wide">
             <div class="formula-name">19. Línea única en T hacia Cunduy y Malvinas</div>
-            <div class="formula-eq">\[Q_{linea\,CunMal}=Q_{entrada,Cun}+Q_{continua,Mal}\quad ;\quad Q_{continua,Mal}=\max(0, Q_{linea\,CunMal}-Q_{entrada,Cun})\]</div>
+            <div class="formula-eq">\[\begin{aligned}Q_{linea\,CunMal}&=Q_{entrada,Cun}+Q_{continua,Mal}\\[4pt]Q_{continua,Mal}&=\max\left(0,\,Q_{linea\,CunMal}-Q_{entrada,Cun}\right)\end{aligned}\]</div>
             <div class="formula-note">Representa una sola conducción: primero deriva a Cunduy y el caudal restante continúa hacia Malvinas.</div>
         </div>
 
@@ -1835,7 +1835,7 @@ body {
 </body>
 </html>
 """
-    components.html(html, height=1720, scrolling=False)
+    components.html(html, height=1960, scrolling=False)
 
 
 # =========================================
@@ -3797,6 +3797,58 @@ def mostrar_sistema_hidraulico():
         line-height:1.48;
         margin-top:.5rem;
     }
+    .calc-wrap{
+        background:#F7FCFF;
+        border:1px solid rgba(0,138,203,.18);
+        border-left:6px solid #00A3E0;
+        border-radius:16px;
+        padding:1rem 1rem .8rem 1rem;
+        margin:.75rem 0 1rem 0;
+        box-shadow:0 6px 18px rgba(0,49,83,.05);
+    }
+    .calc-title{
+        color:#003A70;
+        font-weight:900;
+        font-size:1rem;
+        margin-bottom:.6rem;
+    }
+    .calc-grid{
+        display:grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap:.8rem;
+    }
+    .calc-card{
+        background:#FFFFFF;
+        border:1px solid rgba(0,90,140,.14);
+        border-radius:14px;
+        padding:.8rem .9rem;
+        min-height:150px;
+    }
+    .calc-name{
+        color:#234E70;
+        font-weight:800;
+        font-size:.9rem;
+        margin-bottom:.28rem;
+    }
+    .calc-eq{
+        color:#0B5AA8;
+        font-size:1.15rem;
+        text-align:center;
+        line-height:1.8;
+        margin:.35rem 0 .45rem 0;
+        overflow-x:auto;
+        font-weight:700;
+    }
+    .calc-note{
+        color:#5A7890;
+        font-size:.82rem;
+        line-height:1.45;
+        margin-top:.25rem;
+    }
+    @media (max-width: 900px){
+        .calc-grid{grid-template-columns:1fr;}
+        .calc-card{min-height:auto;}
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -3972,6 +4024,122 @@ def mostrar_sistema_hidraulico():
         st.caption(f"Salida total calculada por ramales: {total:.2f} L/s")
         return total, valores, modo
 
+
+    def mostrar_tarjetas_formula_entrada(nombre_tanque, capacidad, nivel_max, nivel_actual, nivel_anterior, periodo_min, salida_ls, delta_h, delta_v, q_neto_ls, q_in):
+        area = area_equivalente(capacidad, nivel_max)
+        periodo_h = max(float(periodo_min) / 60.0, 1/60)
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+window.MathJax = {{
+  tex: {{ inlineMath: [['\\\\(', '\\\\)']], displayMath: [['\\\\[', '\\\\]']] }},
+  svg: {{ fontCache: 'global' }}
+}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+* {{ box-sizing: border-box; }}
+body {{
+    margin:0;
+    padding:0;
+    background:transparent;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:#003A70;
+}}
+.calc-wrap {{
+    background: linear-gradient(135deg, #F7FCFF 0%, #eef7ff 100%);
+    border:1px solid #d6e8f7;
+    border-left:6px solid #48B9EA;
+    border-radius:18px;
+    padding:16px 18px;
+    box-shadow:0 6px 22px rgba(10,22,40,.06);
+}}
+.calc-title {{
+    color:#005B8E;
+    font-size:15px;
+    font-weight:850;
+    margin-bottom:12px;
+}}
+.calc-grid {{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(260px, 1fr));
+    gap:12px;
+}}
+.calc-card {{
+    background:#FFFFFF;
+    border:1px solid #CFE5F4;
+    border-radius:16px;
+    padding:13px 14px 11px 14px;
+    min-height:132px;
+    box-shadow:0 4px 16px rgba(10,22,40,.055);
+}}
+.calc-card-wide {{ grid-column:1 / -1; min-height:125px; }}
+.calc-name {{
+    font-size:12px;
+    letter-spacing:.35px;
+    font-weight:800;
+    color:#4E6F8A;
+    margin-bottom:6px;
+}}
+.calc-eq {{
+    min-height:50px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#004A8F;
+    overflow-x:auto;
+}}
+.calc-note {{
+    margin-top:7px;
+    color:#4E6F8A;
+    line-height:1.45;
+    font-size:12px;
+}}
+@media (max-width:760px) {{
+    .calc-grid {{ grid-template-columns:1fr; }}
+    .calc-card {{ min-height:auto; }}
+}}
+</style>
+</head>
+<body>
+<div class="calc-wrap">
+    <div class="calc-title">📘 Entrada estimada a {nombre_tanque}</div>
+    <div class="calc-grid">
+        <div class="calc-card">
+            <div class="calc-name">1. Área equivalente</div>
+            <div class="calc-eq">\\[A=\\frac{{C}}{{h_{{max}}}}=\\frac{{{capacidad:.2f}}}{{{nivel_max:.2f}}}={area:.2f}\\;m^2\\]</div>
+            <div class="calc-note">Convierte la capacidad operativa y el nivel máximo en un área hidráulica equivalente.</div>
+        </div>
+        <div class="calc-card">
+            <div class="calc-name">2. Cambio de nivel</div>
+            <div class="calc-eq">\\[\\Delta h=h_f-h_i={nivel_actual:.2f}-{nivel_anterior:.2f}={delta_h:+.3f}\\;m\\]</div>
+            <div class="calc-note">Si el resultado es positivo, el tanque subió; si es negativo, bajó.</div>
+        </div>
+        <div class="calc-card">
+            <div class="calc-name">3. Cambio de volumen</div>
+            <div class="calc-eq">\\[\\Delta V=A\\times\\Delta h={area:.2f}\\times({delta_h:+.3f})={delta_v:+.2f}\\;m^3\\]</div>
+            <div class="calc-note">Muestra cuánto cambió el volumen real del tanque entre dos lecturas.</div>
+        </div>
+        <div class="calc-card">
+            <div class="calc-name">4. Caudal neto por nivel</div>
+            <div class="calc-eq">\\[Q_{{neto,nivel}}=\\frac{{\\Delta V}}{{3.6\\times\\Delta t_h}}=\\frac{{{delta_v:+.2f}}}{{3.6\\times{periodo_h:.2f}}}={q_neto_ls:+.2f}\\;L/s\\]</div>
+            <div class="calc-note">Tiempo usado: {periodo_min:.0f} min = {periodo_h:.2f} h.</div>
+        </div>
+        <div class="calc-card calc-card-wide">
+            <div class="calc-name">5. Entrada estimada</div>
+            <div class="calc-eq">\\[Q_{{entrada,est}}=Q_{{salida}}+Q_{{neto,nivel}}={salida_ls:.2f}+({q_neto_ls:+.2f})={q_in:.2f}\\;L/s\\]</div>
+            <div class="calc-note">Suma la salida actual más el balance observado para estimar la entrada al tanque.</div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+"""
+        components.html(html, height=500, scrolling=False)
+
     def input_entrada(nombre_tanque, key_base, q_macro_default, nivel_actual, capacidad, nivel_max, salida_ls, forzar_estimacion=False):
         """Entrada por macromedidor o estimada con diferencia de nivel."""
         opciones = ["Tengo macromedidor / dato de entrada", "Estimar por diferencia de nivel"]
@@ -4017,16 +4185,18 @@ def mostrar_sistema_hidraulico():
         q_in, delta_h, delta_v, q_neto_ls = estimar_entrada_desde_nivel(
             nivel_actual, nivel_anterior, capacidad, nivel_max, periodo_min, salida_ls
         )
-        st.markdown(
-            f"<div class='formula-box'>"
-            f"<b>Entrada estimada a {nombre_tanque}</b><br>"
-            f"Área equivalente = capacidad / nivel máx. = {capacidad:,.2f} / {nivel_max:.2f} = {area_equivalente(capacidad, nivel_max):,.2f} m²<br>"
-            f"Δh = nivel actual - nivel anterior = {nivel_actual:.2f} - {nivel_anterior:.2f} = {delta_h:+.3f} m<br>"
-            f"ΔV = área × Δh = {delta_v:+,.2f} m³<br>"
-            f"Q neto = ΔV / tiempo = {q_neto_ls:+.2f} L/s<br>"
-            f"<b>Q entrada = Q salida + Q neto = {salida_ls:.2f} + ({q_neto_ls:+.2f}) = {q_in:.2f} L/s</b>"
-            f"</div>",
-            unsafe_allow_html=True,
+        mostrar_tarjetas_formula_entrada(
+            nombre_tanque=nombre_tanque,
+            capacidad=capacidad,
+            nivel_max=nivel_max,
+            nivel_actual=nivel_actual,
+            nivel_anterior=nivel_anterior,
+            periodo_min=periodo_min,
+            salida_ls=salida_ls,
+            delta_h=delta_h,
+            delta_v=delta_v,
+            q_neto_ls=q_neto_ls,
+            q_in=q_in,
         )
         return q_in, {
             "Nivel anterior (m)": nivel_anterior,
