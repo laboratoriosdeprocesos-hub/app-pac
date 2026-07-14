@@ -1794,26 +1794,38 @@ body {
             <div class="formula-note">Se aplica cuando el tanque está bajando. Ayuda a prevenir desabastecimiento.</div>
         </div>
 
-        <div class="formula-card formula-card-wide">
-            <div class="formula-name">17. Balance tanque Diviso 4400 m³</div>
-            <div class="formula-eq">\[\begin{aligned}Q_{neto,4400}&=Q_{prod}-Q_{salida,4400}\\[4pt]Q_{salida,4400}&=Q_{1100}+Q_{linea\,CunMal}+\sum Q_{directas}\end{aligned}\]</div>
-            <div class="formula-note">Cunduy y Malvinas no se restan como dos salidas separadas del 4400; se usa una sola línea Cunduy-Malvinas.</div>
-        </div>
-
         <div class="formula-card">
-            <div class="formula-name">18. Balance tanque Diviso 1100 m³</div>
-            <div class="formula-eq">\[Q_{neto,1100}=Q_{4400\rightarrow1100}-Q_{salida,1100}\]</div>
-            <div class="formula-note">La entrada al 1100 m³ se toma como derivación desde el 4400 m³ cuando está seleccionado.</div>
+            <div class="formula-name">17. Producción que entra al tanque 4400 m³</div>
+            <div class="formula-eq">\[Q_{prod}=Q_{módulo\,500}+Q_{módulo\,150}\]</div>
+            <div class="formula-note">El agua producida por los módulos 500 y 150 se une antes de ingresar al tanque Diviso 4400 m³.</div>
         </div>
 
         <div class="formula-card formula-card-wide">
-            <div class="formula-name">19. Línea única en T hacia Cunduy y Malvinas</div>
+            <div class="formula-name">18. Balance tanque Diviso 4400 m³</div>
+            <div class="formula-eq">\[\begin{aligned}Q_{salida,4400}&=Q_{4400\rightarrow1100}+Q_{linea\,CunMal}+Q_{Occidente}+Q_{otras}\\[4pt]Q_{neto,4400}&=Q_{prod}-Q_{salida,4400}\end{aligned}\]</div>
+            <div class="formula-note">Las salidas propias del 4400 m³ son: línea Cunduy-Malvinas, Línea de Occidente, transferencia al 1100 m³ y otras si existen.</div>
+        </div>
+
+        <div class="formula-card formula-card-wide">
+            <div class="formula-name">19. Salida total del tanque 1100 m³</div>
+            <div class="formula-eq">\[Q_{salida,1100}=Q_{Comuna}+Q_{La\,Paz}+Q_{Álamos}+Q_{Altos}+Q_{Sebastopol}+Q_{otro}\]</div>
+            <div class="formula-note">Las salidas sectorizadas del 1100 m³ se suman para obtener la salida total del tanque.</div>
+        </div>
+
+        <div class="formula-card formula-card-wide">
+            <div class="formula-name">20. Entrada al tanque 1100 m³</div>
+            <div class="formula-eq">\[\begin{aligned}Q_{entrada,1100}&=Q_{macro,4400\rightarrow1100}\\[4pt]Q_{entrada,1100}&=Q_{salida,1100}+\frac{V_f-V_i}{3.6\times\Delta t_h}\end{aligned}\]</div>
+            <div class="formula-note">Si hay macromedidor se usa el dato medido. Si no hay macro, se estima con diferencia de nivel y balance de masa.</div>
+        </div>
+
+        <div class="formula-card formula-card-wide">
+            <div class="formula-name">21. Línea única en T hacia Cunduy y Malvinas</div>
             <div class="formula-eq">\[\begin{aligned}Q_{linea\,CunMal}&=Q_{entrada,Cun}+Q_{continua,Mal}\\[4pt]Q_{continua,Mal}&=\max\left(0,\,Q_{linea\,CunMal}-Q_{entrada,Cun}\right)\end{aligned}\]</div>
             <div class="formula-note">Representa una sola conducción: primero deriva a Cunduy y el caudal restante continúa hacia Malvinas.</div>
         </div>
 
         <div class="formula-card">
-            <div class="formula-name">20. Límite máximo de conducción</div>
+            <div class="formula-name">22. Límite máximo de conducción</div>
             <div class="formula-eq">\[Q_{despacho}=\min(Q_{calculado},\,Q_{max})\]</div>
             <div class="formula-note">Evita recomendar un caudal mayor al límite operativo configurado.</div>
         </div>
@@ -4300,24 +4312,42 @@ body {{
         incluir_malvinas = "Tanque Malvinas" in selector
 
         # ── Tanque 4400 ─────────────────────────────────────────────────
-        card_inicio("Tanque Diviso 4400 m³", "Tanque fuente principal. Alimenta el tanque 1100 y una sola línea Cunduy-Malvinas. Esa línea pasa primero por la T de Cunduy y el caudal restante continúa hacia Malvinas.")
+        card_inicio("Tanque Diviso 4400 m³", "Recibe el agua producida por los módulos 500 y 150 unidos en una sola entrada. Sus salidas principales son: línea hacia el tanque 1100, línea Cunduy-Malvinas, Línea de Occidente y otras si existen.")
         t1, t2 = st.columns([1, 1.15], gap="large")
         with t1:
             nivel_4400 = st.number_input("Nivel actual 4400 (m)", min_value=0.0, max_value=max(nmax_4400 * 1.3, 1.0), value=3.52, step=0.01, format="%.2f", key="sish2_nivel_4400")
             vol_4400 = volumen_por_nivel(nivel_4400, nmax_4400, cap_4400)
             st.caption(f"Volumen calculado: {vol_4400:,.2f} m³ · {pct_tanque(vol_4400, cap_4400):.1f}%")
-            q_prod_diviso = st.number_input("Producción / entrada total hacia Diviso (L/s)", min_value=0.0, value=350.0, step=1.0, format="%.2f", key="sish2_q_prod_diviso")
+            modo_prod_4400 = st.radio(
+                "Entrada al tanque 4400",
+                ["Usar producción total", "Desglosar módulos 500 + 150"],
+                horizontal=True,
+                key="sish2_modo_prod_4400",
+            )
+            if modo_prod_4400 == "Usar producción total":
+                q_prod_diviso = st.number_input(
+                    "Producción total hacia tanque 4400 (L/s)",
+                    min_value=0.0,
+                    value=350.0,
+                    step=1.0,
+                    format="%.2f",
+                    key="sish2_q_prod_diviso",
+                )
+                st.caption("Este valor representa la suma del agua producida por los módulos 500 y 150.")
+            else:
+                p500, p150 = st.columns(2)
+                with p500:
+                    q_mod_500 = st.number_input("Módulo 500 (L/s)", min_value=0.0, value=250.0, step=1.0, format="%.2f", key="sish2_q_mod_500")
+                with p150:
+                    q_mod_150 = st.number_input("Módulo 150 (L/s)", min_value=0.0, value=100.0, step=1.0, format="%.2f", key="sish2_q_mod_150")
+                q_prod_diviso = q_mod_500 + q_mod_150
+                st.caption(f"Producción total calculada: {q_prod_diviso:.2f} L/s = módulo 500 + módulo 150.")
         with t2:
             salidas_4400_default = [
-                ("Transferencia al tanque 1100", 35.00 if incluir_1100 else 0.00),
+                ("Línea 4400 → tanque 1100", 35.00 if incluir_1100 else 0.00),
                 ("Línea Cunduy-Malvinas", 295.14 if (incluir_cunduy or incluir_malvinas) else 0.00),
-                ("Comuna Oriental", 0.00),
-                ("La Paz", 0.00),
-                ("Álamos", 0.00),
-                ("Altos de Colinas", 0.00),
-                ("Sebastopol", 0.00),
                 ("Línea de Occidente", 0.00),
-                ("Otras salidas", 0.00),
+                ("Otras salidas 4400", 0.00),
             ]
             q_salida_4400, det_salidas_4400, modo_salida_4400 = input_salidas(
                 "tanque 4400", salidas_4400_default, 312.43, "sish2_4400", "Salidas del tanque 4400"
@@ -4344,10 +4374,10 @@ body {{
         mostrar_resumen_tanque("4400", nivel_4400, vol_4400, cap_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)
         card_fin()
 
-        # En modo desglosado, tomamos la transferencia real al 1100 desde las salidas del 4400.
+        # En modo desglosado, tomamos la línea real 4400 → 1100 desde las salidas del 4400.
         # La conducción Cunduy-Malvinas NO se maneja como dos salidas separadas desde Diviso:
         # desde el 4400 sale una sola línea; en la T entra una parte a Cunduy y el restante continúa a Malvinas.
-        q_hacia_1100 = det_salidas_4400.get("Transferencia al tanque 1100", 0.0) if modo_salida_4400 == "Desglosar por salidas" else 0.0
+        q_hacia_1100 = det_salidas_4400.get("Línea 4400 → tanque 1100", 0.0) if modo_salida_4400 == "Desglosar por salidas" else 0.0
         q_entrada_cunduy = 0.0
         q_derivacion_cunduy_no_eval = 0.0
         q_continua_malvinas = q_linea_cunduy_malvinas if incluir_malvinas else 0.0
@@ -4357,7 +4387,7 @@ body {{
 
         # ── Tanque 1100 ─────────────────────────────────────────────────
         if incluir_1100:
-            card_inicio("Tanque Diviso 1100 m³", "Se evalúa como tanque independiente. Puede recibir transferencia desde el 4400 o estimar su entrada por diferencia de nivel.")
+            card_inicio("Tanque Diviso 1100 m³", "Este tanque es alimentado por el tanque 4400. Sus salidas principales son Comuna Oriental, La Paz, Álamos, Altos de Colinas, Sebastopol y otro. La entrada puede tomarse por macromedidor o estimarse por diferencia de nivel.")
             c1, c2 = st.columns([1, 1.15], gap="large")
             with c1:
                 nivel_1100 = st.number_input("Nivel actual 1100 (m)", min_value=0.0, max_value=max(nmax_1100 * 1.3, 1.0), value=3.81, step=0.01, format="%.2f", key="sish2_nivel_1100")
@@ -4366,12 +4396,42 @@ body {{
             with c2:
                 q_salida_1100, det_salidas_1100, modo_salida_1100 = input_salidas(
                     "tanque 1100",
-                    [("Salida a red / apoyo hidráulico", 0.0), ("Retorno o apoyo a conducción", 0.0), ("Otras salidas", 0.0)],
+                    [
+                        ("Comuna Oriental", 0.0),
+                        ("La Paz", 0.0),
+                        ("Álamos", 0.0),
+                        ("Altos de Colinas", 0.0),
+                        ("Sebastopol", 0.0),
+                        ("Otro", 0.0),
+                    ],
                     0.0,
                     "sish2_1100",
                     "Salidas del tanque 1100",
                 )
-            q_in_1100, est_1100 = input_entrada("tanque 1100", "sish2_1100", q_hacia_1100, nivel_1100, cap_1100, nmax_1100, q_salida_1100, forzar_estimacion=(q_hacia_1100 <= 0.01))
+            q_default_entrada_1100 = q_hacia_1100 if q_hacia_1100 > 0.01 else 35.0
+            q_in_1100, est_1100 = input_entrada(
+                "tanque 1100 desde tanque 4400",
+                "sish2_1100",
+                q_default_entrada_1100,
+                nivel_1100,
+                cap_1100,
+                nmax_1100,
+                q_salida_1100,
+                forzar_estimacion=False,
+            )
+            if modo_salida_4400 == "Desglosar por salidas":
+                diferencia_entrada_1100 = q_in_1100 - q_hacia_1100
+                st.markdown(
+                    f"<div class='mini-note'><b>Relación 4400 → 1100:</b> en las salidas del 4400 registraste {q_hacia_1100:.2f} L/s hacia el 1100. "
+                    f"La entrada usada para el balance del 1100 es {q_in_1100:.2f} L/s. Diferencia: {diferencia_entrada_1100:+.2f} L/s. "
+                    "Si ambos datos corresponden al mismo macromedidor, deberían coincidir; si no coinciden, revisa tiempos de lectura, macro o estimación por nivel.</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    "<div class='mini-note'><b>Relación 4400 → 1100:</b> como el tanque 4400 está en modo salida total, la salida total incluye la transferencia al 1100 pero no permite separarla. Por eso la entrada del 1100 se toma del macromedidor, del dato operativo o de la estimación por diferencia de nivel.</div>",
+                    unsafe_allow_html=True,
+                )
             mostrar_resumen_tanque("1100", nivel_1100, vol_1100, cap_1100, q_in_1100, q_salida_1100, min_pct, objetivo_pct, alto_pct)
             req_1100 = requerimiento_entrada(vol_1100, cap_1100, q_salida_1100, horizonte_h, objetivo_pct, alto_pct)
             reqs_destinos.append({"Destino": "Tanque 1100", "Entrada actual (L/s)": q_in_1100, "Entrada requerida (L/s)": req_1100, "Máximo sugerido (L/s)": max(req_1100, q_in_1100, 80.0)})
@@ -4600,8 +4660,8 @@ body {{
 
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#48B9EA">
-        <b>Lógica de la línea Cunduy-Malvinas</b><br>
-        La conducción se maneja como una sola línea que sale desde Diviso. En modo <b>Desglosar por salidas</b>, esa línea se registra una sola vez y luego se reparte en la T: una parte entra al tanque Cunduy y el remanente continúa hacia Malvinas. En modo <b>Usar salida total</b>, el dato del 4400 ya incluye todas las salidas; por eso no se pide aparte el caudal de la línea y cada tanque destino se analiza con su entrada medida o estimada por diferencia de nivel.
+        <b>Lógica hidráulica Diviso</b><br>
+        Al tanque <b>4400 m³</b> le entra la producción unida de los módulos <b>500</b> y <b>150</b>. Sus salidas principales son la <b>línea hacia el 1100</b>, la <b>línea Cunduy-Malvinas</b>, la <b>Línea de Occidente</b> y otras si existen. El tanque <b>1100 m³</b> es alimentado por el 4400 y sus salidas sectorizadas son Comuna Oriental, La Paz, Álamos, Altos de Colinas, Sebastopol y Otro. La conducción Cunduy-Malvinas sigue siendo una sola línea: en la T una parte entra a Cunduy y el remanente continúa a Malvinas.
         </div>
         """, unsafe_allow_html=True)
 
