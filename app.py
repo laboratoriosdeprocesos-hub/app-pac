@@ -4152,26 +4152,24 @@ def mostrar_sistema_hidraulico():
             q_salida_4400, det_salidas_4400, modo_salida_4400 = input_salidas(
                 "tanque 4400", salidas_4400_default, 312.43, "sish2_4400", "Salidas del tanque 4400"
             )
+            linea_cm_definida = False
             if incluir_cunduy or incluir_malvinas:
                 if modo_salida_4400 == "Desglosar por salidas":
                     q_linea_cunduy_malvinas = det_salidas_4400.get("Línea Cunduy-Malvinas", 0.0)
+                    linea_cm_definida = True
+                    st.caption(
+                        f"Línea Cunduy-Malvinas considerada como una sola conducción: {q_linea_cunduy_malvinas:.2f} L/s. "
+                        "Luego se reparte en la T: entrada a Cunduy + caudal que continúa hacia Malvinas."
+                    )
                 else:
-                    q_linea_cunduy_malvinas = st.number_input(
-                        "Caudal incluido en la salida total que corresponde a la línea Cunduy-Malvinas (L/s)",
-                        min_value=0.0,
-                        max_value=max(float(q_salida_4400), 1.0),
-                        value=min(float(q_salida_4400), 295.14),
-                        step=1.0,
-                        format="%.2f",
-                        key="sish2_q_linea_cunduy_malvinas_total",
-                        help="Esta es una sola conducción. Desde Diviso sale un caudal total por la línea; una parte entra a Cunduy por la T y el restante continúa hacia Malvinas.",
+                    q_linea_cunduy_malvinas = 0.0
+                    st.caption(
+                        "En modo salida total, el valor del tanque 4400 representa toda la salida del tanque, "
+                        "incluida la línea Cunduy-Malvinas y las demás salidas. Por eso no se pide un caudal separado de esa línea. "
+                        "Si necesitas analizar el reparto de la línea hacia Cunduy y Malvinas, usa la opción Desglosar por salidas."
                     )
             else:
                 q_linea_cunduy_malvinas = 0.0
-            st.caption(
-                f"Línea Cunduy-Malvinas considerada como una sola conducción: {q_linea_cunduy_malvinas:.2f} L/s. "
-                "Luego se reparte en la T: entrada a Cunduy + caudal que continúa hacia Malvinas."
-            )
         q_in_4400, est_4400 = input_entrada("tanque 4400", "sish2_4400", q_prod_diviso, nivel_4400, cap_4400, nmax_4400, q_salida_4400)
         mostrar_resumen_tanque("4400", nivel_4400, vol_4400, cap_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)
         card_fin()
@@ -4226,40 +4224,59 @@ def mostrar_sistema_hidraulico():
                     "sish2_cunduy",
                     "Salidas de Cunduy",
                 )
-            q_default_cunduy = min(q_linea_cunduy_malvinas, 111.36) if q_linea_cunduy_malvinas > 0 else 111.36
+            q_default_cunduy = min(q_linea_cunduy_malvinas, 111.36) if linea_cm_definida and q_linea_cunduy_malvinas > 0 else 111.36
             q_in_cunduy, est_cunduy = input_entrada("Cunduy", "sish2_cunduy", q_default_cunduy, nivel_cunduy, cap_cunduy, nmax_cunduy, q_salida_cunduy)
             q_entrada_cunduy = q_in_cunduy
-            q_continua_malvinas = max(0.0, q_linea_cunduy_malvinas - q_entrada_cunduy) if incluir_malvinas else 0.0
+            if incluir_malvinas and linea_cm_definida:
+                q_continua_malvinas = max(0.0, q_linea_cunduy_malvinas - q_entrada_cunduy)
+            elif incluir_malvinas:
+                # En modo salida total no se conoce el caudal específico de la línea desde el 4400.
+                # Este valor solo queda como referencia inicial para la entrada medida/estimada de Malvinas.
+                q_continua_malvinas = 183.78
+            else:
+                q_continua_malvinas = 0.0
             mostrar_resumen_tanque("Cunduy", nivel_cunduy, vol_cunduy, cap_cunduy, q_in_cunduy, q_salida_cunduy, min_pct, objetivo_pct, alto_pct)
-            st.markdown(
-                f"<div class='mini-note'><b>T de Cunduy:</b> línea Cunduy-Malvinas = {q_linea_cunduy_malvinas:.2f} L/s · "
-                f"entrada a Cunduy = {q_entrada_cunduy:.2f} L/s · "
-                f"caudal que continúa hacia Malvinas = {q_continua_malvinas:.2f} L/s.</div>",
-                unsafe_allow_html=True,
-            )
-            if q_entrada_cunduy > q_linea_cunduy_malvinas + 0.5 and q_linea_cunduy_malvinas > 0:
-                st.warning("La entrada calculada/registrada a Cunduy es mayor que el caudal total de la línea Cunduy-Malvinas. Revisa si las lecturas corresponden al mismo periodo o si falta otro aporte.")
+            if linea_cm_definida:
+                st.markdown(
+                    f"<div class='mini-note'><b>T de Cunduy:</b> línea Cunduy-Malvinas = {q_linea_cunduy_malvinas:.2f} L/s · "
+                    f"entrada a Cunduy = {q_entrada_cunduy:.2f} L/s · "
+                    f"caudal que continúa hacia Malvinas = {q_continua_malvinas:.2f} L/s.</div>",
+                    unsafe_allow_html=True,
+                )
+                if q_entrada_cunduy > q_linea_cunduy_malvinas + 0.5 and q_linea_cunduy_malvinas > 0:
+                    st.warning("La entrada calculada/registrada a Cunduy es mayor que el caudal total de la línea Cunduy-Malvinas. Revisa si las lecturas corresponden al mismo periodo o si falta otro aporte.")
+            else:
+                st.markdown(
+                    "<div class='mini-note'><b>Modo salida total del 4400:</b> la salida total ya incluye la línea Cunduy-Malvinas. "
+                    "Por eso Cunduy se analiza con su propia entrada medida o estimada por diferencia de nivel, sin pedir un caudal adicional de la línea.</div>",
+                    unsafe_allow_html=True,
+                )
             req_cunduy = requerimiento_entrada(vol_cunduy, cap_cunduy, q_salida_cunduy, horizonte_h, objetivo_pct, alto_pct)
             max_cunduy = st.number_input("Máximo recomendado de entrada a Cunduy (L/s)", min_value=0.0, value=220.0, step=5.0, format="%.2f", key="sish2_qmax_cunduy")
             reqs_destinos.append({"Destino": "Cunduy", "Entrada actual (L/s)": q_in_cunduy, "Entrada requerida (L/s)": req_cunduy, "Máximo sugerido (L/s)": max_cunduy})
             filas_eval.append(evaluar_tanque("Cunduy", nivel_cunduy, cap_cunduy, nmax_cunduy, q_in_cunduy, q_salida_cunduy, min_pct, objetivo_pct, alto_pct))
             card_fin()
 
-        # Si Malvinas se evalúa pero Cunduy no, todavía hay que descontar la posible derivación de la T.
+        # Si Malvinas se evalúa pero Cunduy no, solo se descuenta la T cuando la línea fue desglosada.
         if incluir_malvinas and not incluir_cunduy:
-            st.markdown("<div class='titulo-seccion-resultado'>T de Cunduy en la línea hacia Malvinas</div>", unsafe_allow_html=True)
-            q_derivacion_cunduy_no_eval = st.number_input(
-                "Entrada o derivación a Cunduy, sin evaluar el tanque Cunduy (L/s)",
-                min_value=0.0,
-                max_value=max(float(q_linea_cunduy_malvinas), 1.0),
-                value=min(float(q_linea_cunduy_malvinas), 111.36),
-                step=1.0,
-                format="%.2f",
-                key="sish2_derivacion_cunduy_no_eval",
-                help="Aunque no evalúes el tanque Cunduy, si la línea pasa por la T debes descontar lo que entra a Cunduy para estimar lo que continúa a Malvinas.",
-            )
-            q_continua_malvinas = max(0.0, q_linea_cunduy_malvinas - q_derivacion_cunduy_no_eval)
-            st.caption(f"Caudal que continúa hacia Malvinas = {q_linea_cunduy_malvinas:.2f} - {q_derivacion_cunduy_no_eval:.2f} = {q_continua_malvinas:.2f} L/s")
+            if linea_cm_definida:
+                st.markdown("<div class='titulo-seccion-resultado'>T de Cunduy en la línea hacia Malvinas</div>", unsafe_allow_html=True)
+                q_derivacion_cunduy_no_eval = st.number_input(
+                    "Entrada o derivación a Cunduy, sin evaluar el tanque Cunduy (L/s)",
+                    min_value=0.0,
+                    max_value=max(float(q_linea_cunduy_malvinas), 1.0),
+                    value=min(float(q_linea_cunduy_malvinas), 111.36),
+                    step=1.0,
+                    format="%.2f",
+                    key="sish2_derivacion_cunduy_no_eval",
+                    help="Aunque no evalúes el tanque Cunduy, si la línea pasa por la T debes descontar lo que entra a Cunduy para estimar lo que continúa a Malvinas.",
+                )
+                q_continua_malvinas = max(0.0, q_linea_cunduy_malvinas - q_derivacion_cunduy_no_eval)
+                st.caption(f"Caudal que continúa hacia Malvinas = {q_linea_cunduy_malvinas:.2f} - {q_derivacion_cunduy_no_eval:.2f} = {q_continua_malvinas:.2f} L/s")
+            else:
+                q_derivacion_cunduy_no_eval = 0.0
+                q_continua_malvinas = 183.78
+                st.info("Como estás usando salida total del tanque 4400, no se separa la línea Cunduy-Malvinas. Malvinas se analizará con su propia entrada medida o estimada por diferencia de nivel.")
 
         # ── Malvinas ─────────────────────────────────────────────────────
         if incluir_malvinas:
@@ -4285,12 +4302,19 @@ def mostrar_sistema_hidraulico():
                 )
             q_in_malvinas, est_malvinas = input_entrada("Malvinas", "sish2_malvinas", q_continua_malvinas, nivel_malvinas, cap_malvinas, nmax_malvinas, q_salida_malvinas)
             mostrar_resumen_tanque("Malvinas", nivel_malvinas, vol_malvinas, cap_malvinas, q_in_malvinas, q_salida_malvinas, min_pct, objetivo_pct, alto_pct)
-            st.markdown(
-                f"<div class='mini-note'><b>Entrada a Malvinas:</b> se toma como el caudal que continúa después de Cunduy. "
-                f"Línea total = {q_linea_cunduy_malvinas:.2f} L/s · descontado en Cunduy = {(q_entrada_cunduy if incluir_cunduy else q_derivacion_cunduy_no_eval):.2f} L/s · "
-                f"continúa hacia Malvinas = {q_continua_malvinas:.2f} L/s.</div>",
-                unsafe_allow_html=True,
-            )
+            if linea_cm_definida:
+                st.markdown(
+                    f"<div class='mini-note'><b>Entrada a Malvinas:</b> se toma como el caudal que continúa después de Cunduy. "
+                    f"Línea total = {q_linea_cunduy_malvinas:.2f} L/s · descontado en Cunduy = {(q_entrada_cunduy if incluir_cunduy else q_derivacion_cunduy_no_eval):.2f} L/s · "
+                    f"continúa hacia Malvinas = {q_continua_malvinas:.2f} L/s.</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"<div class='mini-note'><b>Entrada a Malvinas:</b> en modo salida total del 4400 no se separa la línea Cunduy-Malvinas. "
+                    f"La entrada de Malvinas se toma del dato que registres o de la estimación por diferencia de nivel. Entrada usada: {q_in_malvinas:.2f} L/s.</div>",
+                    unsafe_allow_html=True,
+                )
             req_malvinas = requerimiento_entrada(vol_malvinas, cap_malvinas, q_salida_malvinas, horizonte_h, objetivo_pct, alto_pct)
             max_malvinas = st.number_input("Máximo recomendado de entrada a Malvinas (L/s)", min_value=0.0, value=260.0, step=5.0, format="%.2f", key="sish2_qmax_malvinas")
             reqs_destinos.append({"Destino": "Malvinas", "Entrada actual (L/s)": q_in_malvinas, "Entrada requerida (L/s)": req_malvinas, "Máximo sugerido (L/s)": max_malvinas})
@@ -4347,19 +4371,27 @@ def mostrar_sistema_hidraulico():
             rec_cunduy = float(rec_df.loc[rec_df["Destino"] == "Cunduy", "Entrada recomendada (L/s)"].sum()) if "Cunduy" in rec_df["Destino"].values else (q_derivacion_cunduy_no_eval if incluir_malvinas else 0.0)
             rec_malvinas = float(rec_df.loc[rec_df["Destino"] == "Malvinas", "Entrada recomendada (L/s)"].sum()) if "Malvinas" in rec_df["Destino"].values else 0.0
             if incluir_cunduy or incluir_malvinas:
-                q_linea_recomendada = rec_cunduy + rec_malvinas
-                ajuste_linea = q_linea_recomendada - q_linea_cunduy_malvinas
-                st.markdown("<div class='titulo-seccion-resultado'>Resumen de la línea única Cunduy-Malvinas</div>", unsafe_allow_html=True)
-                l1, l2, l3, l4 = st.columns(4)
-                l1.metric("Línea actual", f"{q_linea_cunduy_malvinas:.2f} L/s")
-                l2.metric("Entrada/derivación Cunduy", f"{(q_entrada_cunduy if incluir_cunduy else q_derivacion_cunduy_no_eval):.2f} L/s")
-                l3.metric("Continúa a Malvinas", f"{q_continua_malvinas:.2f} L/s")
-                l4.metric("Ajuste línea", f"{ajuste_linea:+.2f} L/s")
-                st.markdown(
-                    "<div class='mini-note'><b>Interpretación:</b> no se suman dos conducciones independientes desde Diviso. "
-                    "Desde el 4400 sale una sola línea Cunduy-Malvinas; en la T se descuenta lo que entra a Cunduy y el remanente continúa a Malvinas.</div>",
-                    unsafe_allow_html=True,
-                )
+                if linea_cm_definida:
+                    q_linea_recomendada = rec_cunduy + rec_malvinas
+                    ajuste_linea = q_linea_recomendada - q_linea_cunduy_malvinas
+                    st.markdown("<div class='titulo-seccion-resultado'>Resumen de la línea única Cunduy-Malvinas</div>", unsafe_allow_html=True)
+                    l1, l2, l3, l4 = st.columns(4)
+                    l1.metric("Línea actual", f"{q_linea_cunduy_malvinas:.2f} L/s")
+                    l2.metric("Entrada/derivación Cunduy", f"{(q_entrada_cunduy if incluir_cunduy else q_derivacion_cunduy_no_eval):.2f} L/s")
+                    l3.metric("Continúa a Malvinas", f"{q_continua_malvinas:.2f} L/s")
+                    l4.metric("Ajuste línea", f"{ajuste_linea:+.2f} L/s")
+                    st.markdown(
+                        "<div class='mini-note'><b>Interpretación:</b> no se suman dos conducciones independientes desde Diviso. "
+                        "Desde el 4400 sale una sola línea Cunduy-Malvinas; en la T se descuenta lo que entra a Cunduy y el remanente continúa a Malvinas.</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown("<div class='titulo-seccion-resultado'>Lectura en modo salida total 4400</div>", unsafe_allow_html=True)
+                    st.markdown(
+                        "<div class='mini-note'><b>Salida total:</b> el caudal total del tanque 4400 ya incluye todas las salidas, incluida la línea Cunduy-Malvinas. "
+                        "Por eso la app no calcula un ajuste de línea separado en este modo. Para ver el reparto Cunduy/Malvinas desde la conducción, cambia a Desglosar por salidas.</div>",
+                        unsafe_allow_html=True,
+                    )
         else:
             ajuste_total = 0.0
 
@@ -4399,7 +4431,7 @@ def mostrar_sistema_hidraulico():
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#48B9EA">
         <b>Lógica de la línea Cunduy-Malvinas</b><br>
-        La conducción se maneja como una sola línea que sale desde Diviso. Primero pasa por la T de Cunduy: una parte entra al tanque Cunduy y el remanente continúa hacia Malvinas. Por eso la app calcula: caudal a Malvinas = caudal de la línea − entrada a Cunduy. Si no tienes macromedidor de entrada en un tanque, usa la estimación por diferencia de nivel.
+        La conducción se maneja como una sola línea que sale desde Diviso. En modo <b>Desglosar por salidas</b>, esa línea se registra una sola vez y luego se reparte en la T: una parte entra al tanque Cunduy y el remanente continúa hacia Malvinas. En modo <b>Usar salida total</b>, el dato del 4400 ya incluye todas las salidas; por eso no se pide aparte el caudal de la línea y cada tanque destino se analiza con su entrada medida o estimada por diferencia de nivel.
         </div>
         """, unsafe_allow_html=True)
 
