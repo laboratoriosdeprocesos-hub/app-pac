@@ -1583,6 +1583,261 @@ body {
     components.html(html, height=540, scrolling=False)
 
 
+
+# =========================================
+# BLOQUE VISUAL DE FÓRMULAS HIDRÁULICAS — ESTILO PROFESIONAL
+# =========================================
+def mostrar_formulas_hidraulicas_profesionales():
+    """Muestra todas las fórmulas del Sistema hidráulico en tarjetas limpias.
+    Usa MathJax en components.html para que las expresiones se vean como documento técnico.
+    """
+    html = r"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #003A70;
+}
+.formula-wrap {
+    background: linear-gradient(135deg, #F7FCFF 0%, #EEF8FF 100%);
+    border: 1px solid #D6E8F7;
+    border-left: 6px solid #48B9EA;
+    border-radius: 18px;
+    padding: 18px 20px 16px 20px;
+    box-shadow: 0 6px 22px rgba(10, 22, 40, 0.06);
+}
+.formula-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    color: #005B8E;
+    font-size: 16px;
+    font-weight: 850;
+    letter-spacing: .2px;
+}
+.formula-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 14px;
+}
+.formula-card {
+    background: #FFFFFF;
+    border: 1px solid #CFE5F4;
+    border-radius: 16px;
+    padding: 14px 14px 12px 14px;
+    min-height: 142px;
+    box-shadow: 0 4px 16px rgba(10, 22, 40, 0.055);
+}
+.formula-name {
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: .55px;
+    font-weight: 800;
+    color: #4E6F8A;
+    margin-bottom: 6px;
+}
+.formula-eq {
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #004A8F;
+    overflow-x: auto;
+    padding: 2px 0;
+}
+.formula-note {
+    margin-top: 7px;
+    color: #4E6F8A;
+    line-height: 1.45;
+    font-size: 12px;
+}
+.formula-footer {
+    margin-top: 12px;
+    background: #FFFFFF;
+    border: 1px dashed #BDD6EE;
+    border-radius: 13px;
+    padding: 10px 12px;
+    color: #315C7E;
+    font-size: 12.5px;
+    line-height: 1.55;
+}
+.formula-warning {
+    margin-top: 10px;
+    background: #FFFDF7;
+    border: 1px solid #F3D98B;
+    border-left: 5px solid #F4B942;
+    border-radius: 13px;
+    padding: 10px 12px;
+    color: #5F4B1B;
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+@media (max-width: 760px) {
+    .formula-grid { grid-template-columns: 1fr; }
+    .formula-card { min-height: auto; }
+}
+</style>
+</head>
+<body>
+<div class="formula-wrap">
+    <div class="formula-title">📐 Fórmulas hidráulicas aplicadas</div>
+
+    <div class="formula-grid">
+        <div class="formula-card">
+            <div class="formula-name">1. Área equivalente del tanque</div>
+            <div class="formula-eq">\[A = \frac{C}{h_{max}}\]</div>
+            <div class="formula-note">Convierte capacidad y nivel máximo operativo en un área hidráulica aproximada.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">2. Volumen calculado desde el nivel</div>
+            <div class="formula-eq">\[V = h \times A\]</div>
+            <div class="formula-note">El operador ingresa nivel \(h\); la app calcula volumen. Se limita entre 0 y la capacidad.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">3. Porcentaje de llenado</div>
+            <div class="formula-eq">\[\%L = \frac{V}{C}\times 100\]</div>
+            <div class="formula-note">Sirve para clasificar el tanque como bajo, normal, alto o crítico.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">4. Volúmenes de referencia</div>
+            <div class="formula-eq">\[V_{min}=C\frac{p_{min}}{100}\quad V_{obj}=C\frac{p_{obj}}{100}\quad V_{alto}=C\frac{p_{alto}}{100}\]</div>
+            <div class="formula-note">Define mínimo, objetivo y nivel alto de operación según porcentajes configurados.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">5. Salida total por ramales</div>
+            <div class="formula-eq">\[Q_{salida}=\sum_{i=1}^{n} Q_i\]</div>
+            <div class="formula-note">Cuando se elige salida por ramales, la salida total se calcula sumando cada conducción.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">6. Salida total directa</div>
+            <div class="formula-eq">\[Q_{salida}=Q_{total}\]</div>
+            <div class="formula-note">Cuando ya existe un macromedidor total, se usa ese dato como salida del tanque.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">7. Balance hidráulico instantáneo</div>
+            <div class="formula-eq">\[Q_{neto}=Q_{entrada}-Q_{salida}\]</div>
+            <div class="formula-note">Si es positivo el tanque sube; si es negativo el tanque baja.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">8. Conversión de caudal a cambio horario</div>
+            <div class="formula-eq">\[\Delta V_h = 3.6\times Q_{neto}\]</div>
+            <div class="formula-note">Porque \(1\,L/s = 3.6\,m^3/h\). El resultado queda en \(m^3/h\).</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">9. Proyección de volumen</div>
+            <div class="formula-eq">\[V(t)=V_0+3.6\times Q_{neto}\times t\]</div>
+            <div class="formula-note">Estima el volumen futuro manteniendo constante el balance actual durante \(t\) horas.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">10. Cambio de nivel entre dos lecturas</div>
+            <div class="formula-eq">\[\Delta h=h_f-h_i\]</div>
+            <div class="formula-note">Se usa cuando no hay macromedidor de entrada y se tienen dos niveles con tiempo conocido.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">11. Cambio de volumen por diferencia de nivel</div>
+            <div class="formula-eq">\[\Delta V=A\times\Delta h\]</div>
+            <div class="formula-note">Convierte el cambio de altura del tanque en cambio de volumen.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">12. Caudal neto estimado por nivel</div>
+            <div class="formula-eq">\[Q_{neto,nivel}=\frac{\Delta V}{3.6\times\Delta t_h}\]</div>
+            <div class="formula-note">Calcula el balance real observado en \(L/s\) a partir de nivel inicial y final.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">13. Entrada estimada sin macromedidor</div>
+            <div class="formula-eq">\[Q_{entrada,est}=Q_{salida}+Q_{neto,nivel}\]</div>
+            <div class="formula-note">Si el tanque subió, la entrada estimada aumenta; si bajó, disminuye.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">14. Entrada requerida para llegar al objetivo</div>
+            <div class="formula-eq">\[Q_{req}=Q_{salida}+\frac{V_{obj}-V}{3.6\times T}\]</div>
+            <div class="formula-note">Calcula qué entrada se necesitaría para llegar al volumen objetivo en \(T\) horas.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">15. Tiempo a nivel alto</div>
+            <div class="formula-eq">\[t_{alto}=\frac{V_{alto}-V}{3.6\times Q_{neto}}\quad ;\quad Q_{neto}>0\]</div>
+            <div class="formula-note">Se aplica cuando el tanque está subiendo. Ayuda a prevenir rebose.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">16. Tiempo a nivel mínimo</div>
+            <div class="formula-eq">\[t_{min}=\frac{V-V_{min}}{3.6\times |Q_{neto}|}\quad ;\quad Q_{neto}<0\]</div>
+            <div class="formula-note">Se aplica cuando el tanque está bajando. Ayuda a prevenir desabastecimiento.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">17. Balance tanque Diviso 4400 m³</div>
+            <div class="formula-eq">\[Q_{neto,4400}=Q_{prod}-\left(Q_{1100}+Q_{linea\,CunMal}+\sum Q_{directas}\right)\]</div>
+            <div class="formula-note">Cunduy y Malvinas no se restan como dos salidas separadas del 4400; se usa una sola línea Cunduy-Malvinas.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">18. Balance tanque Diviso 1100 m³</div>
+            <div class="formula-eq">\[Q_{neto,1100}=Q_{4400\rightarrow1100}-Q_{salida,1100}\]</div>
+            <div class="formula-note">La entrada al 1100 m³ se toma como derivación desde el 4400 m³ cuando está seleccionado.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">19. Línea única en T hacia Cunduy y Malvinas</div>
+            <div class="formula-eq">\[Q_{linea\,CunMal}=Q_{entrada,Cun}+Q_{continua,Mal}\quad ;\quad Q_{continua,Mal}=\max(0, Q_{linea\,CunMal}-Q_{entrada,Cun})\]</div>
+            <div class="formula-note">Representa una sola conducción: primero deriva a Cunduy y el caudal restante continúa hacia Malvinas.</div>
+        </div>
+
+        <div class="formula-card">
+            <div class="formula-name">20. Límite máximo de conducción</div>
+            <div class="formula-eq">\[Q_{despacho}=\min(Q_{calculado},\,Q_{max})\]</div>
+            <div class="formula-note">Evita recomendar un caudal mayor al límite operativo configurado.</div>
+        </div>
+    </div>
+
+    <div class="formula-footer">
+        <b>Variables:</b>
+        \(A\): área equivalente en m² · \(C\): capacidad del tanque en m³ · \(h\): nivel actual en m ·
+        \(h_i\): nivel inicial · \(h_f\): nivel final · \(h_{max}\): nivel máximo operativo ·
+        \(V\): volumen actual en m³ · \(V_0\): volumen inicial · \(Q\): caudal en L/s ·
+        \(Q_{entrada}\): entrada · \(Q_{salida}\): salida · \(Q_{neto}\): balance ·
+        \(\Delta t_h\): tiempo en horas · \(T\): horizonte de corrección en horas.
+    </div>
+
+    <div class="formula-warning">
+        <b>Nota técnica:</b> estas fórmulas usan una aproximación lineal nivel-volumen. Si más adelante tienes la tabla real de calibración de cada tanque, el sistema puede reemplazar \(V=h\times A\) por una curva o tabla nivel-volumen más precisa.
+    </div>
+</div>
+</body>
+</html>
+"""
+    components.html(html, height=1720, scrolling=False)
+
+
 # =========================================
 # CALCULADORA DE CONSUMO PAC
 # =========================================
@@ -3845,7 +4100,7 @@ def mostrar_sistema_hidraulico():
     # DIVISO
     # ─────────────────────────────────────────────────────────────────────
     with tab_diviso:
-        st.markdown("<div class='titulo-seccion-resultado'>PTAP Diviso · tanques y salidas independientes</div>", unsafe_allow_html=True)
+        st.markdown("<div class='titulo-seccion-resultado'>PTAP Diviso · tanques independientes y línea única Cunduy-Malvinas</div>", unsafe_allow_html=True)
 
         with st.expander("⚙️ Geometría Diviso, Cunduy y Malvinas", expanded=False):
             g1, g2, g3, g4 = st.columns(4)
@@ -3875,7 +4130,7 @@ def mostrar_sistema_hidraulico():
         incluir_malvinas = "Tanque Malvinas" in selector
 
         # ── Tanque 4400 ─────────────────────────────────────────────────
-        card_inicio("Tanque Diviso 4400 m³", "Tanque fuente principal. Puede alimentar el tanque 1100 y las conducciones hacia Cunduy/Malvinas, además de otras salidas del sistema Diviso.")
+        card_inicio("Tanque Diviso 4400 m³", "Tanque fuente principal. Alimenta el tanque 1100 y una sola línea Cunduy-Malvinas. Esa línea pasa primero por la T de Cunduy y el caudal restante continúa hacia Malvinas.")
         t1, t2 = st.columns([1, 1.15], gap="large")
         with t1:
             nivel_4400 = st.number_input("Nivel actual 4400 (m)", min_value=0.0, max_value=max(nmax_4400 * 1.3, 1.0), value=3.52, step=0.01, format="%.2f", key="sish2_nivel_4400")
@@ -3885,8 +4140,7 @@ def mostrar_sistema_hidraulico():
         with t2:
             salidas_4400_default = [
                 ("Transferencia al tanque 1100", 35.00 if incluir_1100 else 0.00),
-                ("Conducción hacia Cunduy", 111.36 if incluir_cunduy else 0.00),
-                ("Conducción hacia Malvinas", 183.78 if incluir_malvinas else 0.00),
+                ("Línea Cunduy-Malvinas", 295.14 if (incluir_cunduy or incluir_malvinas) else 0.00),
                 ("Comuna Oriental", 0.00),
                 ("La Paz", 0.00),
                 ("Álamos", 0.00),
@@ -3898,14 +4152,37 @@ def mostrar_sistema_hidraulico():
             q_salida_4400, det_salidas_4400, modo_salida_4400 = input_salidas(
                 "tanque 4400", salidas_4400_default, 312.43, "sish2_4400", "Salidas del tanque 4400"
             )
+            if incluir_cunduy or incluir_malvinas:
+                if modo_salida_4400 == "Desglosar por salidas":
+                    q_linea_cunduy_malvinas = det_salidas_4400.get("Línea Cunduy-Malvinas", 0.0)
+                else:
+                    q_linea_cunduy_malvinas = st.number_input(
+                        "Caudal incluido en la salida total que corresponde a la línea Cunduy-Malvinas (L/s)",
+                        min_value=0.0,
+                        max_value=max(float(q_salida_4400), 1.0),
+                        value=min(float(q_salida_4400), 295.14),
+                        step=1.0,
+                        format="%.2f",
+                        key="sish2_q_linea_cunduy_malvinas_total",
+                        help="Esta es una sola conducción. Desde Diviso sale un caudal total por la línea; una parte entra a Cunduy por la T y el restante continúa hacia Malvinas.",
+                    )
+            else:
+                q_linea_cunduy_malvinas = 0.0
+            st.caption(
+                f"Línea Cunduy-Malvinas considerada como una sola conducción: {q_linea_cunduy_malvinas:.2f} L/s. "
+                "Luego se reparte en la T: entrada a Cunduy + caudal que continúa hacia Malvinas."
+            )
         q_in_4400, est_4400 = input_entrada("tanque 4400", "sish2_4400", q_prod_diviso, nivel_4400, cap_4400, nmax_4400, q_salida_4400)
         mostrar_resumen_tanque("4400", nivel_4400, vol_4400, cap_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)
         card_fin()
 
-        # En modo desglosado, tomamos transferencias reales desde la salida del 4400.
+        # En modo desglosado, tomamos la transferencia real al 1100 desde las salidas del 4400.
+        # La conducción Cunduy-Malvinas NO se maneja como dos salidas separadas desde Diviso:
+        # desde el 4400 sale una sola línea; en la T entra una parte a Cunduy y el restante continúa a Malvinas.
         q_hacia_1100 = det_salidas_4400.get("Transferencia al tanque 1100", 0.0) if modo_salida_4400 == "Desglosar por salidas" else 0.0
-        q_hacia_cunduy_desde_4400 = det_salidas_4400.get("Conducción hacia Cunduy", 0.0) if modo_salida_4400 == "Desglosar por salidas" else 111.36
-        q_hacia_malvinas_desde_4400 = det_salidas_4400.get("Conducción hacia Malvinas", 0.0) if modo_salida_4400 == "Desglosar por salidas" else max(0.0, q_salida_4400 - q_hacia_cunduy_desde_4400 - q_hacia_1100)
+        q_entrada_cunduy = 0.0
+        q_derivacion_cunduy_no_eval = 0.0
+        q_continua_malvinas = q_linea_cunduy_malvinas if incluir_malvinas else 0.0
 
         filas_eval = [evaluar_tanque("Diviso 4400", nivel_4400, cap_4400, nmax_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)]
         reqs_destinos = []
@@ -3949,17 +4226,44 @@ def mostrar_sistema_hidraulico():
                     "sish2_cunduy",
                     "Salidas de Cunduy",
                 )
-            q_in_cunduy, est_cunduy = input_entrada("Cunduy", "sish2_cunduy", q_hacia_cunduy_desde_4400, nivel_cunduy, cap_cunduy, nmax_cunduy, q_salida_cunduy)
+            q_default_cunduy = min(q_linea_cunduy_malvinas, 111.36) if q_linea_cunduy_malvinas > 0 else 111.36
+            q_in_cunduy, est_cunduy = input_entrada("Cunduy", "sish2_cunduy", q_default_cunduy, nivel_cunduy, cap_cunduy, nmax_cunduy, q_salida_cunduy)
+            q_entrada_cunduy = q_in_cunduy
+            q_continua_malvinas = max(0.0, q_linea_cunduy_malvinas - q_entrada_cunduy) if incluir_malvinas else 0.0
             mostrar_resumen_tanque("Cunduy", nivel_cunduy, vol_cunduy, cap_cunduy, q_in_cunduy, q_salida_cunduy, min_pct, objetivo_pct, alto_pct)
+            st.markdown(
+                f"<div class='mini-note'><b>T de Cunduy:</b> línea Cunduy-Malvinas = {q_linea_cunduy_malvinas:.2f} L/s · "
+                f"entrada a Cunduy = {q_entrada_cunduy:.2f} L/s · "
+                f"caudal que continúa hacia Malvinas = {q_continua_malvinas:.2f} L/s.</div>",
+                unsafe_allow_html=True,
+            )
+            if q_entrada_cunduy > q_linea_cunduy_malvinas + 0.5 and q_linea_cunduy_malvinas > 0:
+                st.warning("La entrada calculada/registrada a Cunduy es mayor que el caudal total de la línea Cunduy-Malvinas. Revisa si las lecturas corresponden al mismo periodo o si falta otro aporte.")
             req_cunduy = requerimiento_entrada(vol_cunduy, cap_cunduy, q_salida_cunduy, horizonte_h, objetivo_pct, alto_pct)
             max_cunduy = st.number_input("Máximo recomendado de entrada a Cunduy (L/s)", min_value=0.0, value=220.0, step=5.0, format="%.2f", key="sish2_qmax_cunduy")
             reqs_destinos.append({"Destino": "Cunduy", "Entrada actual (L/s)": q_in_cunduy, "Entrada requerida (L/s)": req_cunduy, "Máximo sugerido (L/s)": max_cunduy})
             filas_eval.append(evaluar_tanque("Cunduy", nivel_cunduy, cap_cunduy, nmax_cunduy, q_in_cunduy, q_salida_cunduy, min_pct, objetivo_pct, alto_pct))
             card_fin()
 
+        # Si Malvinas se evalúa pero Cunduy no, todavía hay que descontar la posible derivación de la T.
+        if incluir_malvinas and not incluir_cunduy:
+            st.markdown("<div class='titulo-seccion-resultado'>T de Cunduy en la línea hacia Malvinas</div>", unsafe_allow_html=True)
+            q_derivacion_cunduy_no_eval = st.number_input(
+                "Entrada o derivación a Cunduy, sin evaluar el tanque Cunduy (L/s)",
+                min_value=0.0,
+                max_value=max(float(q_linea_cunduy_malvinas), 1.0),
+                value=min(float(q_linea_cunduy_malvinas), 111.36),
+                step=1.0,
+                format="%.2f",
+                key="sish2_derivacion_cunduy_no_eval",
+                help="Aunque no evalúes el tanque Cunduy, si la línea pasa por la T debes descontar lo que entra a Cunduy para estimar lo que continúa a Malvinas.",
+            )
+            q_continua_malvinas = max(0.0, q_linea_cunduy_malvinas - q_derivacion_cunduy_no_eval)
+            st.caption(f"Caudal que continúa hacia Malvinas = {q_linea_cunduy_malvinas:.2f} - {q_derivacion_cunduy_no_eval:.2f} = {q_continua_malvinas:.2f} L/s")
+
         # ── Malvinas ─────────────────────────────────────────────────────
         if incluir_malvinas:
-            card_inicio("Tanque Malvinas", "Destino alimentado desde la línea que continúa después de Cunduy. Puedes usar salida total o ramales.")
+            card_inicio("Tanque Malvinas", "Destino alimentado por el caudal que continúa después de la T de Cunduy. Puedes usar salida total o ramales.")
             c1, c2 = st.columns([1, 1.15], gap="large")
             with c1:
                 nivel_malvinas = st.number_input("Nivel actual Malvinas (m)", min_value=0.0, max_value=max(nmax_malvinas * 1.3, 1.0), value=1.61, step=0.01, format="%.2f", key="sish2_nivel_malvinas")
@@ -3979,8 +4283,14 @@ def mostrar_sistema_hidraulico():
                     "sish2_malvinas",
                     "Salidas de Malvinas",
                 )
-            q_in_malvinas, est_malvinas = input_entrada("Malvinas", "sish2_malvinas", q_hacia_malvinas_desde_4400, nivel_malvinas, cap_malvinas, nmax_malvinas, q_salida_malvinas)
+            q_in_malvinas, est_malvinas = input_entrada("Malvinas", "sish2_malvinas", q_continua_malvinas, nivel_malvinas, cap_malvinas, nmax_malvinas, q_salida_malvinas)
             mostrar_resumen_tanque("Malvinas", nivel_malvinas, vol_malvinas, cap_malvinas, q_in_malvinas, q_salida_malvinas, min_pct, objetivo_pct, alto_pct)
+            st.markdown(
+                f"<div class='mini-note'><b>Entrada a Malvinas:</b> se toma como el caudal que continúa después de Cunduy. "
+                f"Línea total = {q_linea_cunduy_malvinas:.2f} L/s · descontado en Cunduy = {(q_entrada_cunduy if incluir_cunduy else q_derivacion_cunduy_no_eval):.2f} L/s · "
+                f"continúa hacia Malvinas = {q_continua_malvinas:.2f} L/s.</div>",
+                unsafe_allow_html=True,
+            )
             req_malvinas = requerimiento_entrada(vol_malvinas, cap_malvinas, q_salida_malvinas, horizonte_h, objetivo_pct, alto_pct)
             max_malvinas = st.number_input("Máximo recomendado de entrada a Malvinas (L/s)", min_value=0.0, value=260.0, step=5.0, format="%.2f", key="sish2_qmax_malvinas")
             reqs_destinos.append({"Destino": "Malvinas", "Entrada actual (L/s)": q_in_malvinas, "Entrada requerida (L/s)": req_malvinas, "Máximo sugerido (L/s)": max_malvinas})
@@ -4033,6 +4343,23 @@ def mostrar_sistema_hidraulico():
                 },
             )
             ajuste_total = rec_df["Entrada recomendada (L/s)"].sum() - rec_df["Entrada actual (L/s)"].sum()
+
+            rec_cunduy = float(rec_df.loc[rec_df["Destino"] == "Cunduy", "Entrada recomendada (L/s)"].sum()) if "Cunduy" in rec_df["Destino"].values else (q_derivacion_cunduy_no_eval if incluir_malvinas else 0.0)
+            rec_malvinas = float(rec_df.loc[rec_df["Destino"] == "Malvinas", "Entrada recomendada (L/s)"].sum()) if "Malvinas" in rec_df["Destino"].values else 0.0
+            if incluir_cunduy or incluir_malvinas:
+                q_linea_recomendada = rec_cunduy + rec_malvinas
+                ajuste_linea = q_linea_recomendada - q_linea_cunduy_malvinas
+                st.markdown("<div class='titulo-seccion-resultado'>Resumen de la línea única Cunduy-Malvinas</div>", unsafe_allow_html=True)
+                l1, l2, l3, l4 = st.columns(4)
+                l1.metric("Línea actual", f"{q_linea_cunduy_malvinas:.2f} L/s")
+                l2.metric("Entrada/derivación Cunduy", f"{(q_entrada_cunduy if incluir_cunduy else q_derivacion_cunduy_no_eval):.2f} L/s")
+                l3.metric("Continúa a Malvinas", f"{q_continua_malvinas:.2f} L/s")
+                l4.metric("Ajuste línea", f"{ajuste_linea:+.2f} L/s")
+                st.markdown(
+                    "<div class='mini-note'><b>Interpretación:</b> no se suman dos conducciones independientes desde Diviso. "
+                    "Desde el 4400 sale una sola línea Cunduy-Malvinas; en la T se descuenta lo que entra a Cunduy y el remanente continúa a Malvinas.</div>",
+                    unsafe_allow_html=True,
+                )
         else:
             ajuste_total = 0.0
 
@@ -4071,8 +4398,8 @@ def mostrar_sistema_hidraulico():
 
         st.markdown("""
         <div class="caja-rango" style="border-left-color:#48B9EA">
-        <b>Lógica de la línea Cunduy/Malvinas</b><br>
-        Si trabajas la conducción como una T, puedes registrar Cunduy y Malvinas por separado. Cuando no tienes todos los macromedidores, usa la estimación por cambio de nivel en cada tanque. Si las lecturas no fueron tomadas al mismo tiempo, puede aparecer diferencia por retardo hidráulico.
+        <b>Lógica de la línea Cunduy-Malvinas</b><br>
+        La conducción se maneja como una sola línea que sale desde Diviso. Primero pasa por la T de Cunduy: una parte entra al tanque Cunduy y el remanente continúa hacia Malvinas. Por eso la app calcula: caudal a Malvinas = caudal de la línea − entrada a Cunduy. Si no tienes macromedidor de entrada en un tanque, usa la estimación por diferencia de nivel.
         </div>
         """, unsafe_allow_html=True)
 
@@ -4198,33 +4525,7 @@ def mostrar_sistema_hidraulico():
     # Fórmulas usadas
     # ─────────────────────────────────────────────────────────────────────
     with tab_formulas:
-        st.markdown("<div class='titulo-seccion-resultado'>Fórmulas hidráulicas usadas</div>", unsafe_allow_html=True)
-        st.markdown("""
-        <div class="formula-box">
-        <b>1. Conversión de nivel a volumen</b><br>
-        Área equivalente = Capacidad del tanque / Nivel máximo operativo<br>
-        Volumen actual = Nivel actual × Área equivalente<br><br>
-
-        <b>2. Balance hidráulico del tanque</b><br>
-        Q neto = Q entrada − Q salida<br>
-        Cambio de volumen por hora = Q neto × 3.6<br>
-        porque 1 L/s = 3.6 m³/h.<br><br>
-
-        <b>3. Estimación de entrada cuando no hay macromedidor</b><br>
-        Δh = Nivel actual − Nivel anterior<br>
-        ΔV = Área equivalente × Δh<br>
-        Q neto por nivel = ΔV / tiempo<br>
-        Q entrada estimada = Q salida medida + Q neto por nivel<br><br>
-
-        <b>4. Caudal requerido para llegar al objetivo</b><br>
-        Q entrada requerida = Q salida + (Volumen objetivo − Volumen actual) / tiempo de corrección<br><br>
-
-        <b>5. Tiempo a límite</b><br>
-        Si el balance es positivo: tiempo a nivel alto = (Volumen alto − Volumen actual) / cambio horario<br>
-        Si el balance es negativo: tiempo a mínimo = (Volumen actual − Volumen mínimo) / |cambio horario|
-        </div>
-        """, unsafe_allow_html=True)
-        st.info("La precisión depende de que el nivel máximo y la capacidad configurada correspondan al tanque real. Si el tanque no tiene sección constante, lo ideal es cargar una tabla nivel-volumen calibrada.")
+        mostrar_formulas_hidraulicas_profesionales()
 
     st.markdown("""
     <div class="caja-rango" style="border-left-color:#e63946">
