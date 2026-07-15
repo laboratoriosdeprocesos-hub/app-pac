@@ -1639,9 +1639,13 @@ body {
     background: #FFFFFF;
     border: 1px solid #CFE5F4;
     border-radius: 16px;
-    padding: 14px 14px 12px 14px;
-    min-height: 142px;
+    padding: 16px 16px 14px 16px;
+    min-height: 150px;
     box-shadow: 0 4px 16px rgba(10, 22, 40, 0.055);
+}
+.formula-card-wide {
+    grid-column: 1 / -1;
+    min-height: 165px;
 }
 .formula-name {
     font-size: 12px;
@@ -1652,13 +1656,14 @@ body {
     margin-bottom: 6px;
 }
 .formula-eq {
-    min-height: 54px;
+    min-height: 68px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #004A8F;
     overflow-x: auto;
-    padding: 2px 0;
+    padding: 7px 3px;
+    font-size: 1.18rem;
 }
 .formula-note {
     margin-top: 7px;
@@ -1828,6 +1833,24 @@ body {
             <div class="formula-name">22. Límite máximo de conducción</div>
             <div class="formula-eq">\[Q_{despacho}=\min(Q_{calculado},\,Q_{max})\]</div>
             <div class="formula-note">Evita recomendar un caudal mayor al límite operativo configurado.</div>
+        </div>
+
+        <div class="formula-card formula-card-wide">
+            <div class="formula-name">23. Error de cierre de cada tanque</div>
+            <div class="formula-eq">\[\varepsilon=Q_{entrada}-Q_{salida}-\frac{V_f-V_i}{3.6\,\Delta t_h}\]</div>
+            <div class="formula-note">Si el error es cercano a cero, los caudales y el cambio de nivel son compatibles. Un error alto indica lecturas de horas distintas, una salida faltante, doble conteo o una medición incorrecta.</div>
+        </div>
+
+        <div class="formula-card formula-card-wide">
+            <div class="formula-name">24. Balance conjunto de los tanques 4400 y 1100</div>
+            <div class="formula-eq">\[\begin{aligned}Q_{entrada,4400}-\left(Q_{ext,4400}+Q_{salida,1100}\right)&=Q_{alm,4400}+Q_{alm,1100}\\[4pt]Q_{alm,j}&=\frac{V_{f,j}-V_{i,j}}{3.6\,\Delta t_h}\end{aligned}\]</div>
+            <div class="formula-note">La transferencia 4400 → 1100 es interna: sale del 4400 y entra al 1100, por eso se cancela en el balance conjunto y no debe contarse dos veces.</div>
+        </div>
+
+        <div class="formula-card formula-card-wide">
+            <div class="formula-name">25. Transferencia sostenible hacia el tanque 1100</div>
+            <div class="formula-eq">\[Q_{4400\rightarrow1100,sost}=Q_{entrada,4400}-Q_{ext,4400}-Q_{alm,4400,obj}\]</div>
+            <div class="formula-note">Para mantener estable el tanque 4400 se usa \(Q_{alm,4400,obj}=0\). Si la transferencia real es mayor, el 4400 debe bajar de nivel.</div>
         </div>
     </div>
 
@@ -3926,6 +3949,23 @@ def mostrar_sistema_hidraulico():
         q_entrada = max(0.0, float(salida_ls) + q_neto_ls)
         return q_entrada, delta_h, delta_v, q_neto_ls
 
+    def error_cierre_balance(q_entrada, q_salida, nivel_actual, nivel_anterior, capacidad_m3, nivel_max_m, periodo_min):
+        """Calcula el error de cierre en L/s usando caudales y cambio observado de nivel."""
+        delta_h, delta_v, q_almacenamiento = cambio_por_nivel(
+            nivel_actual,
+            nivel_anterior,
+            capacidad_m3,
+            nivel_max_m,
+            periodo_min,
+        )
+        error_ls = float(q_entrada) - float(q_salida) - float(q_almacenamiento)
+        return {
+            "delta_h_m": delta_h,
+            "delta_v_m3": delta_v,
+            "q_almacenamiento_ls": q_almacenamiento,
+            "error_ls": error_ls,
+        }
+
     def tiempo_a_limite(volumen, capacidad, q_neto_ls, min_pct, alto_pct):
         q_m3h = q_to_m3h(q_neto_ls)
         v_min = capacidad * min_pct / 100.0
@@ -4451,7 +4491,7 @@ body {{
         card_inicio(
             "Tanque Diviso 4400 m³",
             "Recibe una sola entrada de agua producida por los módulos 500 y 150 ya unidos antes del tanque. "
-            "Esa entrada se usa como macromedidor total; si el macro falla, se estima con diferencia de nivel del 4400 y sus salidas. "
+            "La entrada puede registrarse con macromedidor total, estimarse por diferencia de nivel o desglosarse como suma de los módulos 500 y 150. "
             "Sus salidas principales son: línea Cunduy-Malvinas, Línea de Occidente, transferencia al tanque 1100 m³ y otras si existen."
         )
         t1, t2 = st.columns([1, 1.15], gap="large")
@@ -4640,45 +4680,207 @@ body {{
             cap_4400,
             nmax_4400,
             q_salida_4400,
-            permitir_modulos=False,
+            permitir_modulos=True,
         )
         mostrar_resumen_tanque("4400", nivel_4400, vol_4400, cap_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)
 
-        q_deficit_4400 = q_salida_4400 - q_in_4400
-        q_transferencia_sostenible = max(0.0, q_in_4400 - q_salida_4400_base)
-        st.markdown("<div class='titulo-seccion-resultado'>Revisión de coherencia hidráulica 4400 → 1100</div>", unsafe_allow_html=True)
-        cco1, cco2, cco3 = st.columns(3)
-        cco1.metric("Entrada total 4400", f"{q_in_4400:.2f} L/s")
-        cco2.metric("Salida total 4400", f"{q_salida_4400:.2f} L/s", f"{q_salida_4400 - q_in_4400:+.2f} L/s")
-        cco3.metric("Transferencia estable máxima al 1100", f"{q_transferencia_sostenible:.2f} L/s")
-        st.markdown(
-            f"<div class='mini-note'><b>Lógica:</b> para que el 4400 no baje, debe cumplirse "
-            f"<b>Q salida total 4400 ≤ Q entrada 4400</b>. Como las salidas directas son {q_salida_4400_base:.2f} L/s, "
-            f"la transferencia al 1100 sostenible sin bajar el 4400 es aproximadamente "
-            f"<b>{q_transferencia_sostenible:.2f} L/s</b>. Si la transferencia calculada al 1100 es mayor, el 4400 solo puede sostenerlo usando agua almacenada y bajando de nivel.</div>",
-            unsafe_allow_html=True,
-        )
-        if incluir_1100 and q_hacia_1100 > q_transferencia_sostenible + max(margen_ls, 0.5):
-            st.warning(
-                f"La transferencia calculada al 1100 ({q_hacia_1100:.2f} L/s) supera la transferencia estable disponible "
-                f"desde el 4400 ({q_transferencia_sostenible:.2f} L/s). Para que ese dato sea coherente, el tanque 4400 debe estar bajando de nivel "
-                f"o alguna lectura de entrada/salida no corresponde al mismo periodo."
-            )
-        if q_deficit_4400 > max(margen_ls, 0.5):
-            descenso_m3h_4400 = q_deficit_4400 * 3.6
-            horas_a_vacio_operativo = vol_4400 / descenso_m3h_4400 if descenso_m3h_4400 > 0 else None
-            st.warning(
-                f"La salida total del 4400 supera la entrada por {q_deficit_4400:.2f} L/s. "
-                f"Eso no significa que la fórmula esté mala: significa que el tanque 4400 está bajando a {descenso_m3h_4400:.2f} m³/h. "
-                f"Con el volumen actual, si se mantiene así, el tanque podría agotarse aproximadamente en {fmt_tiempo(horas_a_vacio_operativo)}. "
-                f"Revisa si la entrada al 1100, sus salidas y el periodo de niveles corresponden al mismo momento de operación."
-            )
-        elif q_in_4400 - q_salida_4400 > max(margen_ls, 0.5):
-            st.success(f"Balance coherente: el 4400 está subiendo o recuperando volumen en {(q_in_4400-q_salida_4400)*3.6:.2f} m³/h.")
-        else:
-            st.info("Balance casi estable: la entrada y la salida total del 4400 están dentro del margen configurado.")
+        # ── Coherencia hidráulica exacta 4400 → 1100 ─────────────────
+        # La transferencia al 1100 se cuenta una sola vez: es salida del 4400 y entrada del 1100.
+        # Que la salida total supere la entrada es posible únicamente si el tanque aporta almacenamiento.
+        q_almacenamiento_calculado_4400 = q_in_4400 - q_salida_4400
+        q_transferencia_estable = max(0.0, q_in_4400 - q_salida_4400_base)
+        area_4400 = area_equivalente(cap_4400, nmax_4400)
+        cambio_altura_teorico_m_h = safe_div(q_almacenamiento_calculado_4400 * 3.6, area_4400, 0.0)
 
-        filas_eval = [evaluar_tanque("Diviso 4400", nivel_4400, cap_4400, nmax_4400, q_in_4400, q_salida_4400, min_pct, objetivo_pct, alto_pct)] + filas_destinos
+        st.markdown("<div class='titulo-seccion-resultado'>Coherencia matemática del sistema 4400 → 1100</div>", unsafe_allow_html=True)
+        cco1, cco2, cco3, cco4 = st.columns(4)
+        cco1.metric("Entrada al 4400", f"{q_in_4400:.2f} L/s")
+        cco2.metric("Salida total del 4400", f"{q_salida_4400:.2f} L/s", f"{q_salida_4400-q_in_4400:+.2f} L/s")
+        cco3.metric("Transferencia 4400 → 1100", f"{q_hacia_1100:.2f} L/s")
+        cco4.metric("Transferencia estable al 1100", f"{q_transferencia_estable:.2f} L/s")
+
+        if q_almacenamiento_calculado_4400 < -max(margen_ls, 0.5):
+            st.warning(
+                f"Las salidas superan la entrada en {abs(q_almacenamiento_calculado_4400):.2f} L/s. "
+                f"Eso exige que el tanque 4400 entregue {abs(q_almacenamiento_calculado_4400)*3.6:.2f} m³/h de su volumen almacenado. "
+                f"Con la geometría lineal configurada, el nivel debería bajar aproximadamente {abs(cambio_altura_teorico_m_h):.3f} m/h. "
+                "El resultado solo es coherente si el nivel realmente disminuye a una velocidad semejante."
+            )
+        elif q_almacenamiento_calculado_4400 > max(margen_ls, 0.5):
+            st.success(
+                f"El tanque 4400 está almacenando aproximadamente {q_almacenamiento_calculado_4400:.2f} L/s "
+                f"({q_almacenamiento_calculado_4400*3.6:.2f} m³/h)."
+            )
+        else:
+            st.info("La entrada y la salida total del tanque 4400 están casi equilibradas.")
+
+        with st.expander("Validar el balance con niveles del mismo periodo", expanded=True):
+            st.markdown(
+                "Ingresa los niveles iniciales medidos antes del intervalo. Los niveles actuales mostrados arriba se toman como niveles finales. "
+                "Todos los caudales deben corresponder al mismo periodo.",
+                unsafe_allow_html=True,
+            )
+            vb1, vb2, vb3 = st.columns(3)
+            with vb1:
+                periodo_validacion_min = st.number_input(
+                    "Tiempo entre nivel inicial y final (min)",
+                    min_value=1.0,
+                    value=60.0,
+                    step=5.0,
+                    format="%.0f",
+                    key="sish_validacion_periodo",
+                )
+            with vb2:
+                nivel_inicial_4400 = st.number_input(
+                    "Nivel inicial 4400 (m)",
+                    min_value=0.0,
+                    max_value=max(nmax_4400 * 1.3, 1.0),
+                    value=max(0.0, nivel_4400 + 0.05),
+                    step=0.01,
+                    format="%.2f",
+                    key="sish_validacion_nivel_4400",
+                )
+            with vb3:
+                if incluir_1100:
+                    nivel_inicial_1100 = st.number_input(
+                        "Nivel inicial 1100 (m)",
+                        min_value=0.0,
+                        max_value=max(nmax_1100 * 1.3, 1.0),
+                        value=float(nivel_1100),
+                        step=0.01,
+                        format="%.2f",
+                        key="sish_validacion_nivel_1100",
+                    )
+                else:
+                    nivel_inicial_1100 = 0.0
+
+            cierre_4400 = error_cierre_balance(
+                q_in_4400,
+                q_salida_4400,
+                nivel_4400,
+                nivel_inicial_4400,
+                cap_4400,
+                nmax_4400,
+                periodo_validacion_min,
+            )
+
+            if incluir_1100:
+                cierre_1100 = error_cierre_balance(
+                    q_hacia_1100,
+                    q_salida_1100,
+                    nivel_1100,
+                    nivel_inicial_1100,
+                    cap_1100,
+                    nmax_1100,
+                    periodo_validacion_min,
+                )
+            else:
+                cierre_1100 = {
+                    "delta_h_m": 0.0,
+                    "delta_v_m3": 0.0,
+                    "q_almacenamiento_ls": 0.0,
+                    "error_ls": 0.0,
+                }
+
+            # Salidas externas del 4400: no incluyen la transferencia interna al 1100.
+            if modo_salida_4400 == "Desglosar por salidas":
+                q_externas_4400 = q_salida_4400_base
+            else:
+                q_externas_4400 = max(
+                    0.0,
+                    q_salida_4400 - (q_hacia_1100 if incluir_1100 else 0.0),
+                )
+
+            q_salidas_externas_sistema = q_externas_4400 + (q_salida_1100 if incluir_1100 else 0.0)
+            q_almacenamiento_sistema = (
+                cierre_4400["q_almacenamiento_ls"]
+                + cierre_1100["q_almacenamiento_ls"]
+            )
+            error_sistema = (
+                q_in_4400
+                - q_salidas_externas_sistema
+                - q_almacenamiento_sistema
+            )
+
+            rv1, rv2, rv3, rv4 = st.columns(4)
+            rv1.metric("Almacenamiento observado 4400", f"{cierre_4400['q_almacenamiento_ls']:+.2f} L/s")
+            rv2.metric("Error de cierre 4400", f"{cierre_4400['error_ls']:+.2f} L/s")
+            rv3.metric(
+                "Error de cierre 1100",
+                f"{cierre_1100['error_ls']:+.2f} L/s" if incluir_1100 else "No incluido",
+            )
+            rv4.metric("Error conjunto 4400 + 1100", f"{error_sistema:+.2f} L/s")
+
+            st.latex(
+                r"\varepsilon_{4400}=Q_{entrada,4400}-Q_{salida,4400}-\frac{V_{f,4400}-V_{i,4400}}{3.6\,\Delta t_h}"
+            )
+            if incluir_1100:
+                st.latex(
+                    r"\varepsilon_{1100}=Q_{4400\rightarrow1100}-Q_{salida,1100}-\frac{V_{f,1100}-V_{i,1100}}{3.6\,\Delta t_h}"
+                )
+                st.latex(
+                    r"Q_{entrada,4400}-\left(Q_{ext,4400}+Q_{salida,1100}\right)=Q_{alm,4400}+Q_{alm,1100}"
+                )
+
+            tolerancia_cierre = max(float(margen_ls), 5.0)
+            errores_individuales = [abs(cierre_4400["error_ls"])]
+            if incluir_1100:
+                errores_individuales.append(abs(cierre_1100["error_ls"]))
+
+            if abs(error_sistema) <= tolerancia_cierre and max(errores_individuales) <= tolerancia_cierre:
+                st.success(
+                    f"Balance consistente dentro de ±{tolerancia_cierre:.2f} L/s. "
+                    "La transferencia 4400 → 1100 fue contada una sola vez y se cancela en el balance conjunto."
+                )
+            elif abs(error_sistema) <= tolerancia_cierre * 2:
+                st.warning(
+                    "El balance presenta una diferencia moderada. Revisa que todos los niveles y caudales sean del mismo intervalo, "
+                    "que no falte una salida y que los macromedidores tengan la misma hora de lectura."
+                )
+            else:
+                st.error(
+                    "Los datos no cierran matemáticamente. Revisa doble conteo, salidas faltantes, horarios diferentes, "
+                    "lecturas de nivel, macromedidores o la geometría nivel-volumen utilizada."
+                )
+
+            tabla_cierre = pd.DataFrame([
+                {
+                    "Elemento": "Tanque 4400",
+                    "Entrada (L/s)": q_in_4400,
+                    "Salida (L/s)": q_salida_4400,
+                    "Almacenamiento observado (L/s)": cierre_4400["q_almacenamiento_ls"],
+                    "Error de cierre (L/s)": cierre_4400["error_ls"],
+                },
+                *([{
+                    "Elemento": "Tanque 1100",
+                    "Entrada (L/s)": q_hacia_1100,
+                    "Salida (L/s)": q_salida_1100,
+                    "Almacenamiento observado (L/s)": cierre_1100["q_almacenamiento_ls"],
+                    "Error de cierre (L/s)": cierre_1100["error_ls"],
+                }] if incluir_1100 else []),
+                {
+                    "Elemento": "Sistema conjunto",
+                    "Entrada (L/s)": q_in_4400,
+                    "Salida externa (L/s)": q_salidas_externas_sistema,
+                    "Almacenamiento observado (L/s)": q_almacenamiento_sistema,
+                    "Error de cierre (L/s)": error_sistema,
+                },
+            ])
+            st.dataframe(tabla_cierre.round(2), use_container_width=True, hide_index=True)
+
+        filas_eval = [
+            evaluar_tanque(
+                "Diviso 4400",
+                nivel_4400,
+                cap_4400,
+                nmax_4400,
+                q_in_4400,
+                q_salida_4400,
+                min_pct,
+                objetivo_pct,
+                alto_pct,
+            )
+        ] + filas_destinos
 
         # ── Cunduy ───────────────────────────────────────────────────────
         if incluir_cunduy:
@@ -6101,4 +6303,3 @@ with col_result:
         st.plotly_chart(fig, use_container_width=True)
  
     st.markdown("</div>", unsafe_allow_html=True)
- 
