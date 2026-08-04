@@ -25,22 +25,13 @@ from sklearn.neighbors import NearestNeighbors
 st.set_page_config(
     page_title="PTAP - DIVISO & CALDAS",
     page_icon="💧",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
  
 BASE_DIR = Path(__file__).resolve().parent
 DOCUMENTOS_DIR = BASE_DIR / "Documentos"
 
 LOGO_SERVAF_ARCHIVO = "servaf_color_vertical (1).png"
-
-
-def mostrar_html_embebido(contenido_html, alto):
-    """Renderiza HTML técnico en versiones nuevas y anteriores de Streamlit."""
-    if hasattr(st, "iframe"):
-        st.iframe(contenido_html, width="stretch", height=alto)
-    else:
-        components.html(contenido_html, height=alto, scrolling=False)
 
 
 def obtener_logo_servaf_base64():
@@ -730,795 +721,6 @@ div[data-baseweb="input"]:has(input[aria-invalid="true"]):focus-within {
 
 </style>
 """
-
-# =========================================
-# REDISEÑO OPERATIVO 2026
-# Capa visual: no modifica cálculos ni datos.
-# =========================================
-ESTILOS_REDISENO = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap');
-
-:root {
-    --ptap-navy-950: #062844;
-    --ptap-navy-900: #07365B;
-    --ptap-navy-800: #084A79;
-    --ptap-blue: #008ACB;
-    --ptap-cyan: #27BCB4;
-    --ptap-green: #69A943;
-    --ptap-amber: #E5A63A;
-    --ptap-red: #D85757;
-    --ptap-ink: #102C42;
-    --ptap-muted: #687D8D;
-    --ptap-line: #DCE7EC;
-    --ptap-surface: #FFFFFF;
-    --ptap-wash: #EDF5F8;
-    --ptap-canvas: #F4F8FA;
-    --ptap-shadow: 0 14px 45px rgba(18, 62, 87, 0.08);
-}
-
-html, body, [class*="css"], .stApp {
-    font-family: 'DM Sans', 'Segoe UI', sans-serif !important;
-}
-
-html, body, .stApp,
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"] {
-    background:
-        radial-gradient(circle at 94% 7%, rgba(39,188,180,.07), transparent 28rem),
-        var(--ptap-canvas) !important;
-    color: var(--ptap-ink) !important;
-}
-
-[data-testid="stHeader"], [data-testid="stToolbar"],
-[data-testid="stDecoration"], #MainMenu, footer {
-    display: none !important;
-}
-
-.block-container {
-    max-width: 1540px !important;
-    padding: 1.1rem clamp(1.1rem, 3vw, 3.1rem) 4.5rem !important;
-}
-
-/* Barra lateral */
-section[data-testid="stSidebar"] {
-    width: 272px !important;
-    min-width: 272px !important;
-    background:
-        linear-gradient(160deg, rgba(0,138,203,.17), transparent 35%),
-        var(--ptap-navy-950) !important;
-    border-right: 0 !important;
-    box-shadow: 14px 0 40px rgba(7,42,69,.10) !important;
-}
-
-section[data-testid="stSidebar"]::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto;
-    height: 4px;
-    z-index: 20;
-    background: linear-gradient(90deg, var(--ptap-blue), var(--ptap-cyan), var(--ptap-green));
-}
-
-section[data-testid="stSidebar"] > div:first-child {
-    background: transparent !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-    padding: 1.35rem 1rem 1rem !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] {
-    display: none !important;
-}
-
-.sidebar-brand-pro {
-    display: flex;
-    align-items: center;
-    gap: .72rem;
-    padding: .15rem .35rem 1.3rem;
-    margin-bottom: .9rem;
-    border-bottom: 1px solid rgba(255,255,255,.10);
-}
-
-.sidebar-brand-pro .brand-logo {
-    width: 51px;
-    height: 51px;
-    flex: 0 0 51px;
-    display: grid;
-    place-items: center;
-    padding: 4px;
-    overflow: hidden;
-    border-radius: 14px;
-    background: white;
-    box-shadow: 0 10px 28px rgba(0,0,0,.18);
-}
-
-.sidebar-brand-pro .brand-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.sidebar-brand-pro .brand-logo-fallback {
-    font-size: 1.25rem;
-    color: var(--ptap-blue);
-}
-
-.sidebar-brand-pro strong {
-    display: block;
-    color: #fff;
-    font-size: .98rem;
-    letter-spacing: -.02em;
-}
-
-.sidebar-brand-pro span {
-    display: block;
-    margin-top: .18rem;
-    color: rgba(255,255,255,.53);
-    font-size: .68rem;
-}
-
-.sidebar-group-label {
-    margin: 1.1rem .72rem .35rem;
-    color: rgba(255,255,255,.37);
-    font-size: .59rem;
-    font-weight: 700;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-}
-
-.sidebar-note {
-    padding: .7rem .72rem;
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 10px;
-    background: rgba(255,255,255,.035);
-    color: rgba(255,255,255,.46);
-    font-size: .59rem;
-    line-height: 1.45;
-}
-
-section[data-testid="stSidebar"] .stButton {
-    margin: 0 0 .18rem !important;
-}
-
-section[data-testid="stSidebar"] .stButton > button {
-    min-height: 44px !important;
-    justify-content: flex-start !important;
-    padding: 0 .75rem !important;
-    border: 1px solid transparent !important;
-    border-radius: 10px !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    color: rgba(255,255,255,.68) !important;
-    font-size: .75rem !important;
-    font-weight: 600 !important;
-    transition: all .16s ease !important;
-}
-
-section[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(255,255,255,.06) !important;
-    color: white !important;
-}
-
-section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
-    background: linear-gradient(90deg, rgba(0,138,203,.28), rgba(39,188,180,.12)) !important;
-    border-color: rgba(39,188,180,.15) !important;
-    box-shadow: inset 3px 0 var(--ptap-cyan) !important;
-    color: white !important;
-}
-
-.operator-card {
-    display: grid;
-    grid-template-columns: 35px 1fr;
-    gap: .62rem;
-    align-items: center;
-    margin-top: 1.15rem;
-    padding: .72rem;
-    border: 1px solid rgba(255,255,255,.10);
-    border-radius: 12px;
-    background: rgba(255,255,255,.045);
-}
-
-.operator-card .avatar {
-    width: 35px;
-    height: 35px;
-    display: grid;
-    place-items: center;
-    border-radius: 9px;
-    background: linear-gradient(145deg, var(--ptap-blue), #0a74b4);
-    color: white;
-    font-size: .61rem;
-    font-weight: 800;
-}
-
-.operator-card strong {
-    display: block;
-    color: white;
-    font-size: .65rem;
-}
-
-.operator-card span {
-    display: flex;
-    align-items: center;
-    gap: .35rem;
-    margin-top: .16rem;
-    color: rgba(255,255,255,.45);
-    font-size: .53rem;
-}
-
-.operator-card span::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #75D34E;
-    box-shadow: 0 0 0 3px rgba(117,211,78,.13);
-}
-
-/* Encabezado y títulos */
-.ptap-topbar {
-    min-height: 61px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin: -1.1rem calc(-1 * clamp(1.1rem, 3vw, 3.1rem)) 2.15rem;
-    padding: .72rem clamp(1.1rem, 3vw, 3.1rem);
-    border-bottom: 1px solid var(--ptap-line);
-    background: rgba(255,255,255,.88);
-    backdrop-filter: blur(16px);
-    position: sticky;
-    top: 0;
-    z-index: 30;
-}
-
-.ptap-topbar .topbar-kicker {
-    display: block;
-    margin-bottom: .1rem;
-    color: var(--ptap-muted);
-    font-size: .61rem;
-}
-
-.ptap-topbar .topbar-view {
-    color: var(--ptap-navy-950);
-    font-size: .91rem;
-    font-weight: 700;
-    letter-spacing: -.02em;
-}
-
-.topbar-tools {
-    display: flex;
-    align-items: center;
-    gap: .48rem;
-}
-
-.topbar-chip {
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    gap: .42rem;
-    padding: 0 .68rem;
-    border: 1px solid var(--ptap-line);
-    border-radius: 8px;
-    background: white;
-    color: var(--ptap-muted);
-    font-size: .59rem;
-    font-weight: 600;
-}
-
-.topbar-chip.plant {
-    color: var(--ptap-navy-800);
-}
-
-.topbar-chip.plant::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #75D34E;
-    box-shadow: 0 0 0 3px rgba(117,211,78,.13);
-}
-
-.ptap-page-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1.5rem;
-    margin: .15rem 0 1.4rem;
-}
-
-.ptap-page-head .eyebrow {
-    color: var(--ptap-blue);
-    font-size: .62rem;
-    font-weight: 800;
-    letter-spacing: .13em;
-    text-transform: uppercase;
-}
-
-.ptap-page-head h1 {
-    margin: .26rem 0 .28rem;
-    color: var(--ptap-navy-950);
-    font-family: 'Source Serif 4', Georgia, serif !important;
-    font-size: clamp(2rem, 3vw, 2.85rem) !important;
-    font-weight: 500 !important;
-    line-height: 1.04 !important;
-    letter-spacing: -.045em !important;
-}
-
-.ptap-page-head p {
-    max-width: 710px;
-    margin: 0;
-    color: var(--ptap-muted);
-    font-size: .74rem;
-    line-height: 1.55;
-}
-
-.support-badge {
-    min-width: 225px;
-    display: flex;
-    align-items: center;
-    gap: .58rem;
-    padding: .62rem .72rem;
-    border: 1px solid #CFE5EE;
-    border-radius: 10px;
-    background: #F1F9FC;
-}
-
-.support-badge > b {
-    width: 26px;
-    height: 26px;
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: var(--ptap-blue);
-    color: white;
-    font-family: Georgia, serif;
-    font-size: .73rem;
-    font-style: italic;
-}
-
-.support-badge strong, .support-badge span {
-    display: block;
-}
-
-.support-badge strong {
-    color: var(--ptap-navy-800);
-    font-size: .62rem;
-}
-
-.support-badge span {
-    margin-top: .08rem;
-    color: var(--ptap-muted);
-    font-size: .51rem;
-}
-
-/* Inicio */
-.home-welcome {
-    position: relative;
-    padding: clamp(1.5rem, 3vw, 2.5rem);
-    overflow: hidden;
-    border-radius: 18px;
-    background: linear-gradient(135deg, var(--ptap-navy-950), #075486);
-    box-shadow: 0 20px 50px rgba(6,40,68,.16);
-    color: white;
-}
-
-.home-welcome::after {
-    content: "";
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    right: -90px;
-    top: -115px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(39,188,180,.27), transparent 68%);
-}
-
-.home-welcome .eyebrow {
-    color: var(--ptap-cyan);
-    font-size: .61rem;
-    font-weight: 800;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-}
-
-.home-welcome h1 {
-    max-width: 720px;
-    margin: .55rem 0 .5rem;
-    color: white;
-    font-family: 'Source Serif 4', Georgia, serif !important;
-    font-size: clamp(2.2rem, 4.2vw, 4.15rem) !important;
-    font-weight: 500 !important;
-    line-height: .98 !important;
-    letter-spacing: -.052em !important;
-}
-
-.home-welcome p {
-    max-width: 650px;
-    margin: 0;
-    color: rgba(255,255,255,.66);
-    font-size: .78rem;
-    line-height: 1.6;
-}
-
-.home-status-line {
-    display: flex;
-    gap: 1.4rem;
-    margin-top: 1.35rem;
-}
-
-.home-status-line span {
-    display: flex;
-    align-items: center;
-    gap: .38rem;
-    color: rgba(255,255,255,.66);
-    font-size: .58rem;
-}
-
-.home-status-line span::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ptap-cyan);
-}
-
-.home-section-title {
-    margin: 1.55rem 0 .65rem;
-    color: var(--ptap-navy-950);
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.15rem;
-    font-weight: 600;
-}
-
-.home-module-card {
-    min-height: 174px;
-    display: flex;
-    flex-direction: column;
-    padding: 1.15rem;
-    border: 1px solid var(--ptap-line);
-    border-radius: 13px;
-    background: white;
-    box-shadow: 0 8px 24px rgba(11,54,82,.045);
-}
-
-.home-module-card .module-icon {
-    width: 37px;
-    height: 37px;
-    display: grid;
-    place-items: center;
-    margin-bottom: .8rem;
-    border-radius: 10px;
-    background: var(--ptap-navy-900);
-    color: var(--ptap-cyan);
-    font-size: .95rem;
-}
-
-.home-module-card small {
-    color: var(--ptap-blue);
-    font-size: .51rem;
-    font-weight: 800;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-}
-
-.home-module-card h3 {
-    margin: .32rem 0 .35rem;
-    color: var(--ptap-navy-950);
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.03rem;
-    font-weight: 600;
-}
-
-.home-module-card p {
-    margin: 0;
-    color: var(--ptap-muted);
-    font-size: .61rem;
-    line-height: 1.5;
-}
-
-/* Superficies y componentes nativos */
-.bloque, .panel-izquierdo, .panel-derecho,
-[data-testid="stVerticalBlockBorderWrapper"] {
-    border-color: var(--ptap-line) !important;
-    border-radius: 14px !important;
-    background: var(--ptap-surface) !important;
-    box-shadow: var(--ptap-shadow) !important;
-}
-
-.bloque {
-    padding: 1.15rem 1.2rem !important;
-}
-
-.etiqueta, .subtitulo-panel, .titulo-seccion-resultado {
-    color: var(--ptap-navy-950) !important;
-    font-family: 'Source Serif 4', Georgia, serif !important;
-    font-weight: 600 !important;
-    letter-spacing: -.02em !important;
-}
-
-.etiqueta {
-    font-size: 1.12rem !important;
-}
-
-.texto-panel, .caption, .stCaption, [data-testid="stCaptionContainer"] {
-    color: var(--ptap-muted) !important;
-}
-
-h1, h2, h3 {
-    color: var(--ptap-navy-950) !important;
-}
-
-h1, h2 {
-    font-family: 'Source Serif 4', Georgia, serif !important;
-    letter-spacing: -.035em !important;
-}
-
-hr {
-    border-color: var(--ptap-line) !important;
-}
-
-/* Botones principales */
-.stButton > button, .stDownloadButton > button,
-[data-testid="stFormSubmitButton"] > button {
-    min-height: 42px !important;
-    border: 1px solid var(--ptap-line) !important;
-    border-radius: 9px !important;
-    background: white !important;
-    box-shadow: 0 4px 13px rgba(12,62,91,.055) !important;
-    color: var(--ptap-navy-800) !important;
-    font-size: .69rem !important;
-    font-weight: 700 !important;
-    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease !important;
-}
-
-.stButton > button:hover, .stDownloadButton > button:hover,
-[data-testid="stFormSubmitButton"] > button:hover {
-    border-color: rgba(0,138,203,.45) !important;
-    box-shadow: 0 8px 19px rgba(0,138,203,.12) !important;
-    transform: translateY(-1px) !important;
-}
-
-.stButton > button[kind="primary"],
-[data-testid="stFormSubmitButton"] > button[kind="primary"] {
-    border-color: var(--ptap-navy-900) !important;
-    background: linear-gradient(100deg, var(--ptap-navy-900), var(--ptap-blue)) !important;
-    color: white !important;
-    box-shadow: 0 9px 20px rgba(0,138,203,.20) !important;
-}
-
-/* Campos */
-.stTextInput label, .stNumberInput label, .stSelectbox label,
-.stRadio label, .stSlider label, .stFileUploader label,
-.stMultiSelect label, .stCheckbox label, .stTextArea label {
-    color: var(--ptap-muted) !important;
-    font-size: .64rem !important;
-    font-weight: 600 !important;
-}
-
-div[data-baseweb="input"], div[data-baseweb="select"] > div,
-div[data-baseweb="textarea"] {
-    min-height: 42px !important;
-    border: 1px solid #CFDDE4 !important;
-    border-radius: 8px !important;
-    background: white !important;
-    box-shadow: none !important;
-}
-
-div[data-baseweb="input"]:focus-within,
-div[data-baseweb="select"] > div:focus-within,
-div[data-baseweb="textarea"]:focus-within {
-    border-color: var(--ptap-blue) !important;
-    box-shadow: 0 0 0 3px rgba(0,138,203,.09) !important;
-}
-
-div[data-baseweb="input"] input,
-div[data-baseweb="textarea"] textarea,
-div[data-baseweb="select"] * {
-    color: var(--ptap-navy-950) !important;
-    font-size: .7rem !important;
-}
-
-[data-testid="stFileUploaderDropzone"] {
-    border: 1px dashed #A9C8D5 !important;
-    border-radius: 10px !important;
-    background: #F5FAFC !important;
-}
-
-/* Métricas */
-[data-testid="stMetric"] {
-    min-height: 106px;
-    padding: .95rem 1rem !important;
-    border: 1px solid var(--ptap-line);
-    border-radius: 12px;
-    background: white;
-    box-shadow: 0 7px 20px rgba(11,54,82,.04);
-}
-
-[data-testid="stMetricLabel"] {
-    color: var(--ptap-muted) !important;
-    font-size: .58rem !important;
-}
-
-[data-testid="stMetricValue"] {
-    color: var(--ptap-navy-950) !important;
-    font-family: 'Source Serif 4', Georgia, serif !important;
-    font-size: 1.5rem !important;
-    letter-spacing: -.035em !important;
-}
-
-[data-testid="stMetricDelta"] {
-    font-size: .55rem !important;
-}
-
-/* Pestañas */
-.stTabs [data-baseweb="tab-list"] {
-    gap: .16rem !important;
-    padding: .28rem !important;
-    border: 1px solid var(--ptap-line) !important;
-    border-radius: 11px !important;
-    background: #E9F1F4 !important;
-}
-
-.stTabs [data-baseweb="tab"] {
-    min-height: 42px !important;
-    flex: 1 !important;
-    justify-content: center !important;
-    border-radius: 8px !important;
-    color: var(--ptap-muted) !important;
-    font-size: .66rem !important;
-    font-weight: 700 !important;
-}
-
-.stTabs [aria-selected="true"] {
-    background: white !important;
-    color: var(--ptap-navy-800) !important;
-    box-shadow: 0 4px 13px rgba(12,62,91,.10) !important;
-}
-
-.stTabs [data-baseweb="tab-highlight"] {
-    display: none !important;
-}
-
-/* Expandibles y alertas */
-[data-testid="stExpander"] {
-    border: 1px solid var(--ptap-line) !important;
-    border-radius: 10px !important;
-    background: white !important;
-    box-shadow: none !important;
-    overflow: hidden !important;
-}
-
-[data-testid="stExpander"] summary {
-    color: var(--ptap-navy-800) !important;
-    font-size: .66rem !important;
-    font-weight: 700 !important;
-}
-
-[data-testid="stAlert"] {
-    border-radius: 10px !important;
-    border-width: 1px !important;
-    font-size: .65rem !important;
-}
-
-/* Tablas */
-[data-testid="stDataFrame"], [data-testid="stDataEditor"] {
-    overflow: hidden !important;
-    border: 1px solid var(--ptap-line) !important;
-    border-radius: 11px !important;
-    background: white !important;
-    box-shadow: 0 7px 22px rgba(11,54,82,.04) !important;
-}
-
-[data-testid="stDataFrame"] [role="columnheader"],
-[data-testid="stDataEditor"] [role="columnheader"] {
-    background: #F1F6F8 !important;
-    color: var(--ptap-muted) !important;
-    font-size: .55rem !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    letter-spacing: .05em !important;
-}
-
-/* Gráficas */
-[data-testid="stPlotlyChart"] {
-    padding: .5rem !important;
-    border: 1px solid var(--ptap-line);
-    border-radius: 12px;
-    background: white;
-    box-shadow: 0 7px 22px rgba(11,54,82,.035);
-}
-
-/* Login */
-.login-left {
-    min-height: 565px !important;
-    padding: 2.7rem 2.5rem !important;
-    border-radius: 20px !important;
-    background:
-        linear-gradient(145deg, rgba(0,138,203,.12), transparent 44%),
-        linear-gradient(145deg, var(--ptap-navy-950), #075486) !important;
-    box-shadow: 0 24px 65px rgba(6,40,68,.21) !important;
-}
-
-.login-brand {
-    color: var(--ptap-cyan) !important;
-    font-size: .68rem !important;
-    letter-spacing: .14em !important;
-    text-transform: uppercase !important;
-}
-
-.login-headline {
-    max-width: 430px;
-    color: white !important;
-    font-family: 'Source Serif 4', Georgia, serif !important;
-    font-size: clamp(2.55rem, 4vw, 4.25rem) !important;
-    font-weight: 500 !important;
-    line-height: .96 !important;
-    letter-spacing: -.052em !important;
-}
-
-.login-headline span {
-    color: var(--ptap-cyan) !important;
-}
-
-.login-desc {
-    color: rgba(255,255,255,.65) !important;
-    font-size: .78rem !important;
-}
-
-.login-title-r {
-    color: var(--ptap-navy-950) !important;
-    font-family: 'Source Serif 4', Georgia, serif !important;
-    font-size: 2rem !important;
-    font-weight: 600 !important;
-    letter-spacing: -.035em;
-}
-
-.login-sub-r {
-    color: var(--ptap-muted) !important;
-    font-size: .75rem !important;
-}
-
-.login-bottom-note {
-    color: var(--ptap-muted) !important;
-    font-size: .63rem !important;
-}
-
-/* Ajustes móviles */
-@media (max-width: 900px) {
-    .block-container {
-        padding: .8rem 1rem 3rem !important;
-    }
-    .ptap-topbar {
-        margin: -.8rem -1rem 1.5rem;
-        padding: .65rem 1rem;
-    }
-    .topbar-chip.date { display: none; }
-    .ptap-page-head {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-    .support-badge {
-        width: 100%;
-        min-width: 0;
-    }
-    .home-status-line {
-        flex-direction: column;
-        gap: .45rem;
-    }
-}
-
-@media (max-width: 640px) {
-    .ptap-topbar .topbar-kicker { display: none; }
-    .ptap-topbar .topbar-view { font-size: .78rem; }
-    .topbar-chip { font-size: .52rem; }
-    .home-welcome { border-radius: 14px; }
-    .ptap-page-head h1 { font-size: 2rem !important; }
-}
-</style>
-"""
  
 # =========================================
 # LOGIN
@@ -1569,7 +771,6 @@ ESTILOS_LOGIN = """
 def mostrar_login():
     st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
     st.markdown(ESTILOS_LOGIN, unsafe_allow_html=True)
-    st.markdown(ESTILOS_REDISENO, unsafe_allow_html=True)
  
     col_l, col_c, col_r = st.columns([0.4, 2.6, 0.4])
  
@@ -1579,12 +780,12 @@ def mostrar_login():
         with left:
             st.markdown("""
             <div class="login-left">
-                <div class="login-brand">SERVAF · PTAP CONTROL</div>
+                <div class="login-brand">SERVAF</div>
                 <div class="login-center">
-                    <div class="login-headline">Operación que<br><span>se entiende</span><br>de un vistazo.</div>
+                    <div class="login-headline">Planta de tratamiento<br><span>de Agua</span><br>Potable</div>
                     <div class="login-desc">
-                        Herramienta web para la operación de las plantas Diviso y Caldas:
-                        PAC, niveles, caudales, balances y documentación controlada.
+                        Sistema inteligente de apoyo operativo basado en datos históricos y
+                        condiciones actuales para dosificación de PAC.
                     </div>
                 </div>
                 <div class="login-footer-left">Dirección de Producción y Tratamiento</div>
@@ -1593,9 +794,9 @@ def mostrar_login():
  
         with right:
             st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-            st.markdown("<div class='login-title-r'>Acceso institucional</div>", unsafe_allow_html=True)
+            st.markdown("<div class='login-title-r'>Iniciar sesión</div>", unsafe_allow_html=True)
             st.markdown(
-                "<div class='login-sub-r'>Ingresa con las credenciales asignadas a tu planta para abrir el centro de control.</div>",
+                "<div class='login-sub-r'>Accede con tus credenciales institucionales para continuar.</div>",
                 unsafe_allow_html=True
             )
  
@@ -1604,7 +805,7 @@ def mostrar_login():
  
             st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
  
-            if st.button("INGRESAR AL CENTRO DE CONTROL", key="btn_login", type="primary", width="stretch"):
+            if st.button("INGRESAR AL SISTEMA", key="btn_login"):
                 restante = segundos_restantes_bloqueo("login")
                 if restante > 0:
                     st.error(f"Acceso bloqueado temporalmente. Intenta nuevamente en {restante} segundos.")
@@ -1626,8 +827,8 @@ def mostrar_login():
  
             st.markdown("""
             <div class="login-bottom-note">
-                <span style="color:#8a9db0">Conexión protegida</span>
-                <span>DIVISO · CALDAS</span>
+                <span style="color:#8a9db0">Acceso institucional</span>
+                <span>PTAP DIVISO · CALDAS</span>
             </div>
             """, unsafe_allow_html=True)
  
@@ -1850,7 +1051,7 @@ def estilo_tabla_profesional(df, formatos=None, na_rep="Sin dato"):
 
 def mostrar_tabla_profesional(df, formatos=None, na_rep="Sin dato", height=None):
     styler = estilo_tabla_profesional(df, formatos=formatos, na_rep=na_rep)
-    kwargs = {"width": "stretch", "hide_index": True}
+    kwargs = {"use_container_width": True, "hide_index": True}
     if height is not None:
         kwargs["height"] = height
     try:
@@ -2379,7 +1580,7 @@ body {
 </body>
 </html>
 """
-    mostrar_html_embebido(html, 540)
+    components.html(html, height=540, scrolling=False)
 
 
 
@@ -2672,7 +1873,7 @@ body {
 </body>
 </html>
 """
-    mostrar_html_embebido(html, 6400)
+    components.html(html, height=6400, scrolling=False)
 
 
 # =========================================
@@ -2756,7 +1957,7 @@ def mostrar_calculadora_pac():
  
     c_btn1, c_btn2 = st.columns(2)
     with c_btn1:
-        if st.button("+ Agregar fila", width="stretch", key="btn_fila_base"):
+        if st.button("+ Agregar fila", use_container_width=True, key="btn_fila_base"):
             st.session_state.tabla_consumos_pac = pd.concat([
                 st.session_state.tabla_consumos_pac,
                 pd.DataFrame({"Hora inicio": [""], "Hora final": [""],
@@ -2764,7 +1965,7 @@ def mostrar_calculadora_pac():
             ], ignore_index=True)
             st.rerun()
     with c_btn2:
-        if st.button("🗑 Limpiar tabla", width="stretch", key="btn_limpiar_tabla"):
+        if st.button("🗑 Limpiar tabla", use_container_width=True, key="btn_limpiar_tabla"):
             st.session_state.tabla_consumos_pac = tabla_inicial.copy()
             st.rerun()
  
@@ -2777,7 +1978,7 @@ def mostrar_calculadora_pac():
  
     tabla_editada = st.data_editor(
         st.session_state.tabla_consumos_pac,
-        num_rows="dynamic", width="stretch", hide_index=True,
+        num_rows="dynamic", use_container_width=True, hide_index=True,
         key="editor_consumos_pac",
         column_config={
             "Hora inicio":         st.column_config.TextColumn("Hora inicio",          help="Ejemplo: 07:00 o 7", width="medium"),
@@ -2888,7 +2089,7 @@ def mostrar_calculadora_pac():
             yaxis=dict(title="Altura (m)", gridcolor="#E3F2F8"),
             margin=dict(l=20, r=20, t=40, b=20), height=300
         )
-        st.plotly_chart(fig_altura, width="stretch")
+        st.plotly_chart(fig_altura, use_container_width=True)
  
     st.markdown(f"""
     <div class="caja-rango">
@@ -4442,7 +3643,7 @@ def mostrar_calculadora_tanque():
             relacion_observada=rel_obs_display,
         )
 
-        mostrar_html_embebido(panel_html, 1060)
+        components.html(panel_html, height=1060, scrolling=False)
 
         # ── Gráfica Plotly (expandible) ──────────────────────────────────────
         with st.expander("📈 Proyección del nivel — próximas 6 horas", expanded=False):
@@ -4558,7 +3759,7 @@ def mostrar_calculadora_tanque():
                 margin=dict(l=24, r=110, t=18, b=54),
                 height=400
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -4993,10 +4194,10 @@ body {{
 </body>
 </html>
 """
-        mostrar_html_embebido(html, 500)
+        components.html(html, height=500, scrolling=False)
 
     def mostrar_tarjetas_formula_modulos_4400(q_mod_500, q_mod_150, q_total):
-        html = rf"""
+        html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -5096,7 +4297,7 @@ body {{
 </body>
 </html>
 """
-        mostrar_html_embebido(html, 360)
+        components.html(html, height=360, scrolling=False)
 
     def input_entrada(nombre_tanque, key_base, q_macro_default, nivel_actual, capacidad, nivel_max, salida_ls, forzar_estimacion=False, permitir_modulos=False):
         """Entrada por macromedidor, estimada con diferencia de nivel o, para Diviso 4400, desglosada por módulos."""
@@ -5236,7 +4437,7 @@ body {{
             yaxis_title="m³",
             legend=dict(orientation="h", y=1.10, x=0),
         )
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
     # ─────────────────────────────────────────────────────────────────────
     # Criterios generales
@@ -5886,7 +5087,7 @@ body {{
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("← Volver al menú", type="secondary", width="stretch", key="volver_menu_sistema_hidraulico"):
+    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_sistema_hidraulico"):
         st.session_state.vista = "menu"
         st.rerun()
 
@@ -6205,7 +5406,7 @@ def mostrar_pdf_en_pagina(ruta_pdf, alto=850):
 
     for numero_pagina, imagen_png in paginas:
         st.markdown(f"<div class='titulo-seccion-resultado'>Página {numero_pagina}</div>", unsafe_allow_html=True)
-        st.image(imagen_png, width="stretch")
+        st.image(imagen_png, use_container_width=True)
 
 
 def eliminar_pdfs_documentos(nombres_pdf):
@@ -6285,7 +5486,7 @@ def mostrar_documentos_sistema():
             )
         with cpin2:
             st.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
-            if st.button("Entrar", width="stretch", key="btn_ingresar_ver_documentos"):
+            if st.button("Entrar", use_container_width=True, key="btn_ingresar_ver_documentos"):
                 restante = segundos_restantes_bloqueo("documentos_consulta")
                 if restante > 0:
                     st.error(f"Consulta bloqueada temporalmente. Intenta nuevamente en {restante} segundos.")
@@ -6308,7 +5509,7 @@ def mostrar_documentos_sistema():
             placeholder="Ingresa el PIN de administrador",
             key="pin_admin_documentos"
         )
-        if st.button("Activar modo administrador", width="stretch", key="btn_ingresar_admin_documentos"):
+        if st.button("Activar modo administrador", use_container_width=True, key="btn_ingresar_admin_documentos"):
             restante = segundos_restantes_bloqueo("documentos_admin")
             if restante > 0:
                 st.error(f"Administrador bloqueado temporalmente. Intenta nuevamente en {restante} segundos.")
@@ -6331,17 +5532,17 @@ def mostrar_documentos_sistema():
 
     col_bloq1, col_bloq2, col_bloq3 = st.columns([1, 1, 1])
     with col_bloq1:
-        if st.button("🔒 Bloquear consulta", type="secondary", width="stretch", key="btn_bloquear_ver_documentos"):
+        if st.button("🔒 Bloquear consulta", type="secondary", use_container_width=True, key="btn_bloquear_ver_documentos"):
             st.session_state.documentos_autorizado = False
             st.session_state.documentos_admin_autorizado = False
             st.rerun()
     with col_bloq2:
         if st.session_state.get("documentos_admin_autorizado", False):
-            if st.button("🔒 Salir de admin", type="secondary", width="stretch", key="btn_bloquear_admin_documentos"):
+            if st.button("🔒 Salir de admin", type="secondary", use_container_width=True, key="btn_bloquear_admin_documentos"):
                 st.session_state.documentos_admin_autorizado = False
                 st.rerun()
     with col_bloq3:
-        if st.button("🔄 Actualizar lista", width="stretch", key="btn_actualizar_documentos_top"):
+        if st.button("🔄 Actualizar lista", use_container_width=True, key="btn_actualizar_documentos_top"):
             st.rerun()
 
     # ---------------------------------------------------------
@@ -6380,7 +5581,7 @@ def mostrar_documentos_sistema():
                 key="chk_reemplazar_pdf_admin"
             )
 
-            if st.button("Guardar PDF(s)", width="stretch", key="btn_guardar_pdfs_admin"):
+            if st.button("Guardar PDF(s)", use_container_width=True, key="btn_guardar_pdfs_admin"):
                 if not archivos:
                     st.info("Primero selecciona al menos un PDF.")
                 else:
@@ -6408,7 +5609,7 @@ def mostrar_documentos_sistema():
                     key="chk_confirmar_borrado_pdfs"
                 )
 
-                if st.button("Eliminar PDF seleccionado(s)", width="stretch", key="btn_eliminar_pdfs_admin"):
+                if st.button("Eliminar PDF seleccionado(s)", use_container_width=True, key="btn_eliminar_pdfs_admin"):
                     if not seleccion_borrar:
                         st.info("Selecciona al menos un PDF para eliminar.")
                     elif not confirmar_borrado:
@@ -6454,7 +5655,7 @@ def mostrar_documentos_sistema():
             data=pdf_bytes,
             file_name=ruta_seleccionada.name,
             mime="application/pdf",
-            width="stretch",
+            use_container_width=True,
             key="btn_descargar_pdf"
         )
 
@@ -6478,15 +5679,145 @@ if not st.session_state.autenticado:
     st.stop()
  
 st.markdown(ESTILOS_GLOBALES, unsafe_allow_html=True)
-st.markdown(ESTILOS_REDISENO, unsafe_allow_html=True)
+ 
+ 
+# =========================================
+# ENCABEZADO
+# =========================================
+planta_badge = st.session_state.get("planta_usuario", "")
+logo_servaf_b64 = obtener_logo_servaf_base64()
+
+if logo_servaf_b64:
+    # IMPORTANTE: se construye en una sola línea, sin sangría inicial.
+    # Si el HTML queda indentado, Markdown puede mostrarlo como texto/código.
+    logo_header_html = (
+        f'<div class="header-logo-card">'
+        f'<img src="data:image/png;base64,{logo_servaf_b64}" alt="SERVAF">'
+        f'</div>'
+    )
+else:
+    logo_header_html = '<div class="header-logo">💧 SERVAF</div>'
+
+st.markdown(f"""
+<div class="app-header">
+    <div class="header-left-brand">
+        Dirección Producción
+        <span>y Tratamiento</span>
+    </div>
+    <div class="header-title">
+        HERRAMIENTA WEB DE APOYO PARA OPERACIÓN<br>
+        <span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.72)">
+            Planta de Tratamiento Agua Potable · Diviso & Caldas
+        </span>
+    </div>
+    {logo_header_html}
+</div>
+""", unsafe_allow_html=True)
+ 
+ 
+# =========================================
+# MENÚ PROFESIONAL OPTIMIZADO
+# =========================================
+MENU_PROFESIONAL_CSS = """
+<style>
+.menu-pro-shell {
+    padding: 0.95rem 1.15rem 1.05rem 1.15rem !important;
+    margin-bottom: 1rem !important;
+}
+.menu-pro-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.15rem 0.2rem 0.8rem 0.2rem;
+    border-bottom: 1px solid #e4edf8;
+    margin-bottom: 0.85rem;
+}
+.menu-pro-title {
+    font-size: 1.08rem;
+    font-weight: 850;
+    color: #003A70;
+    letter-spacing: -0.01em;
+}
+.menu-pro-subtitle {
+    color: #4E6F8A;
+    font-size: 0.84rem;
+    margin-top: 0.15rem;
+    line-height: 1.35;
+}
+.menu-pro-active {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #E6F5FB, #f3f9ff);
+    border: 1px solid #cde3ff;
+    color: #004A8F;
+    border-radius: 999px;
+    padding: 0.42rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.menu-pro-group {
+    background: linear-gradient(180deg, #ffffff 0%, #F7FCFF 100%);
+    border: 1px solid #CFE5F4;
+    border-radius: 18px;
+    padding: 0.85rem 0.95rem 0.95rem 0.95rem;
+    box-shadow: 0 5px 18px rgba(10,22,40,0.055);
+    min-height: 118px;
+    margin-bottom: 0.2rem;
+}
+.menu-pro-group-title {
+    font-size: 0.91rem;
+    font-weight: 850;
+    color: #005B8E;
+    text-transform: none;
+    letter-spacing: 0.045em;
+    margin-bottom: 0.2rem;
+}
+.menu-pro-group-text {
+    color: #4E6F8A;
+    font-size: 0.80rem;
+    line-height: 1.42;
+    min-height: 2.1rem;
+    margin-bottom: 0.55rem;
+}
+.menu-pro-mini-note {
+    background: #f3f8ff;
+    color: #486681;
+    border: 1px dashed #c8def5;
+    border-radius: 12px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    margin-top: 0.55rem;
+}
+.menu-pro-shell .stButton > button {
+    min-height: 40px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+    padding: 0.35rem 0.55rem !important;
+    box-shadow: 0 4px 14px rgba(26,111,255,0.15) !important;
+}
+.menu-pro-shell .stButton > button[kind="secondary"] {
+    box-shadow: 0 3px 10px rgba(10,22,40,0.055) !important;
+}
+@media (max-width: 900px) {
+    .menu-pro-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .menu-pro-active {
+        white-space: normal;
+    }
+}
+</style>
+"""
+st.markdown(MENU_PROFESIONAL_CSS, unsafe_allow_html=True)
 
 
-# =========================================
-# NAVEGACIÓN Y ENCABEZADO OPERATIVO
-# =========================================
 if st.session_state.vista in ("scada", "historico_scada", "tanque"):
     st.session_state.vista = "despacho"
-
 
 def nombre_vista_actual(vista):
     nombres = {
@@ -6499,223 +5830,102 @@ def nombre_vista_actual(vista):
     return nombres.get(vista, "Inicio")
 
 
-def cambiar_vista(vista):
-    st.session_state.vista = vista
-    st.rerun()
+st.markdown("<div class='bloque menu-pro-shell'>", unsafe_allow_html=True)
+st.markdown(f"""
+<div class="menu-pro-header">
+    <div>
+        <div class="menu-pro-title">Centro de control operativo</div>
+        <div class="menu-pro-subtitle">Accesos organizados por proceso. El menú queda compacto para no ocupar espacio en las pantallas de resultados.</div>
+    </div>
+    <div class="menu-pro-active">Vista actual: {nombre_vista_actual(st.session_state.vista)}</div>
+</div>
+""", unsafe_allow_html=True)
 
+col_pac, col_hid, col_doc, col_sesion = st.columns([1.05, 1.45, 1.05, 0.85], gap="medium")
 
-planta_badge = st.session_state.get("planta_usuario", "") or "PTAP"
-logo_servaf_b64 = obtener_logo_servaf_base64()
+with col_pac:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">💧 PAC y laboratorio</div>
+        <div class="menu-pro-group-text">Consulta datos históricos, calcula consumos y apoya la prueba de jarras.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    b1, b2 = st.columns(2, gap="small")
+    with b1:
+        if st.button("Recomendación", use_container_width=True, key="btn_ir_recomendacion", type="primary" if st.session_state.vista == "recomendacion" else "secondary"):
+            st.session_state.vista = "recomendacion"
+            st.rerun()
+    with b2:
+        if st.button("Calculadora PAC", use_container_width=True, key="btn_ir_calculadora", type="primary" if st.session_state.vista == "calculadora" else "secondary"):
+            st.session_state.vista = "calculadora"
+            st.rerun()
 
-if logo_servaf_b64:
-    logo_sidebar = (
-        f'<div class="brand-logo">'
-        f'<img src="data:image/png;base64,{logo_servaf_b64}" alt="SERVAF">'
-        f'</div>'
-    )
-else:
-    logo_sidebar = '<div class="brand-logo brand-logo-fallback">💧</div>'
-
-
-with st.sidebar:
-    st.markdown(
-        f'''<div class="sidebar-brand-pro">
-            {logo_sidebar}
-            <div><strong>PTAP Control</strong><span>Diviso &amp; Caldas</span></div>
-        </div>''',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown('<div class="sidebar-group-label">General</div>', unsafe_allow_html=True)
-    if st.button(
-        "⌂  Inicio",
-        key="nav_inicio",
-        width="stretch",
-        type="primary" if st.session_state.vista == "menu" else "secondary",
-    ):
-        cambiar_vista("menu")
-
-    st.markdown('<div class="sidebar-group-label">PAC y laboratorio</div>', unsafe_allow_html=True)
-    if st.button(
-        "◉  Recomendación PAC",
-        key="nav_recomendacion",
-        width="stretch",
-        type="primary" if st.session_state.vista == "recomendacion" else "secondary",
-    ):
-        cambiar_vista("recomendacion")
-    if st.button(
-        "∑  Calculadora PAC",
-        key="nav_calculadora",
-        width="stretch",
-        type="primary" if st.session_state.vista == "calculadora" else "secondary",
-    ):
-        cambiar_vista("calculadora")
-
-    st.markdown('<div class="sidebar-group-label">Sistema</div>', unsafe_allow_html=True)
-    if st.button(
-        "≈  Sistema hidráulico",
-        key="nav_hidraulico",
-        width="stretch",
-        type="primary" if st.session_state.vista == "despacho" else "secondary",
-    ):
-        cambiar_vista("despacho")
-    if st.button(
-        "▤  Documentos",
-        key="nav_documentos",
-        width="stretch",
-        type="primary" if st.session_state.vista == "documentos" else "secondary",
-    ):
-        cambiar_vista("documentos")
-
-    st.markdown(
-        '<div class="sidebar-note">Documentos protegidos por PIN. '
-        'Las credenciales y claves se leen desde Streamlit Secrets.</div>',
-        unsafe_allow_html=True,
-    )
-    iniciales = "DV" if str(planta_badge).lower().startswith("div") else "CL"
-    st.markdown(
-        f'''<div class="operator-card">
-            <div class="avatar">{iniciales}</div>
-            <div><strong>Operador {planta_badge}</strong><span>Sesión activa</span></div>
-        </div>''',
-        unsafe_allow_html=True,
-    )
-    if st.button("↗  Cerrar sesión", key="nav_cerrar_sesion", width="stretch"):
-        st.session_state.autenticado = False
-        st.session_state.vista = "menu"
-        st.session_state.planta_usuario = None
-        st.session_state.documentos_autorizado = False
-        st.session_state.documentos_admin_autorizado = False
+with col_hid:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">🏗️ Sistema hidráulico</div>
+        <div class="menu-pro-group-text">Evalúa niveles, volúmenes calculados, entradas, salidas, válvulas y tiempos de llenado o vaciado.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Sistema hidráulico", use_container_width=True, key="btn_ir_sistema_hidraulico", type="primary" if st.session_state.vista == "despacho" else "secondary"):
+        st.session_state.vista = "despacho"
         st.rerun()
 
+with col_doc:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">📄 Documentos</div>
+        <div class="menu-pro-group-text">Consulta instructivos PDF con PIN, visualiza páginas y descarga archivos.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Abrir documentos", use_container_width=True, key="btn_ir_documentos", type="primary" if st.session_state.vista == "documentos" else "secondary"):
+        st.session_state.vista = "documentos"
+        st.rerun()
+    st.markdown("<div class='menu-pro-mini-note'>Documentos protegidos por Secrets · Admin con carga/eliminación segura.</div>", unsafe_allow_html=True)
 
-fecha_actual = datetime.now().strftime("%d/%m/%Y")
-st.markdown(
-    f'''<div class="ptap-topbar">
-        <div>
-            <span class="topbar-kicker">Dirección de Producción y Tratamiento</span>
-            <div class="topbar-view">{nombre_vista_actual(st.session_state.vista)}</div>
-        </div>
-        <div class="topbar-tools">
-            <span class="topbar-chip date">{fecha_actual}</span>
-            <span class="topbar-chip plant">PTAP {planta_badge}</span>
-        </div>
-    </div>''',
-    unsafe_allow_html=True,
-)
+with col_sesion:
+    st.markdown("""
+    <div class="menu-pro-group">
+        <div class="menu-pro-group-title">👤 Sesión</div>
+        <div class="menu-pro-group-text">Control de acceso de la aplicación.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Inicio", type="secondary", use_container_width=True, key="btn_ir_inicio"):
+        st.session_state.vista = "menu"
+        st.rerun()
+    if st.button("Cerrar sesión", type="secondary", use_container_width=True, key="btn_cerrar_superior"):
+        st.session_state.autenticado    = False
+        st.session_state.vista          = "menu"
+        st.session_state.planta_usuario = None
+        st.session_state.documentos_autorizado = False
+        st.session_state.documentos_admin = False
+        st.rerun()
 
+if st.session_state.vista == "menu":
+    st.info("Selecciona una herramienta desde el centro de control operativo.")
 
-def mostrar_encabezado_vista(vista):
-    contenido = {
-        "recomendacion": (
-            "PAC Y LABORATORIO",
-            "Recomendación PAC",
-            "Compara las condiciones actuales con registros históricos y construye el rango para la prueba de jarras.",
-            "Base histórica",
-            "El resultado apoya la decisión del operador.",
-        ),
-        "calculadora": (
-            "CONSUMO DE COAGULANTE",
-            "Calculadora de PAC",
-            "Registra uno o varios periodos para calcular consumo, descenso y altura estimada del tanque.",
-            "Cálculo automático",
-            "Admite periodos que cruzan la medianoche.",
-        ),
-        "despacho": (
-            "NIVELES, CAUDALES Y BALANCE",
-            "Sistema hidráulico",
-            "Evalúa tanques, volúmenes calculados, entradas, salidas y recomendaciones de apoyo operativo.",
-            "Herramienta de apoyo",
-            "No controla válvulas ni equipos reales.",
-        ),
-        "documentos": (
-            "INSTRUCTIVOS Y REGISTROS",
-            "Documentos del sistema",
-            "Consulta PDF, visualiza páginas, descarga archivos y administra documentos con acceso protegido.",
-            "Protección por Secrets",
-            "Consulta y administración usan PIN separados.",
-        ),
-    }
-    eyebrow, titulo, descripcion, badge_titulo, badge_texto = contenido[vista]
-    st.markdown(
-        f'''<div class="ptap-page-head">
-            <div>
-                <span class="eyebrow">{eyebrow}</span>
-                <h1>{titulo}</h1>
-                <p>{descripcion}</p>
-            </div>
-            <div class="support-badge">
-                <b>i</b>
-                <div><strong>{badge_titulo}</strong><span>{badge_texto}</span></div>
-            </div>
-        </div>''',
-        unsafe_allow_html=True,
-    )
+st.markdown("</div>", unsafe_allow_html=True)
 
 
-def mostrar_inicio_operativo():
-    st.markdown(
-        f'''<section class="home-welcome">
-            <span class="eyebrow">CENTRO DE CONTROL OPERATIVO</span>
-            <h1>Operación clara.<br>Decisiones con respaldo.</h1>
-            <p>Herramientas de apoyo para las PTAP Diviso y Caldas, organizadas por proceso y listas para la jornada del operador.</p>
-            <div class="home-status-line">
-                <span>Sesión {planta_badge} activa</span>
-                <span>Datos protegidos por Secrets</span>
-                <span>Cálculos disponibles</span>
-            </div>
-        </section>''',
-        unsafe_allow_html=True,
-    )
-    st.markdown('<div class="home-section-title">¿Qué proceso vas a revisar?</div>', unsafe_allow_html=True)
-    c1, c2, c3, c4 = st.columns(4, gap="small")
-    tarjetas = [
-        (c1, "◉", "PAC Y LABORATORIO", "Recomendación PAC", "Históricos, rango PAC y dosis para prueba de jarras.", "recomendacion"),
-        (c2, "∑", "CONSUMO", "Calculadora PAC", "Consumo, descenso y altura estimada de TQ1, TQ2 y TQ3.", "calculadora"),
-        (c3, "≈", "BALANCE OPERATIVO", "Sistema hidráulico", "Niveles, volúmenes, caudales y tiempos de los tanques.", "despacho"),
-        (c4, "▤", "GESTIÓN CONTROLADA", "Documentos", "Consulta de instructivos y registros PDF protegidos.", "documentos"),
-    ]
-    for columna, icono, grupo, titulo, texto, vista in tarjetas:
-        with columna:
-            st.markdown(
-                f'''<div class="home-module-card">
-                    <span class="module-icon">{icono}</span>
-                    <small>{grupo}</small>
-                    <h3>{titulo}</h3>
-                    <p>{texto}</p>
-                </div>''',
-                unsafe_allow_html=True,
-            )
-            if st.button("Abrir módulo  →", key=f"home_{vista}", width="stretch"):
-                cambiar_vista(vista)
 
 
 # =========================================
 # VISTAS
 # =========================================
-if st.session_state.vista == "menu":
-    mostrar_inicio_operativo()
-    st.stop()
-
 if st.session_state.vista == "calculadora":
-    mostrar_encabezado_vista("calculadora")
     mostrar_calculadora_pac()
     st.stop()
  
 if st.session_state.vista == "despacho":
-    mostrar_encabezado_vista("despacho")
     mostrar_sistema_hidraulico()
     st.stop()
 
 if st.session_state.vista == "documentos":
-    mostrar_encabezado_vista("documentos")
     mostrar_documentos_sistema()
     st.stop()
  
 if st.session_state.vista != "recomendacion":
     st.stop()
-
-mostrar_encabezado_vista("recomendacion")
  
  
 # =========================================
@@ -6777,7 +5987,7 @@ with col_form:
         horizontal=False, label_visibility="collapsed", key="rec_fuente_datos"
     )
  
-    if st.button("Actualizar datos", key="actualizar_datos_lateral", width="stretch"):
+    if st.button("Actualizar datos", key="actualizar_datos_lateral", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
  
@@ -6811,17 +6021,17 @@ with col_form:
     st.markdown("<div class='bloque-mini'>", unsafe_allow_html=True)
     st.markdown("<div class='titulo-mini'>Datos del caso actual</div>", unsafe_allow_html=True)
  
-    st.number_input("Caudal a tratar (L/s)", step=1.0, key="rec_caudal")
-    st.number_input("Turbiedad del agua cruda (UNT)", step=0.1, key="rec_turbiedad")
-    st.number_input("pH del agua cruda", step=0.01, format="%.2f", key="rec_ph")
-    st.number_input("Alcalinidad del agua cruda (mg/L)", step=1.0, key="rec_alc_cruda")
+    st.number_input("Caudal a tratar (L/s)",           value=st.session_state.rec_caudal,    step=1.0,  key="rec_caudal")
+    st.number_input("Turbiedad del agua cruda (UNT)",  value=st.session_state.rec_turbiedad, step=0.1,  key="rec_turbiedad")
+    st.number_input("pH del agua cruda",               value=st.session_state.rec_ph,        step=0.01, format="%.2f", key="rec_ph")
+    st.number_input("Alcalinidad del agua cruda (mg/L)",   value=st.session_state.rec_alc_cruda, step=1.0,  key="rec_alc_cruda")
  
     if CONFIGS[config_key]["usa_alcalinidad_encalada"]:
-        st.number_input("Alcalinidad del agua encalada (mg/L)", step=1.0, key="rec_alc_enc")
+        st.number_input("Alcalinidad del agua encalada (mg/L)", value=st.session_state.rec_alc_enc, step=1.0, key="rec_alc_enc")
  
-    st.number_input("Densidad del PAC (g/mL)", step=0.01, format="%.2f", key="rec_densidad")
+    st.number_input("Densidad del PAC (g/mL)", value=st.session_state.rec_densidad, step=0.01, format="%.2f", key="rec_densidad")
     st.slider("Registros históricos a evaluar", min_value=5, max_value=30,
-              step=1, key="rec_vecinos")
+              value=st.session_state.rec_vecinos, step=1, key="rec_vecinos")
  
     caudal               = st.session_state.rec_caudal
     turbiedad            = st.session_state.rec_turbiedad
@@ -6831,7 +6041,7 @@ with col_form:
     densidad_pac         = st.session_state.rec_densidad
     vecinos_deseados     = st.session_state.rec_vecinos
  
-    if st.button("⚡ Calcular rango PAC", width="stretch", key="btn_calcular_panel"):
+    if st.button("⚡ Calcular rango PAC", use_container_width=True, key="btn_calcular_panel"):
         if df is not None:
             st.session_state.rec_resultado = calcular_rango_pac(
                 df=df, config_key=config_key, caudal=caudal, turbiedad=turbiedad,
@@ -6841,7 +6051,7 @@ with col_form:
         else:
             st.session_state.rec_resultado = None
  
-    if st.button("← Volver al menú", type="secondary", width="stretch", key="volver_menu_lateral"):
+    if st.button("← Volver al menú", type="secondary", use_container_width=True, key="volver_menu_lateral"):
         st.session_state.vista = "menu"
         st.rerun()
  
@@ -6937,6 +6147,6 @@ with col_result:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             margin=dict(l=20, r=20, t=50, b=20), height=360
         )
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
  
     st.markdown("</div>", unsafe_allow_html=True)
